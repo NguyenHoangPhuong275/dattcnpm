@@ -164,4 +164,19 @@ export interface ItineraryTransportTable {
   note: string | null;
 }
 
+export interface TripAccommodationTable {
+  id: number;
+  trip_id: number;
+  place_id: number | null;
+  name: string;
+  check_in: string;
+  check_out: string;
+  booking_ref: string | null;
+  cost: number | null;
+  currency: string;
+  note: string | null;
+  created_at: string;
+}
+
+
 
