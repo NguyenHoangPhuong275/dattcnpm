@@ -1,81 +1,64 @@
 # 3. THIẾT KẾ DỮ LIỆU MONGODB VÀ REDIS
 
 ## 3.1. Định hướng thiết kế dữ liệu
-Hệ thống sử dụng MongoDB theo mô hình Document Store. Các dữ liệu lớn hoặc có khả năng tăng nhanh như `itineraryItems`, `favoritePlaces`, `searchHistories` và `auditLogs` được tách collection riêng, liên kết bằng `ObjectId` để tránh document `trips` hoặc `users` quá lớn (vượt quá giới hạn 16MB của MongoDB) và giúp tối ưu hóa hiệu năng truy vấn.
+Hệ thống sử dụng MongoDB theo mô hình Document Store làm cơ sở dữ liệu chính. Dữ liệu được tổ chức dưới dạng các document linh hoạt, cho phép lưu trữ các trường dữ liệu động và không cấu trúc (chẳng hạn như dữ liệu tags, opening hours, và metadata của OpenStreetMap). Các chỉ mục (indexes) được tối ưu hóa cho các truy vấn quan trọng, đặc biệt là truy vấn không gian địa lý (geospatial query) và các quan hệ khóa ngoại (foreign key references) được duy trì ở tầng ứng dụng thông qua MongoDB ObjectId.
 
-## 3.2. Các collection chính
-| Collection | Trường chính | Ghi chú |
+## 3.2. Danh sách các Collections chính (18 collections)
+
+| Collection | Mô tả | Trường chính và kiểu dữ liệu |
 |---|---|---|
-| **users** | `_id`, `email`, `passwordHash`, `fullName`, `role`, `isLocked`, `preferences`, `createdAt`, `updatedAt` | Lưu tài khoản và phân quyền. `email` là unique, lowercase. `role` nhận giá trị `"USER"` hoặc `"ADMIN"`. |
-| **trips** | `_id`, `userId`, `title`, `destination`, `startDate`, `endDate`, `createdAt`, `updatedAt` | Lưu chuyến đi của user. `userId` là ObjectId tham chiếu đến `users`. |
-| **places** | `_id`, `osmId`, `name`, `type`, `lat`, `lng`, `address`, `images`, `tags`, `raw`, `createdAt` | Lưu địa điểm/POI lấy từ API ngoài hoặc do admin nhập. `osmId` dùng làm khóa kiểm tra trùng lặp từ OpenStreetMap. |
-| **itineraryItems** | `_id`, `tripId`, `placeId`, `day`, `orderIndex`, `note`, `startTime`, `endTime`, `createdAt` | Lưu từng mục lịch trình chi tiết trong chuyến đi. |
-| **favoritePlaces** | `_id`, `userId`, `placeId`, `createdAt` | Lưu địa điểm yêu thích của user. Ràng buộc unique index ghép cặp `{ userId, placeId }`. |
-| **searchHistories** | `_id`, `userId`, `query`, `lat`, `lng`, `createdAt` | Lưu lịch sử tìm kiếm địa danh của user. `userId` có thể `null` nếu là Guest. |
-| **auditLogs** | `_id`, `userId`, `action`, `targetType`, `targetId`, `metadata`, `createdAt` | Lưu nhật ký thao tác nghiệp vụ quan trọng nhằm mục đích giám sát hệ thống. |
+| **users** | Quản lý tài khoản người dùng và quản trị viên | `_id` (ObjectId), `email` (string), `passwordHash` (string), `fullName` (string), `avatarUrl` (string), `role` (enum), `isLocked` (boolean), `createdAt` (Date), `updatedAt` (Date), `deletedAt` (Date) |
+| **trips** | Quản lý thông tin hành trình/chuyến đi | `_id` (ObjectId), `userId` (ObjectId), `title` (string), `description` (string), `destination` (string), `startDate` (Date), `endDate` (Date), `isPublic` (boolean), `coverImage` (string), `metadata` (JSON), `createdAt` (Date), `updatedAt` (Date), `deletedAt` (Date) |
+| **places** | Bộ nhớ đệm địa điểm POI (ăn uống, tham quan, lưu trú) từ OSM | `_id` (ObjectId), `osmId` (string), `name` (string), `type` (string), `lat` (double), `lng` (double), `address` (string), `openingHours` (string), `images` (JSON array), `osmTags` (JSON object), `tags` (array), `ratingAvg` (double), `ratingCount` (int), `createdAt` (Date), `updatedAt` (Date) |
+| **itineraryItems** | Lịch trình chi tiết các địa điểm ghé thăm từng ngày | `_id` (ObjectId), `tripId` (ObjectId), `placeId` (ObjectId), `day` (int), `orderIndex` (int), `note` (string), `startTime` (Date), `endTime` (Date), `cost` (double), `currency` (string), `metadata` (JSON), `createdAt` (Date), `updatedAt` (Date) |
+| **favoritePlaces** | Danh sách địa điểm yêu thích của người dùng | `_id` (ObjectId), `userId` (ObjectId), `placeId` (ObjectId), `createdAt` (Date) |
+| **searchHistories** | Nhật ký tìm kiếm của người dùng và khách | `_id` (ObjectId), `userId` (ObjectId), `query` (string), `lat` (double), `lng` (double), `resultCount` (int), `metadata` (JSON), `createdAt` (Date) |
+| **auditLogs** | Nhật ký vận hành hệ thống | `_id` (ObjectId), `userId` (ObjectId), `action` (string), `targetType` (string), `targetId` (ObjectId), `metadata` (JSON), `createdAt` (Date) |
+| **reviews** | Đánh giá và bình luận về địa điểm, hỗ trợ trả lời theo luồng | `_id` (ObjectId), `userId` (ObjectId), `placeId` (ObjectId), `parentId` (ObjectId), `rating` (int), `comment` (string), `images` (JSON array), `createdAt` (Date), `updatedAt` (Date), `deletedAt` (Date) |
+| **tripShares** | Quản lý quyền chia sẻ chuyến đi (`READ`/`EDIT`) | `_id` (ObjectId), `tripId` (ObjectId), `sharedByUserId` (ObjectId), `sharedWithUserId` (ObjectId), `permission` (enum), `shareCode` (string), `expiresAt` (Date), `createdAt` (Date) |
+| **notifications** | Hệ thống thông báo gửi tới người dùng | `_id` (ObjectId), `userId` (ObjectId), `title` (string), `content` (string), `type` (enum), `isRead` (boolean), `actionUrl` (string), `metadata` (JSON), `createdAt` (Date) |
+| **tags** | Thẻ phân loại địa điểm du lịch | `_id` (ObjectId), `name` (string), `category` (string), `createdAt` (Date) |
+| **placeTags** | Bảng liên kết nhiều-nhiều giữa địa điểm và thẻ phân loại | `_id` (ObjectId), `placeId` (ObjectId), `tagId` (ObjectId) |
+| **userPreferences** | Điểm số sở thích chi tiết của người dùng | `_id` (ObjectId), `userId` (ObjectId), `tagId` (ObjectId), `preferenceScore` (double), `updatedAt` (Date) |
+| **tripBudgets** | Tổng hợp ngân sách chuyến đi theo hạng mục | `_id` (ObjectId), `tripId` (ObjectId), `category` (enum), `estimatedAmount` (double), `actualAmount` (double), `currency` (string), `note` (string), `createdAt` (Date) |
+| **itineraryTransports** | Phương tiện di chuyển giữa 2 điểm lịch trình | `_id` (ObjectId), `tripId` (ObjectId), `fromItemId` (ObjectId), `toItemId` (ObjectId), `transportMode` (enum), `durationMinutes` (int), `distanceKm` (double), `note` (string) |
+| **tripAccommodations** | Thông tin lưu trú (khách sạn/homestay) của chuyến đi | `_id` (ObjectId), `tripId` (ObjectId), `placeId` (ObjectId), `name` (string), `checkIn` (Date), `checkOut` (Date), `bookingRef` (string), `cost` (double), `currency` (string), `note` (string), `createdAt` (Date) |
+| **tripChecklists** | Danh sách việc cần chuẩn bị cho chuyến đi | `_id` (ObjectId), `tripId` (ObjectId), `label` (string), `isDone` (boolean), `dueDate` (Date), `createdAt` (Date) |
+| **userFollows** | Quan hệ theo dõi tài khoản giữa các thành viên | `_id` (ObjectId), `followerId` (ObjectId), `followingId` (ObjectId), `createdAt` (Date) |
 
 ## 3.3. Chỉ mục MongoDB (Indexes)
-| Collection | Index | Mục đích |
+
+| Collection | Chỉ mục (Indexes) | Mục đích |
 |---|---|---|
-| **users** | `{ email: 1 }` (unique) | Đăng nhập nhanh và tránh trùng lặp email khi đăng ký. |
-| **trips** | `{ userId: 1, startDate: -1 }` | Lấy nhanh danh sách chuyến đi của user sắp xếp theo thời gian mới nhất. |
-| **places** | `{ osmId: 1 }` (unique, sparse) | Tránh lưu trữ trùng lặp địa điểm lấy về từ API OpenStreetMap. |
-| **places** | `{ lat: 1, lng: 1 }` | Hỗ trợ truy vấn không gian địa lý hoặc tìm địa điểm theo tọa độ nhanh chóng. |
-| **favoritePlaces** | `{ userId: 1, placeId: 1 }` (unique) | Đảm bảo mỗi user chỉ có thể lưu một địa điểm vào danh sách yêu thích một lần duy nhất. |
-| **searchHistories** | `{ userId: 1, createdAt: -1 }` | Lấy lịch sử tìm kiếm mới nhất của người dùng một cách hiệu quả. |
-| **auditLogs** | `{ createdAt: -1 }` | Hỗ trợ admin truy vấn audit log mới nhất nhanh chóng. |
+| **users** | `{ email: 1 }` (unique) | Đăng nhập nhanh và chống trùng lặp email. |
+| **trips** | `{ userId: 1, startDate: -1 }` | Truy vấn các chuyến đi hoạt động của người dùng nhanh chóng. |
+| **places** | `{ osmId: 1 }` (unique, sparse) | Tránh trùng lặp khi đồng bộ từ OpenStreetMap. |
+| **places** | `{ lat: 1, lng: 1 }` | Tối ưu truy vấn không gian địa lý / tìm địa điểm gần đây. |
+| **favoritePlaces** | `{ userId: 1, placeId: 1 }` (unique) | Tránh người dùng yêu thích trùng lặp một địa điểm. |
+| **searchHistories** | `{ userId: 1, createdAt: -1 }` | Lấy lịch sử tìm kiếm mới nhất của thành viên. |
+| **auditLogs** | `{ createdAt: -1 }` | Quản trị viên truy vấn audit log mới nhất. |
+| **reviews** | `{ placeId: 1, createdAt: -1 }`, `{ userId: 1, createdAt: -1 }` | Hiển thị nhanh các đánh giá của địa điểm hoặc người dùng. |
+| **tripShares** | `{ tripId: 1 }`, `{ shareCode: 1 }` | Xác thực nhanh quyền truy cập liên kết chia sẻ. |
+| **notifications** | `{ userId: 1, isRead: 1, createdAt: -1 }` | Lấy thông báo chưa đọc của người dùng nhanh nhất. |
+| **userPreferences** | `{ userId: 1, tagId: 1 }` (unique) | Tối ưu hóa gợi ý địa điểm cá nhân hóa. |
+| **tripBudgets** | `{ tripId: 1 }` | Quản lý ngân sách chuyến đi. |
+| **itineraryTransports**| `{ tripId: 1 }`, `{ fromItemId: 1 }`, `{ toItemId: 1 }` | Tính toán lộ trình di chuyển. |
+| **tripAccommodations**| `{ tripId: 1 }` | Quản lý nơi ở của chuyến đi. |
+| **tripChecklists** | `{ tripId: 1 }` | Quản lý checklist chuyến đi. |
+| **userFollows** | `{ followerId: 1, followingId: 1 }` (unique) | Kiểm tra nhanh quan hệ follow của 2 người dùng. |
 
 ## 3.4. Kiến trúc Redis
-Redis được dùng làm lớp lưu trữ bộ đệm hiệu năng cao để giảm thiểu các lượt gọi API ngoài và hạn chế tần suất truy cập không mong muốn:
+Redis được sử dụng làm lớp lưu trữ bộ nhớ đệm (caching) và quản lý trạng thái phiên hoạt động hiệu năng cao:
 
-| Mục đích | Key mẫu | Value | TTL đề xuất |
-|---|---|---|---|
-| **Cache Geocoding** | `geo:search:{query}` | JSON kết quả tọa độ địa điểm tìm được | 24 giờ |
-| **Cache POI** | `poi:{lat}:{lng}:{radius}:{type}` | JSON danh sách POI (quán ăn, khách sạn, điểm du lịch) | 12 giờ |
-| **Cache thời tiết** | `weather:{lat}:{lng}` | JSON thông tin thời tiết hiện tại và dự báo | 15 - 30 phút |
-| **Rate limit đăng nhập** | `rl:login:{ip}` | Số lần thử đăng nhập thất bại | 5 - 15 phút |
-| **Rate limit tìm kiếm** | `rl:search:{ip}` | Số lượt tìm kiếm đã thực hiện | 1 - 5 phút |
-| **Blacklist token** | `blacklist:{jti}` | Giá trị `"1"` đánh dấu JWT bị thu hồi khi đăng xuất | Bằng thời gian hết hạn còn lại của JWT |
-| **Session** | `session:{sessionId}` | JSON chứa `userId`, `role` và thông tin phiên hoạt động | Theo cấu hình thời hạn phiên |
+| Mục đích | Key mẫu | Kiểu dữ liệu | TTL | Ghi chú |
+|---|---|---|---|---|
+| **Cache Geocoding** | `geo:search:{query}` | String (JSON) | 24 giờ | Giảm tải API Nominatim |
+| **Cache POI** | `poi:{lat}:{lng}:{radius}:{type}` | String (JSON) | 12 giờ | Giảm tải API Overpass |
+| **Cache thời tiết** | `weather:{lat}:{lng}` | String (JSON) | 15-30 phút | Giảm tải API OpenWeatherMap |
+| **Rate limit đăng nhập**| `rl:login:{ip}` | String (Counter) | 15 phút | Chống brute-force đăng nhập |
+| **Rate limit tìm kiếm**| `rl:search:{ip}` | String (Counter) | 1-5 phút | Giới hạn spam tìm kiếm |
+| **Session lưu trữ** | `session:{sessionId}` | String (JSON) | Tùy chỉnh | Lưu thông tin phiên đăng nhập |
+| **Thu hồi JWT Token** | `blacklist:{jti}` | String | Theo hạn JWT | Quản lý đăng xuất an toàn |
 
-## 3.5. Schema TypeScript (tham khảo)
-
-**Canonical source:** `src/database/schema.ts`
-
-File này chứa toàn bộ định nghĩa document MongoDB + cấu trúc Redis cache, đã được mở rộng để hỗ trợ đầy đủ nghiệp vụ theo SRS (reviews, trip sharing, notifications, budgeting, accommodations, transport legs, checklists, tagging cho gợi ý, user follow...).
-
-Ví dụ nhanh (xem file đầy đủ để có tất cả 18+ interface + comments index + Redis key helpers):
-
-```typescript
-import type { ObjectId } from 'mongodb';
-
-export interface User {
-  _id: ObjectId;
-  email: string;
-  passwordHash: string;
-  fullName: string;
-  avatarUrl?: string | null;
-  role: 'USER' | 'ADMIN';
-  isLocked: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date | null;
-}
-
-export interface Trip { /* ... */ }
-export interface Place { /* flexible osmTags + tags cho recs */ }
-export interface ItineraryItem { /* ... */ }
-// + Review, TripShare, Notification, TripBudget, TripAccommodation, 
-//   ItineraryTransport, TripChecklist, UserFollow, Tag, UserPreference, ...
-```
-
-**Redis** (key patterns + value types) cũng được định nghĩa trong cùng file (xem `RedisKey`, `CachedGeoResult`, `CachedPOI`, `CachedWeather`, `SessionData`, v.v.).
-
-### 3.5.1. Indexes khuyến nghị
-Đã comment ngay trong `src/database/schema.ts` (users.email unique, trips.userId+startDate, places 2dsphere + osmId, favoritePlaces composite unique, v.v.).
-
-### 3.5.2. Lưu ý khi implement
-- Dùng Mongoose hoặc mongodb driver native.
-- Soft delete qua `deletedAt`.
-- Giữ document size nhỏ (tách itineraryItems, budgets... thành collection riêng như quyết định ban đầu).
-- Luôn đi qua API route của Next.js để cache Redis + rate limit.
+## 3.5. Schema TypeScript tham khảo
+Các interface TypeScript tương ứng biểu diễn cấu trúc dữ liệu của database được lưu trữ tại **[src/database/schema.ts](../src/database/schema.ts)** (nguồn chính xác duy nhất, đã được mở rộng hỗ trợ đầy đủ nghiệp vụ).
