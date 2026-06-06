@@ -178,5 +178,15 @@ export interface TripAccommodationTable {
   created_at: string;
 }
 
+export interface TripChecklistTable {
+  id: number;
+  trip_id: number;
+  label: string;
+  is_done: boolean;
+  due_date: string | null;
+  created_at: string;
+}
+
+
 
 
