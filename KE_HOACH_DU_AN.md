@@ -30,8 +30,9 @@
 | Framework | Next.js (App Router) + React + TypeScript | Full-stack trong 1 codebase |
 | Giao diện | Tailwind CSS | Responsive, gọn |
 | Bản đồ | Leaflet + React-Leaflet | Hiển thị map, marker, tuyến đường |
-| Cơ sở dữ liệu | SQLite (qua Prisma) | Đơn giản cho 1 người; dễ chuyển sang Postgres/Mongo nếu cần |
-| ORM | Prisma | Sinh schema, migrate, query type-safe |
+| Cơ sở dữ liệu chính | MongoDB (Document Store) | Linh hoạt với dữ liệu POI/OSM, hỗ trợ geospatial index mạnh |
+| ORM / ODM | Mongoose (khuyến nghị) hoặc mongodb driver | Kết nối Singleton, schema linh hoạt |
+| Cache / Rate Limit / Session | Redis | Cache API bên thứ ba, rate limit, token blacklist, session |
 | Xác thực | JWT (HttpOnly cookie) + bcrypt | Đăng nhập/đăng ký |
 | Kiểm thử | Vitest | Unit test cho logic & API |
 | Validation | Zod | Kiểm tra dữ liệu đầu vào |
@@ -94,23 +95,36 @@
 
 ---
 
-## 5. Mô hình dữ liệu (ERD sơ bộ)
+## 5. Mô hình dữ liệu (Logical Model)
+
+**Lưu ý:** Dự án sử dụng **MongoDB (Document Store)**. Mô hình dưới đây là logical view (đơn giản hóa). Thực tế dùng `ObjectId` tham chiếu giữa các collection độc lập (để tránh document quá lớn) + flexible fields (tags, metadata, osmTags...).
+
+Xem chi tiết + indexes + Redis keys tại:
+- `docs/03_DATA_MODEL.md`
+- `src/database/schema.ts` (nguồn types chính thức)
 
 ```
-User (id, email, passwordHash, fullName, role, createdAt)
-  └─< Trip (id, userId, title, destination, startDate, endDate, createdAt)
-        └─< ItineraryItem (id, tripId, day, placeId, note, orderIndex)
-  └─< FavoritePlace (id, userId, name, type, lat, lng, createdAt)
-  └─< SearchHistory (id, userId, query, createdAt)
+User
+  └─< Trip
+        └─< ItineraryItem (ref Place)
+  └─< FavoritePlace (ref Place)
+  └─< SearchHistory
+  └─< Review (ref Place)
+  └─< UserFollow
 
-Place (cache) (id, osmId, name, type, lat, lng, raw)   -- cache POI từ Overpass
-AuditLog (id, userId, action, targetType, targetId, createdAt)
+Place (cache POI từ Overpass + dữ liệu OSM phong phú)
+Tag / PlaceTag / UserPreference   (hỗ trợ gợi ý rule-based)
+
+TripBudget / TripAccommodation / ItineraryTransport / TripChecklist   (nghiệp vụ chi tiết)
+TripShare / Notification
+
+AuditLog
 ```
 
-Quan hệ chính:
-- 1 User có nhiều Trip, FavoritePlace, SearchHistory
-- 1 Trip có nhiều ItineraryItem (mỗi item gắn 1 địa điểm vào 1 ngày)
-- Place dùng làm cache để giảm số lần gọi Overpass
+Quan hệ chính (tham chiếu bằng ObjectId ở tầng app):
+- 1 User có nhiều Trip, Favorite, SearchHistory, Review, Follow...
+- 1 Trip có nhiều ItineraryItem, Budget, Accommodation, Checklist...
+- Place dùng làm cache + nguồn dữ liệu POI chung.
 
 ---
 
@@ -120,11 +134,16 @@ Quan hệ chính:
 [ Trình duyệt (React UI) ]
         │  fetch
         ▼
-[ Next.js Route Handlers (API) ]  ── xác thực JWT, validate Zod
-        │                              │
-        │ Prisma                       │ gọi server-side + cache
-        ▼                              ▼
-[ SQLite Database ]            [ API ngoài: OSM/Overpass/OSRM/Weather ]
+[ Next.js Route Handlers (API) ]  ── xác thực JWT, validate Zod, xử lý lỗi
+        │
+        ├── Mongoose / MongoDB driver
+        │
+        ▼
+[ MongoDB (collections: users, trips, places, itineraryItems, reviews, ... ) ]
+        │
+        └── Redis (cache: geo:search:*, poi:*, weather:* | rate limit | session | blacklist)
+                    │
+                    └── Gọi API ngoài (Nominatim, Overpass, OpenWeatherMap, OSRM) khi cache miss
 ```
 
 Nguyên tắc:
@@ -139,14 +158,15 @@ Nguyên tắc:
 ### Tuần 1 — Phân tích & Thiết kế
 - Viết đặc tả yêu cầu (SRS): mô tả chức năng, actor, ràng buộc
 - Vẽ sơ đồ Use Case
-- Thiết kế ERD chi tiết + từ điển dữ liệu
+- Thiết kế Data Model MongoDB (theo 03_DATA_MODEL.md) + Redis + tham chiếu đến src/database/schema.ts (nguồn types)
 - Vẽ sơ đồ tuần tự (Sequence) cho 2-3 luồng chính (đăng nhập, tạo chuyến đi, tìm địa điểm)
-- Chốt công nghệ, khởi tạo project, cấu hình Prisma + SQLite
+- Chốt công nghệ, khởi tạo project, cấu hình MongoDB + Redis (docker-compose) + Mongoose
 - **Sản phẩm:** tài liệu thiết kế + project khung chạy được "Hello World"
 
 ### Tuần 2 — Nền tảng & Xác thực
-- Dựng schema Prisma + migrate
-- Chức năng đăng ký / đăng nhập / đăng xuất / đổi mật khẩu
+- Tạo Mongoose schemas (theo src/database/schema.ts)
+- Chức năng đăng ký / đăng nhập / đăng xuất / đổi mật khẩu + rate limit Redis
+- Kết nối MongoDB (Singleton) + Redis client
 - Middleware bảo vệ route, phân quyền User/Admin
 - Layout chung, trang chủ
 - **Sản phẩm:** đăng nhập hoạt động, có phân quyền
