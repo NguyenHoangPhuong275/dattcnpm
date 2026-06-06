@@ -6,7 +6,6 @@ export interface UserTable {
   avatar_url: string | null;
   role: 'USER' | 'ADMIN';
   is_locked: boolean;
-  preferences: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -21,7 +20,6 @@ export interface TripTable {
   start_date: string;
   end_date: string;
   is_public: boolean;
-  share_code: string | null;
   cover_image: string | null;
   metadata: string | null;
   created_at: string;
@@ -56,6 +54,7 @@ export interface ItineraryItemTable {
   start_time: string | null;
   end_time: string | null;
   cost: number | null;
+  currency: string | null;
   metadata: string | null;
   created_at: string;
   updated_at: string;
@@ -74,6 +73,7 @@ export interface SearchHistoryTable {
   query: string;
   lat: number | null;
   lng: number | null;
+  result_count: number | null;
   metadata: string | null;
   created_at: string;
 }
@@ -92,6 +92,7 @@ export interface ReviewTable {
   id: number;
   user_id: number;
   place_id: number;
+  parent_id: number | null;
   rating: number;
   comment: string | null;
   images: string | null;
@@ -118,6 +119,7 @@ export interface NotificationTable {
   content: string;
   type: 'TRIP_SHARE' | 'SYSTEM' | 'WEATHER_ALERT' | 'RECOMMENDATION';
   is_read: boolean;
+  action_url: string | null;
   metadata: string | null;
   created_at: string;
 }
@@ -187,6 +189,9 @@ export interface TripChecklistTable {
   created_at: string;
 }
 
-
-
-
+export interface UserFollowTable {
+  id: number;
+  follower_id: number;
+  following_id: number;
+  created_at: string;
+}
