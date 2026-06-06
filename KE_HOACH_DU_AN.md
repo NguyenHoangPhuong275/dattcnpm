@@ -12,7 +12,7 @@
 
 ### Lý do chọn đề tài
 - Lõi kỹ thuật là **tích hợp nhiều API thật** (bản đồ, định tuyến, thời tiết) — đúng sở trường về API/network.
-- Có **lớp nghiệp vụ quản lý** (tài khoản, chuyến đi, lịch trình) đủ dày để thể hiện trọn quy trình CNPM: phân tích yêu cầu, thiết kế (use case, ERD, sequence), lập trình, kiểm thử, tài liệu.
+- Có **lớp nghiệp vụ quản lý** (tài khoản, chuyến đi, lịch trình) đủ dày để thể hiện trọn quy trình CNPM: phân tích yêu cầu, thiết kế (use case, data model MongoDB, sequence), lập trình, kiểm thử, tài liệu.
 - **Không phụ thuộc emulator/ảo hóa** (máy phát triển không chạy được emulator Android) — web chạy trực tiếp trên trình duyệt, vòng lặp phát triển và kiểm thử khép kín.
 - Tận dụng kinh nghiệm/nền tảng web sẵn có để rút ngắn thời gian.
 
@@ -95,13 +95,13 @@
 
 ---
 
-## 5. Mô hình dữ liệu (Logical Model)
+## 5. Mô hình dữ liệu (Logical Model - MongoDB)
 
-**Lưu ý:** Dự án sử dụng **MongoDB (Document Store)**. Mô hình dưới đây là logical view (đơn giản hóa). Thực tế dùng `ObjectId` tham chiếu giữa các collection độc lập (để tránh document quá lớn) + flexible fields (tags, metadata, osmTags...).
+**Lưu ý:** Dự án sử dụng **MongoDB (Document Store)** làm database chính + **Redis** cho cache, session và rate limit. Mô hình dưới đây là logical view (đơn giản hóa). Thực tế dùng `ObjectId` tham chiếu giữa các collection độc lập (để tránh document quá lớn) + flexible fields (tags, metadata, osmTags...).
 
-Xem chi tiết + indexes + Redis keys tại:
-- `docs/03_DATA_MODEL.md`
+Schema TypeScript đầy đủ (kể cả các nghiệp vụ bổ sung như review, budget, accommodation, transport, checklist, share, notification, tagging...) nằm tại:
 - `src/database/schema.ts` (nguồn types chính thức)
+- `docs/03_DATA_MODEL.md` (chi tiết collection + index + Redis keys)
 
 ```
 User
@@ -217,6 +217,6 @@ Nguyên tắc:
 - Tất cả chức năng ở mục 4.1–4.4 chạy được
 - Có phân quyền User/Admin
 - Có bộ unit test cho logic và API chính, chạy pass
-- Có đầy đủ tài liệu: SRS, Use Case, ERD, Sequence
+- Có đầy đủ tài liệu: SRS, Use Case, Data Model (MongoDB), Sequence
 - Demo được luồng: đăng nhập → tìm địa điểm → tạo chuyến đi → lập lịch trình → xem thời tiết
 - Báo cáo + slide hoàn chỉnh
