@@ -141,3 +141,15 @@ export interface UserPreferenceTable {
   preference_score: number;
   updated_at: string;
 }
+
+export interface TripBudgetTable {
+  id: number;
+  trip_id: number;
+  category: 'TRANSPORT' | 'ACCOMMODATION' | 'FOOD' | 'ACTIVITY' | 'OTHER';
+  estimated_amount: number;
+  actual_amount: number | null;
+  currency: string;
+  note: string | null;
+  created_at: string;
+}
+
