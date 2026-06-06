@@ -38,82 +38,44 @@ Redis được dùng làm lớp lưu trữ bộ đệm hiệu năng cao để gi
 | **Blacklist token** | `blacklist:{jti}` | Giá trị `"1"` đánh dấu JWT bị thu hồi khi đăng xuất | Bằng thời gian hết hạn còn lại của JWT |
 | **Session** | `session:{sessionId}` | JSON chứa `userId`, `role` và thông tin phiên hoạt động | Theo cấu hình thời hạn phiên |
 
-## 3.5. Schema TypeScript tham khảo
-```typescript
-import { ObjectId } from "mongodb";
+## 3.5. Schema TypeScript (tham khảo)
 
-export type User = {
+**Canonical source:** `src/database/schema.ts`
+
+File này chứa toàn bộ định nghĩa document MongoDB + cấu trúc Redis cache, đã được mở rộng để hỗ trợ đầy đủ nghiệp vụ theo SRS (reviews, trip sharing, notifications, budgeting, accommodations, transport legs, checklists, tagging cho gợi ý, user follow...).
+
+Ví dụ nhanh (xem file đầy đủ để có tất cả 18+ interface + comments index + Redis key helpers):
+
+```typescript
+import type { ObjectId } from 'mongodb';
+
+export interface User {
   _id: ObjectId;
   email: string;
   passwordHash: string;
   fullName: string;
-  role: "USER" | "ADMIN";
+  avatarUrl?: string | null;
+  role: 'USER' | 'ADMIN';
   isLocked: boolean;
-  preferences?: string[];
   createdAt: Date;
   updatedAt: Date;
-};
+  deletedAt?: Date | null;
+}
 
-export type Trip = {
-  _id: ObjectId;
-  userId: ObjectId;
-  title: string;
-  destination: string;
-  startDate: Date;
-  endDate: Date;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type ItineraryItem = {
-  _id: ObjectId;
-  tripId: ObjectId;
-  placeId: ObjectId;
-  day: number;
-  orderIndex: number;
-  note?: string;
-  startTime?: Date;
-  endTime?: Date;
-  createdAt: Date;
-};
-
-export type Place = {
-  _id: ObjectId;
-  osmId?: string;
-  name: string;
-  type: string;
-  lat: number;
-  lng: number;
-  address?: string;
-  images?: string[];
-  tags?: string[];
-  raw?: Record<string, any>;
-  createdAt: Date;
-};
-
-export type FavoritePlace = {
-  _id: ObjectId;
-  userId: ObjectId;
-  placeId: ObjectId;
-  createdAt: Date;
-};
-
-export type SearchHistory = {
-  _id: ObjectId;
-  userId?: ObjectId;
-  query: string;
-  lat?: number;
-  lng?: number;
-  createdAt: Date;
-};
-
-export type AuditLog = {
-  _id: ObjectId;
-  userId?: ObjectId;
-  action: string;
-  targetType: string;
-  targetId?: ObjectId;
-  metadata?: Record<string, any>;
-  createdAt: Date;
-};
+export interface Trip { /* ... */ }
+export interface Place { /* flexible osmTags + tags cho recs */ }
+export interface ItineraryItem { /* ... */ }
+// + Review, TripShare, Notification, TripBudget, TripAccommodation, 
+//   ItineraryTransport, TripChecklist, UserFollow, Tag, UserPreference, ...
 ```
+
+**Redis** (key patterns + value types) cũng được định nghĩa trong cùng file (xem `RedisKey`, `CachedGeoResult`, `CachedPOI`, `CachedWeather`, `SessionData`, v.v.).
+
+### 3.5.1. Indexes khuyến nghị
+Đã comment ngay trong `src/database/schema.ts` (users.email unique, trips.userId+startDate, places 2dsphere + osmId, favoritePlaces composite unique, v.v.).
+
+### 3.5.2. Lưu ý khi implement
+- Dùng Mongoose hoặc mongodb driver native.
+- Soft delete qua `deletedAt`.
+- Giữ document size nhỏ (tách itineraryItems, budgets... thành collection riêng như quyết định ban đầu).
+- Luôn đi qua API route của Next.js để cache Redis + rate limit.

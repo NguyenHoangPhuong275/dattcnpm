@@ -1,197 +1,340 @@
-export interface UserTable {
-  id: number;
-  email: string;
-  password_hash: string;
-  full_name: string;
-  avatar_url: string | null;
+/**
+ * MongoDB Document Schemas + Redis Cache Structures
+ * 
+ * This file defines the TypeScript types for the database layer.
+ * 
+ * ARCHITECTURE DECISION (per docs/01_SRS.md + docs/03_DATA_MODEL.md):
+ * - Primary DB: MongoDB (Document Store) — flexible for OSM/POI data, geospatial queries.
+ * - Cache / Session / Rate Limit: Redis.
+ * - NO SQLite, NO Prisma in current design.
+ * 
+ * Naming: camelCase (matching the "Schema TypeScript tham khảo" in 03_DATA_MODEL.md).
+ * Dates: native Date objects (driver will handle).
+ * Soft deletes: deletedAt where applicable.
+ * Flexible data: metadata / osmTags use Record<string, unknown>.
+ * 
+ * Indexes are noted in comments (to be created in MongoDB setup / Mongoose).
+ * 
+ * See also:
+ * - docs/03_DATA_MODEL.md for the minimal reference + Redis key table.
+ * - docs/01_SRS.md for full functional requirements (FR-01 to FR-17).
+ */
+
+/**
+ * ID type for MongoDB documents.
+ * 
+ * Currently a plain string to avoid requiring the 'mongodb' package at this stage
+ * of the project (see package.json / installation when you add the driver or Mongoose).
+ * 
+ * When you install the driver:
+ *   1. npm install mongodb   (or mongoose)
+ *   2. Change to: import type { ObjectId } from 'mongodb';
+ *   3. Replace `MongoId` with `ObjectId` (or keep MongoId as a project-wide alias).
+ */
+export type MongoId = string;
+
+// ============================================================
+// MONGOOSE / MONGODB DOCUMENT INTERFACES
+// ============================================================
+
+export interface User {
+  _id: MongoId;
+  email: string;                 // unique, lowercase
+  passwordHash: string;
+  fullName: string;
+  avatarUrl?: string | null;
   role: 'USER' | 'ADMIN';
-  is_locked: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  isLocked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
 }
 
-export interface TripTable {
-  id: number;
-  user_id: number;
+export interface Trip {
+  _id: MongoId;
+  userId: MongoId;
   title: string;
-  description: string | null;
+  description?: string | null;
   destination: string;
-  start_date: string;
-  end_date: string;
-  is_public: boolean;
-  cover_image: string | null;
-  metadata: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  startDate: Date;
+  endDate: Date;
+  isPublic: boolean;
+  coverImage?: string | null;
+  metadata?: Record<string, unknown> | null; // e.g. total cost summary, stats
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
 }
 
-export interface PlaceTable {
-  id: number;
-  osm_id: string | null;
+export interface Place {
+  _id: MongoId;
+  osmId?: string | null;                 // for dedup from OpenStreetMap
   name: string;
-  type: string;
+  type: string;                          // restaurant | hotel | attraction | ...
   lat: number;
   lng: number;
-  address: string | null;
-  opening_hours: string | null;
-  images: string | null;
-  osm_tags: string | null;
-  rating_avg: number;
-  rating_count: number;
-  created_at: string;
-  updated_at: string;
+  address?: string | null;
+  openingHours?: string | null;
+  images?: string[] | null;
+  osmTags?: Record<string, unknown> | null; // raw OSM tags (flexible)
+  tags?: string[] | null;                // normalized tags for recommendation
+  ratingAvg: number;
+  ratingCount: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface ItineraryItemTable {
-  id: number;
-  trip_id: number;
-  place_id: number;
-  day: number;
-  order_index: number;
-  note: string | null;
-  start_time: string | null;
-  end_time: string | null;
-  cost: number | null;
-  currency: string | null;
-  metadata: string | null;
-  created_at: string;
-  updated_at: string;
+export interface ItineraryItem {
+  _id: MongoId;
+  tripId: MongoId;
+  placeId: MongoId;
+  day: number;                           // 1-based day of the trip
+  orderIndex: number;
+  note?: string | null;
+  startTime?: Date | null;
+  endTime?: Date | null;
+  cost?: number | null;
+  currency?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface FavoritePlaceTable {
-  id: number;
-  user_id: number;
-  place_id: number;
-  created_at: string;
+export interface FavoritePlace {
+  _id: MongoId;
+  userId: MongoId;
+  placeId: MongoId;
+  createdAt: Date;
 }
 
-export interface SearchHistoryTable {
-  id: number;
-  user_id: number | null;
+export interface SearchHistory {
+  _id: MongoId;
+  userId?: MongoId | null;              // null for guests
   query: string;
-  lat: number | null;
-  lng: number | null;
-  result_count: number | null;
-  metadata: string | null;
-  created_at: string;
+  lat?: number | null;
+  lng?: number | null;
+  resultCount?: number | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
 }
 
-export interface AuditLogTable {
-  id: number;
-  user_id: number | null;
-  action: string;
-  target_type: string;
-  target_id: number | null;
-  metadata: string | null;
-  created_at: string;
+export interface AuditLog {
+  _id: MongoId;
+  userId?: MongoId | null;
+  action: string;                        // e.g. 'CREATE_TRIP', 'UPDATE_PLACE', 'LOGIN'
+  targetType: string;                    // 'Trip' | 'Place' | 'User' | ...
+  targetId?: MongoId | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
 }
 
-export interface ReviewTable {
-  id: number;
-  user_id: number;
-  place_id: number;
-  parent_id: number | null;
-  rating: number;
-  comment: string | null;
-  images: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+export interface Review {
+  _id: MongoId;
+  userId: MongoId;
+  placeId: MongoId;
+  parentId?: MongoId | null;            // for threaded comments/replies
+  rating: number;                        // 1-5
+  comment?: string | null;
+  images?: string[] | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;
 }
 
-export interface TripShareTable {
-  id: number;
-  trip_id: number;
-  shared_by_user_id: number;
-  shared_with_user_id: number | null;
+export interface TripShare {
+  _id: MongoId;
+  tripId: MongoId;
+  sharedByUserId: MongoId;
+  sharedWithUserId?: MongoId | null;    // null = share via code (public link)
   permission: 'READ' | 'EDIT';
-  share_code: string | null;
-  expires_at: string | null;
-  created_at: string;
+  shareCode?: string | null;             // for unauthenticated share links
+  expiresAt?: Date | null;
+  createdAt: Date;
 }
 
-export interface NotificationTable {
-  id: number;
-  user_id: number;
+export interface Notification {
+  _id: MongoId;
+  userId: MongoId;
   title: string;
   content: string;
   type: 'TRIP_SHARE' | 'SYSTEM' | 'WEATHER_ALERT' | 'RECOMMENDATION';
-  is_read: boolean;
-  action_url: string | null;
-  metadata: string | null;
-  created_at: string;
+  isRead: boolean;
+  actionUrl?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
 }
 
-export interface TagTable {
-  id: number;
+export interface Tag {
+  _id: MongoId;
   name: string;
-  category: string;
-  created_at: string;
+  category: string;                      // e.g. 'cuisine', 'activity', 'mood'
+  createdAt: Date;
 }
 
-export interface PlaceTagTable {
-  place_id: number;
-  tag_id: number;
+// Join collection for many-to-many (or can be embedded in Place if small)
+export interface PlaceTag {
+  _id?: MongoId;
+  placeId: MongoId;
+  tagId: MongoId;
 }
 
-export interface UserPreferenceTable {
-  id: number;
-  user_id: number;
-  tag_id: number;
-  preference_score: number;
-  updated_at: string;
+export interface UserPreference {
+  _id: MongoId;
+  userId: MongoId;
+  tagId: MongoId;
+  preferenceScore: number;               // e.g. 0-100 for rule-based recs (FR-13a)
+  updatedAt: Date;
 }
 
-export interface TripBudgetTable {
-  id: number;
-  trip_id: number;
+export interface TripBudget {
+  _id: MongoId;
+  tripId: MongoId;
   category: 'TRANSPORT' | 'ACCOMMODATION' | 'FOOD' | 'ACTIVITY' | 'OTHER';
-  estimated_amount: number;
-  actual_amount: number | null;
+  estimatedAmount: number;
+  actualAmount?: number | null;
   currency: string;
-  note: string | null;
-  created_at: string;
+  note?: string | null;
+  createdAt: Date;
 }
 
-export interface ItineraryTransportTable {
-  id: number;
-  trip_id: number;
-  from_item_id: number;
-  to_item_id: number;
-  transport_mode: 'WALK' | 'BIKE' | 'CAR' | 'BUS' | 'TAXI' | 'OTHER';
-  duration_minutes: number | null;
-  distance_km: number | null;
-  note: string | null;
+export interface ItineraryTransport {
+  _id: MongoId;
+  tripId: MongoId;
+  fromItemId: MongoId;                  // previous ItineraryItem
+  toItemId: MongoId;                    // next ItineraryItem
+  transportMode: 'WALK' | 'BIKE' | 'CAR' | 'BUS' | 'TAXI' | 'OTHER';
+  durationMinutes?: number | null;
+  distanceKm?: number | null;
+  note?: string | null;
 }
 
-export interface TripAccommodationTable {
-  id: number;
-  trip_id: number;
-  place_id: number | null;
+export interface TripAccommodation {
+  _id: MongoId;
+  tripId: MongoId;
+  placeId?: MongoId | null;             // link to a Place if it's a known POI
   name: string;
-  check_in: string;
-  check_out: string;
-  booking_ref: string | null;
-  cost: number | null;
+  checkIn: Date;
+  checkOut: Date;
+  bookingRef?: string | null;
+  cost?: number | null;
   currency: string;
-  note: string | null;
-  created_at: string;
+  note?: string | null;
+  createdAt: Date;
 }
 
-export interface TripChecklistTable {
-  id: number;
-  trip_id: number;
+export interface TripChecklist {
+  _id: MongoId;
+  tripId: MongoId;
   label: string;
-  is_done: boolean;
-  due_date: string | null;
-  created_at: string;
+  isDone: boolean;
+  dueDate?: Date | null;
+  createdAt: Date;
 }
 
-export interface UserFollowTable {
-  id: number;
-  follower_id: number;
-  following_id: number;
-  created_at: string;
+export interface UserFollow {
+  _id: MongoId;
+  followerId: MongoId;
+  followingId: MongoId;
+  createdAt: Date;
 }
+
+// ============================================================
+// REDIS STRUCTURES (per docs/03_DATA_MODEL.md)
+// ============================================================
+
+/**
+ * Redis is used for:
+ * - API response caching (geocoding, POI, weather) to respect rate limits of free tiers.
+ * - Rate limiting (login, search).
+ * - Session storage + JWT token blacklist (for logout/invalidation).
+ */
+
+export interface CachedGeoResult {
+  query: string;
+  lat: number;
+  lng: number;
+  displayName?: string;
+  // additional normalized fields as needed
+}
+
+export interface CachedPOI {
+  lat: number;
+  lng: number;
+  radius: number;
+  type?: string;
+  places: Array<Pick<Place, '_id' | 'name' | 'type' | 'lat' | 'lng' | 'address'>>;
+}
+
+export interface CachedWeather {
+  lat: number;
+  lng: number;
+  current: Record<string, unknown>;
+  forecast?: Record<string, unknown>[];
+  fetchedAt: Date;
+}
+
+export interface RateLimitEntry {
+  count: number;
+  firstAttempt: number; // timestamp
+}
+
+export interface SessionData {
+  userId: string; // MongoId as string
+  role: 'USER' | 'ADMIN';
+  // any other session claims
+}
+
+export interface BlacklistEntry {
+  // value is usually just "1" or a small marker
+  reason?: string;
+}
+
+// Key pattern helpers (use these when reading/writing Redis to keep consistency)
+export const RedisKey = {
+  geoSearch: (query: string) => `geo:search:${encodeURIComponent(query)}`,
+  poi: (lat: number, lng: number, radius: number, type = 'all') =>
+    `poi:${lat.toFixed(4)}:${lng.toFixed(4)}:${radius}:${type}`,
+  weather: (lat: number, lng: number) => `weather:${lat.toFixed(4)}:${lng.toFixed(4)}`,
+  rateLimitLogin: (ip: string) => `rl:login:${ip}`,
+  rateLimitSearch: (ip: string) => `rl:search:${ip}`,
+  session: (sessionId: string) => `session:${sessionId}`,
+  tokenBlacklist: (jti: string) => `blacklist:${jti}`,
+} as const;
+
+// ============================================================
+// INDEX RECOMMENDATIONS (implement in setup / Mongoose schema)
+// ============================================================
+//
+// users:       { email: 1 } (unique)
+// trips:       { userId: 1, startDate: -1 }
+// places:      { osmId: 1 } (unique, sparse)
+// places:      { lat: 1, lng: 1 }  + 2dsphere index on { location: "2dsphere" } (add a GeoJSON field if doing advanced queries)
+// places:      { tags: 1 }
+// favoritePlaces: { userId: 1, placeId: 1 } (unique)
+// searchHistories: { userId: 1, createdAt: -1 }
+// auditLogs:   { createdAt: -1 }
+// reviews:     { placeId: 1, createdAt: -1 }
+// tripShares:  { tripId: 1 }
+// notifications: { userId: 1, isRead: 1, createdAt: -1 }
+// userFollows: { followerId: 1 }, { followingId: 1 }
+// (add more as features grow)
+
+export type MongoDocument =
+  | User
+  | Trip
+  | Place
+  | ItineraryItem
+  | FavoritePlace
+  | SearchHistory
+  | AuditLog
+  | Review
+  | TripShare
+  | Notification
+  | Tag
+  | PlaceTag
+  | UserPreference
+  | TripBudget
+  | ItineraryTransport
+  | TripAccommodation
+  | TripChecklist
+  | UserFollow;
