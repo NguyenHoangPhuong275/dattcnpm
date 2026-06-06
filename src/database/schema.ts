@@ -153,3 +153,15 @@ export interface TripBudgetTable {
   created_at: string;
 }
 
+export interface ItineraryTransportTable {
+  id: number;
+  trip_id: number;
+  from_item_id: number;
+  to_item_id: number;
+  transport_mode: 'WALK' | 'BIKE' | 'CAR' | 'BUS' | 'TAXI' | 'OTHER';
+  duration_minutes: number | null;
+  distance_km: number | null;
+  note: string | null;
+}
+
+
