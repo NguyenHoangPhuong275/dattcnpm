@@ -14,7 +14,9 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "clean": "rm -rf .next node_modules/.cache",
-    "prepare": "echo 'Project ready'"
+    "prepare": "echo 'Project ready'",
+    "db:check": "echo '👉 Best way: Start the app (npm run dev), go to /admin, enter your webhook secret, and click the green \"Check DB Consistency\" button.\n   It will call the new db.check event and show a full report of expected vs actual collections, old duplicates, etc.'",
+    "db:drop-unknown": "echo 'Use the admin panel or POST {\"event\":\"db.dropUnknown\"} to /api/webhook (with x-webhook-secret header).'"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -24,6 +26,7 @@
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "resend": "^6.12.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {

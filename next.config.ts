@@ -3,15 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
 
-  /**
-   * Security Headers
-   * Applied to all routes. These are baseline protections for any web application.
-   *
-   * Note on CSP:
-   * - A strict CSP is ideal but can break things like Leaflet, map tile providers,
-   *   and future AI/LLM integrations.
-   * - We start with a reasonably safe default and will tighten it in later weeks.
-   */
+  
   async headers() {
     return [
       {
@@ -39,18 +31,18 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(self)", // Allow geolocation only for our own origin
+            value: "camera=(), microphone=(), geolocation=(self)", 
           },
-          // Basic CSP - will be hardened later when we know all external resources
+          
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // unsafe-inline/eval needed for Next.js dev + some libs
-              "style-src 'self' 'unsafe-inline'",               // Tailwind and Leaflet need this
-              "img-src 'self' data: https:",                     // Allow external map tiles (OSM, etc.)
-              "font-src 'self' data:",
-              "connect-src 'self' https:",                       // Allow API calls to external services
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", 
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", 
+              "img-src 'self' data: https:",                     
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self' https:",                       
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

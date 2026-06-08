@@ -31,14 +31,31 @@ await mockRedis.expire('rl:login:127.0.0.1', 900);
 resetAllMocks();
 ```
 
-## Swapping to real DB later
+## Current architecture (updated)
 
-When you're ready for real MongoDB + Redis:
+- **Real DB**: `src/lib/mongodb.ts` (Mongoose + explicit collection names + `getDb()` unified interface)
+- **Mock DB**: `src/database/mock-*` (in-memory + file persistence for users only, for tests/dev without Mongo)
 
-1. Replace `src/lib/mongodb.ts` with real Mongoose connection
-2. Replace `src/lib/redis.ts` with real ioredis
-3. Keep using the same interfaces from `schema.ts`
-4. The mock files can stay for tests (`vitest` with `beforeEach(resetAllMocks)`)
+All API routes use the **real** path via `@/lib/mongodb`.
+
+## Collection naming (important for avoiding duplicates)
+
+We now use **explicit snake_case collection names** in Mongoose schemas (see `COLLECTIONS` const):
+
+`users`, `trips`, `places`, `itinerary_items`, `favorite_places`, `reviews`, `audit_logs`, `search_histories`, `trip_shares`, `notifications`, `tags`, `user_preferences`, `trip_budgets`, `trip_accommodations`, `trip_checklists`, `user_follows`.
+
+This prevents "bảng trùng" when model names change during development.
+
+Use the webhook events:
+- `db.clear` / `db.reset` → drop all managed collections (strong reset)
+- `db.dropUnknown` → xóa các collection lạ còn sót lại
+- `db.hardReset` / `db.nuke` → xóa sạch mọi thứ
+- `db.listCollections` → xem managed vs current vs unknown
+
+## Swapping / testing
+
+- Mock files stay for unit tests (reset with `resetAllMocks()` from `@/database`)
+- Real DB cleanup is now much stronger (dropCollection instead of just deleteMany)
 
 ## Seeded Data
 

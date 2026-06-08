@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary palette (derived from logo) */
+  --color-primary: #acc0eb;
+  --color-primary-light: #cfe3f8;
+  --color-primary-lightest: #e9f2fb;
+  --color-primary-dark: #8aa3d4;
+  --color-primary-darker: #6b87bd;
+
+  /* Surfaces */
+  --color-bg: #f4f7fc;
+  --color-surface: rgba(255, 255, 255, 0.95);
+  --color-surface-hover: rgba(255, 255, 255, 1);
+
+  /* Text */
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+
+  /* Accent */
+  --color-accent: #7c8cf5;
+  --color-accent-warm: #e07a5f;
+
+  /* Functional */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  /* Borders & Shadows */
+  --color-border: rgba(172, 192, 235, 0.3);
+  --color-border-strong: rgba(172, 192, 235, 0.5);
+  --shadow-card: 0 4px 24px rgba(172, 192, 235, 0.12);
+  --shadow-card-hover: 0 8px 32px rgba(172, 192, 235, 0.2);
+  --shadow-float: 0 12px 40px rgba(172, 192, 235, 0.18);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
+}
+
+/* Plus Jakarta Sans is also loaded as --font-plus-jakarta for optional use in specific components */
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image:
+      linear-gradient(to right, rgba(15, 23, 42, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 12px rgba(207, 227, 248, 0.6);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 4s ease-in-out infinite;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animation-delay-800 {
+  animation-delay: 800ms;
+}
+
+@keyframes authSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-120px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-slide {
+  animation: authSlideDown 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.auth-slide.closing {
+  animation: authSlideUp 0.2s ease-in forwards;
+}
+
+@keyframes authSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-80px);
+  }
+}

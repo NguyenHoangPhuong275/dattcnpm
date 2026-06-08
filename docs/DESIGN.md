@@ -96,48 +96,28 @@
 
 ---
 
-### 7. Component Guidelines (Tóm tắt quan trọng)
+### 7. Component Direction (High-level)
 
-| Component       | Quy tắc chính                                      |
-|-----------------|----------------------------------------------------|
-| **Button**      | Primary: teal đậm, Secondary: trắng viền teal, Danger: terracotta |
-| **Card**        | Soft shadow + border nhẹ, radius 12–16px           |
-| **Map**         | Luôn có overlay nhẹ khi cần hiển thị thông tin     |
-| **Form**        | Label trên, error rõ ràng, không dùng màu đỏ chói  |
-| **Itinerary**   | Dùng drag & drop + màu accent để phân biệt ngày    |
+- Buttons: Primary uses the main teal direction from the palette. Keep them clear and substantial.
+- Cards: Soft elevation, generous radius, good breathing room.
+- Map area: Should feel central and calm — overlays should be subtle and readable.
+- Forms: Clear labels, calm error states, generous tap targets on mobile.
+- Itinerary / timeline: Use visual rhythm (color or weight) to separate days and steps. Drag-and-drop friendly when implemented.
 
 ---
 
-### 8. Anti-Patterns (Cần tránh)
-
-- Dùng emoji làm icon (thay bằng SVG từ Lucide / Heroicons).
-- Animation quá mạnh hoặc lòe loẹt.
-- Dark mode (trừ khi user yêu cầu).
-- Màu tím/hồng AI gradient trên hero.
-- Text quá nhỏ trên bản đồ.
-- Card quá nhiều viền hoặc shadow nặng.
-
 ---
 
-### 9. Pre-Delivery Checklist (UI/UX)
+**Design Reference Approach**
 
-Trước khi coi một màn hình là xong, phải kiểm tra:
+This DESIGN.md captures the project's own visual direction and layout patterns.
 
-- [ ] Tất cả interactive elements có `cursor-pointer`
-- [ ] Hover states rõ ràng và mượt (150–300ms)
-- [ ] Text contrast đạt chuẩn (WCAG AA)
-- [ ] Mobile responsive tốt (đặc biệt bản đồ)
-- [ ] Loading & empty state đã xử lý
-- [ ] Không dùng emoji làm icon
-- [ ] Focus visible khi dùng bàn phím
-- [ ] Không có text overflow
+For detailed component-level decisions, spacing, typography scales, motion, and interaction details, prefer pulling real DESIGN.md analyses from https://getdesign.md (pick sites whose aesthetic fits the travel/guide domain) rather than following abstract universal rules.
 
----
+Keep this file as a lightweight project-specific reference, not a strict compliance checklist.
 
-**Phiên bản:** 1.0  
+**Phiên bản:** 1.0 (updated)  
 **Ngày tạo:** Tháng 4/2026  
 **Người chịu trách nhiệm:** Nguyễn Hoàng Phương
 
----
-
-**Ghi chú:** File này nên được AI (Claude, Cursor...) đọc trước khi viết bất kỳ component UI nào.
+**Ghi chú:** When building UI, reference actual shipped product analyses from getdesign.md alongside this file.

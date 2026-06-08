@@ -8,9 +8,32 @@ export interface User {
   avatarUrl?: string | null;
   role: 'USER' | 'ADMIN';
   isLocked: boolean;
+  emailVerified: boolean;
+  emailVerifiedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;
+
+  
+  phone?: string | null;
+  dateOfBirth?: Date | null;
+  gender?: 'Nam' | 'Nữ' | 'Khác' | null;
+  nationality?: string | null;
+  preferredLanguage?: string | null;
+  homeCity?: string | null;
+  emergencyContact?: {
+    name?: string | null;
+    phone?: string | null;
+  } | null;
+
+  
+  travelStyles?: string[];
+  budgetLevel?: string | null;
+  preferredDestinations?: string[];
+  interests?: string[];  
+
+  
+  twoFactorEnabled?: boolean | null;
 }
 
 export interface Trip {
@@ -135,7 +158,7 @@ export interface Tag {
 }
 
 export interface PlaceTag {
-  _id?: MongoId;
+  _id: MongoId;
   placeId: MongoId;
   tagId: MongoId;
 }

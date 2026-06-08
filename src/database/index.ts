@@ -16,5 +16,5 @@ export function resetAllMocks() {
 }
 
 export function findMockUserByEmail(email: string) {
-  return mockDb.users.findOne({ email: email.toLowerCase() } as any);
+  return mockDb.users.findOne({ email: email.toLowerCase() } as Record<string, unknown>);
 }

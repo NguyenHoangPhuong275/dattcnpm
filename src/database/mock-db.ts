@@ -21,6 +21,33 @@ import type {
 } from './schema';
 
 import { seedData } from './mock-data';
+import fs from 'fs';
+import path from 'path';
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const USERS_FILE = path.join(DATA_DIR, 'registered-users.json');
+
+function ensureDataDir() {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+}
+
+function loadPersistedUsers(): User[] {
+  ensureDataDir();
+  if (!fs.existsSync(USERS_FILE)) return [];
+  try {
+    const raw = fs.readFileSync(USERS_FILE, 'utf-8');
+    return JSON.parse(raw) as User[];
+  } catch {
+    return [];
+  }
+}
+
+function savePersistedUsers(users: User[]) {
+  ensureDataDir();
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+}
 
 class Collection<T extends { _id: MongoId }> {
   private data = new Map<MongoId, T>();
@@ -38,7 +65,7 @@ class Collection<T extends { _id: MongoId }> {
     for (const item of this.data.values()) {
       let match = true;
       for (const [key, value] of Object.entries(filter)) {
-        if ((item as any)[key] !== value) {
+        if ((item as unknown as Record<string, unknown>)[key] !== value) {
           match = false;
           break;
         }
@@ -106,7 +133,13 @@ export class MockDatabase {
   userFollows: Collection<UserFollow>;
 
   constructor(seed = true) {
-    this.users = new Collection(seed ? seedData.users : []);
+
+    const persistedUsers = loadPersistedUsers();
+    const initialUsers = seed ? [...seedData.users, ...persistedUsers] : persistedUsers;
+
+    this.users = new Collection(initialUsers);
+    this._wrapUserPersistence();
+
     this.trips = new Collection(seed ? seedData.trips : []);
     this.places = new Collection(seed ? seedData.places : []);
     this.itineraryItems = new Collection(seed ? seedData.itineraryItems : []);
@@ -127,7 +160,11 @@ export class MockDatabase {
   }
 
   resetAll() {
-    this.users.reset(seedData.users);
+
+    const persistedUsers = loadPersistedUsers();
+    this.users.reset([...seedData.users, ...persistedUsers]);
+    this._wrapUserPersistence();
+
     this.trips.reset(seedData.trips);
     this.places.reset(seedData.places);
     this.itineraryItems.reset(seedData.itineraryItems);
@@ -154,6 +191,21 @@ export class MockDatabase {
       metadata,
       createdAt: new Date(),
     } as any);
+  }
+
+  private _wrapUserPersistence() {
+    const originalInsert = this.users.insertOne.bind(this.users);
+    (this.users as unknown as { insertOne: (doc: any) => User }).insertOne = (doc: any) => {
+      const created = originalInsert(doc);
+      try {
+        const dataMap = (this.users as unknown as { data: Map<string, User> }).data;
+        const allUsers = Array.from(dataMap.values());
+        savePersistedUsers(allUsers);
+      } catch (e) {
+        console.warn('[mock-db] Failed to persist user to disk:', e);
+      }
+      return created;
+    };
   }
 }
 
