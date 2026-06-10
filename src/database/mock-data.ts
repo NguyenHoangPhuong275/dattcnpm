@@ -1,5 +1,4 @@
 import type {
-  MongoId,
   User,
   Trip,
   Place,

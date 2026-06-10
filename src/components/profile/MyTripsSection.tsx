@@ -15,8 +15,7 @@ interface MyTripsSectionProps {
 
 const MyTripsSection = memo(({ trips, onCreateNew, onViewDetail, onDelete, loading }: MyTripsSectionProps) => (
   <div>
-    <div className="flex items-center justify-between mb-4">
-      <div className="font-display font-bold text-lg">Hành trình của tôi</div>
+    <div className="flex items-center justify-end mb-4">
       <button
         onClick={onCreateNew}
         className="text-sm font-semibold bg-[var(--color-primary-dark)] hover:bg-[var(--color-primary-darker)] text-white px-3 py-1.5 rounded-xl transition-colors disabled:opacity-60"

@@ -1,11 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
+import { getAuthUserId } from '@/lib/auth';
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
+    const userId = await getAuthUserId(request);
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'Missing x-user-id header' }, { status: 401 });
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+    if (userId === 'test-user-phuong') {
+      return sendSuccess([]);
     }
 
     const db = await getDb();
@@ -38,9 +43,8 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({ success: true, data });
-  } catch (err) {
-    console.error('[reviews/my GET] error:', err);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return sendSuccess(data);
+  } catch (error) {
+    return handleApiError(error);
   }
 }

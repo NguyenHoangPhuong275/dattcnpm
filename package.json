@@ -4,18 +4,19 @@
   "private": true,
   "description": "Smart Travel Guide - Web application for travel planning with map integration (Đồ án Thực tế CNPM)",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "clean": "rm -rf .next node_modules/.cache",
     "prepare": "echo 'Project ready'",
-    "db:check": "echo '👉 Best way: Start the app (npm run dev), go to /admin, enter your webhook secret, and click the green \"Check DB Consistency\" button.\n   It will call the new db.check event and show a full report of expected vs actual collections, old duplicates, etc.'",
+    "db:check": "echo 'Cách tốt nhất: Start the app (npm run dev), go to /admin, enter your webhook secret, and click the green \"Check DB Consistency\" button.\n   It will call the new db.check event and show a full report of expected vs actual collections, old duplicates, etc.'",
     "db:drop-unknown": "echo 'Use the admin panel or POST {\"event\":\"db.dropUnknown\"} to /api/webhook (with x-webhook-secret header).'"
   },
   "dependencies": {

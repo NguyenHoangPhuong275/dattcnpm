@@ -1,222 +1,84 @@
-# KẾ HOẠCH DỰ ÁN — ĐỒ ÁN THỰC TẾ CÔNG NGHỆ PHẦN MỀM
+# Kế hoạch dự án - Smart Travel Guide
+
+Ngày cập nhật: 2026-06-09
 
 ## 1. Thông tin chung
 
 | Mục | Nội dung |
-|---|---|
-| Tên đề tài | Hệ thống Tổng hợp & Gợi ý Du lịch Thông minh (Smart Travel Guide) |
-| Loại sản phẩm | Web Application (responsive, dùng tốt trên cả desktop & mobile) |
-| Số người thực hiện | 1 |
-| Thời gian | 6 tuần |
-| Phương pháp | Vibe coding (AI hỗ trợ viết code) + tự kiểm thử |
+| --- | --- |
+| Tên đề tài | Smart Travel Guide |
+| Loại sản phẩm | Web application responsive |
+| Framework | Next.js 16 App Router |
+| Ngôn ngữ | TypeScript |
+| Database | MongoDB qua Mongoose |
+| Cache/OTP/Rate limit | Redis qua ioredis |
+| Email | Resend |
+| UI | React 19, Tailwind CSS 4 |
+| Test | Vitest |
 
-### Lý do chọn đề tài
-- Lõi kỹ thuật là **tích hợp nhiều API thật** (bản đồ, định tuyến, thời tiết) — đúng sở trường về API/network.
-- Có **lớp nghiệp vụ quản lý** (tài khoản, chuyến đi, lịch trình) đủ dày để thể hiện trọn quy trình CNPM: phân tích yêu cầu, thiết kế (use case, data model MongoDB, sequence), lập trình, kiểm thử, tài liệu.
-- **Không phụ thuộc emulator/ảo hóa** (máy phát triển không chạy được emulator Android) — web chạy trực tiếp trên trình duyệt, vòng lặp phát triển và kiểm thử khép kín.
-- Tận dụng kinh nghiệm/nền tảng web sẵn có để rút ngắn thời gian.
+## 2. Trạng thái hiện tại
 
-### Vì sao chọn Web thay vì Mobile
-- Môn CNPM chấm **quy trình kỹ thuật phần mềm**, không ràng buộc nền tảng.
-- Máy phát triển gặp lỗi phần cứng khi chạy ảo hóa (emulator Android sập máy) → mobile không khả thi để phát triển/kiểm thử nhanh.
-- Web responsive vẫn demo được trên điện thoại (mở bằng trình duyệt điện thoại), đủ tính "thực tế".
+Project đã hoàn thành Tuần 1 theo phạm vi repo hiện tại, trừ mục commit/push GitHub vì không đủ dữ liệu để xác minh. Tuần 2 đã hoàn thành phần lõi phục vụ demo/báo cáo: auth OTP/login/logout, JWT cookie, middleware profile, places search, POI, weather, trips, itinerary, favorites, search history API tối thiểu, rate limit OTP/login/search và test tối thiểu.
 
----
+Tuần 3-6 đã có tài liệu nghiệp vụ chi tiết, nhưng code cho các mục lớn của Tuần 3-6 chưa hoàn thành toàn bộ. Không đánh dấu các tuần này là hoàn thành.
 
-## 2. Công nghệ sử dụng
+## 3. Module hiện có
 
-| Lớp | Công nghệ | Ghi chú |
-|---|---|---|
-| Framework | Next.js (App Router) + React + TypeScript | Full-stack trong 1 codebase |
-| Giao diện | Tailwind CSS | Responsive, gọn |
-| Bản đồ | Leaflet + React-Leaflet | Hiển thị map, marker, tuyến đường |
-| Cơ sở dữ liệu chính | MongoDB (Document Store) | Linh hoạt với dữ liệu POI/OSM, hỗ trợ geospatial index mạnh |
-| ORM / ODM | Mongoose (khuyến nghị) hoặc mongodb driver | Kết nối Singleton, schema linh hoạt |
-| Cache / Rate Limit / Session | Redis | Cache API bên thứ ba, rate limit, token blacklist, session |
-| Xác thực | JWT (HttpOnly cookie) + bcrypt | Đăng nhập/đăng ký |
-| Kiểm thử | Vitest | Unit test cho logic & API |
-| Validation | Zod | Kiểm tra dữ liệu đầu vào |
+| Module | Trạng thái | File chính |
+| --- | --- | --- |
+| Home/Search | Đã có search, POI, weather; chưa có bản đồ trực quan | `src/app/page.tsx` |
+| Auth OTP | Đã có | `src/app/api/auth/send-otp/route.ts`, `src/app/api/auth/verify-otp/route.ts` |
+| Login/Logout | Đã có JWT cookie, logout và rate limit login | `src/app/api/auth/login/route.ts`, `src/app/api/auth/logout/route.ts` |
+| Middleware | Đã có guard `/profile` | `middleware.ts` |
+| Profile | Đã có | `src/app/profile/page.tsx`, `src/app/api/profile/route.ts` |
+| Password change | Đã có | `src/app/api/profile/password/route.ts` |
+| Places search | Đã có, có Redis cache và rate limit search | `src/app/api/places/search/route.ts` |
+| POI | Đã có | `src/app/api/places/poi/route.ts` |
+| Weather | Đã có, dùng Open-Meteo | `src/app/api/weather/route.ts`, `src/lib/weather.ts` |
+| Trips | Đã có CRUD cơ bản | `src/app/api/trips/route.ts`, `src/app/api/trips/[id]/route.ts` |
+| Itinerary | Đã có API CRUD và UI demo trong trip detail | `src/app/api/trips/[id]/itinerary/route.ts`, `src/app/api/trips/[id]/itinerary/[itemId]/route.ts`, `src/components/profile/TripDetailModal.tsx` |
+| Favorites | Đã có GET/POST/DELETE | `src/app/api/favorites/route.ts`, `src/app/api/favorites/[id]/route.ts` |
+| Search History | Đã có API tối thiểu, chưa có UI riêng | `src/app/api/search-history/route.ts`, `src/app/api/search-history/[id]/route.ts` |
+| Reviews | Đã có list review của user | `src/app/api/reviews/my/route.ts` |
+| Admin | Đã có qua webhook | `src/app/admin/page.tsx`, `src/app/api/webhook/route.ts` |
+| Tests | Đã có test tối thiểu | `src/lib/auth.test.ts`, `src/lib/rate-limit.test.ts`, `src/app/api/auth/logout/route.test.ts`, `src/__tests__/weather-utils.test.ts` |
 
-### Các API bên ngoài (miễn phí, đăng ký được cho cá nhân)
-| Dịch vụ | Dùng để | Ghi chú |
-|---|---|---|
-| OpenStreetMap (tile) | Nền bản đồ | Không cần key |
-| Overpass API (OSM) | Tìm địa điểm (POI): quán ăn, khách sạn, điểm tham quan | Không cần key |
-| OSRM | Tính tuyến đường & thời gian di chuyển | Public demo server |
-| OpenWeatherMap | Thời tiết theo địa điểm | Cần API key miễn phí |
-| Nominatim (OSM) | Tìm kiếm địa danh → toạ độ (geocoding) | Không cần key |
+## 4. Tổng quan tiến độ theo tuần
 
-> Ghi chú: tất cả lời gọi API bên ngoài đi qua **route API của Next.js** (server-side) để giấu key, cache kết quả và chuẩn hoá dữ liệu.
+| Tuần | Mục tiêu | Trạng thái |
+| --- | --- | --- |
+| Tuần 1 | Tài liệu phân tích, scaffold, MongoDB/Redis, health/debug, env mẫu, Docker local | Hoàn thành trong repo; commit/push GitHub không đủ dữ liệu để xác minh |
+| Tuần 2 | Auth, Places, Weather, Trips, Favorites, Itinerary, Search History API, UI demo, rate limit, test tối thiểu | Hoàn thành phần lõi demo/báo cáo |
+| Tuần 3 | Bản đồ trực quan, marker, popup, trải nghiệm search/map tốt hơn | Đã có plan chi tiết, chưa hoàn thành code |
+| Tuần 4 | Trip/itinerary đầy đủ, search history UI, add place to trip | Đã có plan chi tiết; API lõi đã có, UI nâng cao chưa xong |
+| Tuần 5 | Admin hoàn thiện, test integration, responsive polish, security review | Đã có plan chi tiết, chưa hoàn thành code |
+| Tuần 6 | Báo cáo, slide, demo script, rà soát tài liệu-code | Đã có plan chi tiết, chưa hoàn thành bàn giao cuối |
 
----
+## 5. Việc cần làm tiếp theo
 
-## 3. Các vai trò người dùng (Actors)
+### Ưu tiên cao
 
-| Vai trò | Mô tả |
-|---|---|
-| Khách (Guest) | Xem bản đồ, tìm địa điểm, xem thời tiết — không lưu được |
-| Người dùng (User) | Đăng ký/đăng nhập; tạo & quản lý chuyến đi, lịch trình, địa điểm yêu thích; xem lịch sử |
-| Quản trị (Admin) | Quản lý người dùng, xem thống kê, xem nhật ký hệ thống (audit log) |
+- Thêm bản đồ, marker và popup địa điểm cho Tuần 3.
+- Thêm UI search history riêng.
+- Thêm action add-to-trip trực tiếp từ kết quả search.
 
----
+### Ưu tiên trung bình
 
-## 4. Danh sách chức năng
+- Chuẩn hóa Zod cho toàn bộ API nghiệp vụ.
+- Bổ sung test integration cho trips, itinerary, favorites, places/weather với MongoDB/Redis test.
+- Rà responsive toàn bộ profile/home/admin.
 
-### 4.1. Xác thực & tài khoản
-- Đăng ký tài khoản (email + mật khẩu, validate bằng Zod)
-- Đăng nhập / đăng xuất (JWT trong HttpOnly cookie)
-- Đổi mật khẩu
-- Phân quyền User / Admin
+### Ưu tiên thấp
 
-### 4.2. Bản đồ & tìm kiếm (lõi API)
-- Hiển thị bản đồ nền (OpenStreetMap)
-- Tìm địa danh theo tên → định vị trên bản đồ (Nominatim)
-- Tìm địa điểm quanh khu vực theo loại: ăn uống, lưu trú, tham quan (Overpass)
-- Xem chi tiết địa điểm (tên, loại, toạ độ)
-- Định tuyến giữa 2 điểm + ước tính thời gian/quãng đường (OSRM)
-- Xem thời tiết hiện tại & dự báo tại địa điểm (OpenWeatherMap)
+- Tích hợp OSRM routing.
+- Gợi ý rule-based hoặc AI.
+- Export PDF.
 
-### 4.3. Quản lý chuyến đi (lõi nghiệp vụ)
-- Tạo / sửa / xoá chuyến đi (tên, ngày bắt đầu, ngày kết thúc, điểm đến)
-- Thêm địa điểm vào chuyến đi
-- Lập lịch trình theo ngày (gắn địa điểm vào từng ngày của chuyến đi)
-- Đánh dấu địa điểm yêu thích
-- Xem lại lịch sử tìm kiếm
+## 6. Definition of Done cập nhật
 
-### 4.4. Quản trị (Admin)
-- Danh sách người dùng + khoá/mở
-- Thống kê: số người dùng, số chuyến đi, địa điểm được lưu nhiều nhất
-- Xem nhật ký hệ thống (audit log)
-
-### 4.5. Tính năng nâng cao (làm nếu còn thời gian)
-- Gợi ý lịch trình tự động bằng LLM (nhập điểm đến + số ngày → sinh lịch trình mẫu)
-- Xuất lịch trình ra PDF
-- Cảnh báo thời tiết xấu cho ngày có lịch trình
-
----
-
-## 5. Mô hình dữ liệu (Logical Model - MongoDB)
-
-**Lưu ý:** Dự án sử dụng **MongoDB (Document Store)** làm database chính + **Redis** cho cache, session và rate limit. Mô hình dưới đây là logical view (đơn giản hóa). Thực tế dùng `ObjectId` tham chiếu giữa các collection độc lập (để tránh document quá lớn) + flexible fields (tags, metadata, osmTags...).
-
-Schema TypeScript đầy đủ (kể cả các nghiệp vụ bổ sung như review, budget, accommodation, transport, checklist, share, notification, tagging...) nằm tại:
-- `src/database/schema.ts` (nguồn types chính thức)
-- `docs/03_DATA_MODEL.md` (chi tiết collection + index + Redis keys)
-
-```
-User
-  └─< Trip
-        └─< ItineraryItem (ref Place)
-  └─< FavoritePlace (ref Place)
-  └─< SearchHistory
-  └─< Review (ref Place)
-  └─< UserFollow
-
-Place (cache POI từ Overpass + dữ liệu OSM phong phú)
-Tag / PlaceTag / UserPreference   (hỗ trợ gợi ý rule-based)
-
-TripBudget / TripAccommodation / ItineraryTransport / TripChecklist   (nghiệp vụ chi tiết)
-TripShare / Notification
-
-AuditLog
-```
-
-Quan hệ chính (tham chiếu bằng ObjectId ở tầng app):
-- 1 User có nhiều Trip, Favorite, SearchHistory, Review, Follow...
-- 1 Trip có nhiều ItineraryItem, Budget, Accommodation, Checklist...
-- Place dùng làm cache + nguồn dữ liệu POI chung.
-
----
-
-## 6. Kiến trúc tổng thể
-
-```
-[ Trình duyệt (React UI) ]
-        │  fetch
-        ▼
-[ Next.js Route Handlers (API) ]  ── xác thực JWT, validate Zod, xử lý lỗi
-        │
-        ├── Mongoose / MongoDB driver
-        │
-        ▼
-[ MongoDB (collections: users, trips, places, itineraryItems, reviews, ... ) ]
-        │
-        └── Redis (cache: geo:search:*, poi:*, weather:* | rate limit | session | blacklist)
-                    │
-                    └── Gọi API ngoài (Nominatim, Overpass, OpenWeatherMap, OSRM) khi cache miss
-```
-
-Nguyên tắc:
-- UI không gọi thẳng API ngoài → đi qua route API của Next.js (giấu key, cache, chuẩn hoá).
-- Mọi dữ liệu vào đều validate bằng Zod.
-- Logic nghiệp vụ tách khỏi UI (đặt trong thư mục `lib/`).
-
----
-
-## 7. Kế hoạch 6 tuần
-
-### Tuần 1 — Phân tích & Thiết kế
-- Viết đặc tả yêu cầu (SRS): mô tả chức năng, actor, ràng buộc
-- Vẽ sơ đồ Use Case
-- Thiết kế Data Model MongoDB (theo 03_DATA_MODEL.md) + Redis + tham chiếu đến src/database/schema.ts (nguồn types)
-- Vẽ sơ đồ tuần tự (Sequence) cho 2-3 luồng chính (đăng nhập, tạo chuyến đi, tìm địa điểm)
-- Chốt công nghệ, khởi tạo project, cấu hình MongoDB + Redis (docker-compose) + Mongoose
-- **Sản phẩm:** tài liệu thiết kế + project khung chạy được "Hello World"
-
-### Tuần 2 — Nền tảng & Xác thực
-- Tạo Mongoose schemas (theo src/database/schema.ts)
-- Chức năng đăng ký / đăng nhập / đăng xuất / đổi mật khẩu + rate limit Redis
-- Kết nối MongoDB (Singleton) + Redis client
-- Middleware bảo vệ route, phân quyền User/Admin
-- Layout chung, trang chủ
-- **Sản phẩm:** đăng nhập hoạt động, có phân quyền
-
-### Tuần 3 — Lõi bản đồ & API
-- Tích hợp Leaflet (bản đồ nền)
-- Route API: tìm địa danh (Nominatim), tìm POI (Overpass)
-- Hiển thị marker, popup chi tiết địa điểm
-- Tích hợp thời tiết (OpenWeatherMap)
-- Cache kết quả API
-- **Sản phẩm:** tìm và xem địa điểm + thời tiết trên bản đồ
-
-### Tuần 4 — Nghiệp vụ chuyến đi
-- CRUD chuyến đi
-- Thêm địa điểm vào chuyến đi, lập lịch trình theo ngày
-- Địa điểm yêu thích, lịch sử tìm kiếm
-- Định tuyến OSRM giữa các điểm
-- **Sản phẩm:** quản lý chuyến đi hoàn chỉnh
-
-### Tuần 5 — Quản trị, Kiểm thử & Hoàn thiện
-- Trang Admin: quản lý user, thống kê, audit log
-- Viết unit test (Vitest) cho logic & API chính
-- Hoàn thiện giao diện, responsive, xử lý lỗi
-- (Tuỳ chọn) gợi ý lịch trình bằng LLM
-- **Sản phẩm:** đầy đủ chức năng + bộ test
-
-### Tuần 6 — Tài liệu & Báo cáo
-- Hoàn thiện báo cáo đồ án (chương: mở đầu, phân tích, thiết kế, cài đặt, kiểm thử, kết luận)
-- Chuẩn bị slide + kịch bản demo
-- Rà soát lại sơ đồ cho khớp code thực tế
-- Test trên điện thoại thật (mở web bằng trình duyệt điện thoại)
-- **Sản phẩm:** báo cáo + slide + bản demo sẵn sàng bảo vệ
-
----
-
-## 8. Rủi ro & cách xử lý
-
-| Rủi ro | Cách xử lý |
-|---|---|
-| API ngoài (Overpass/OSRM) chậm hoặc lỗi | Cache kết quả, có nhiều endpoint dự phòng, hiển thị trạng thái loading/error |
-| Hết thời gian cho tính năng nâng cao | Tính năng LLM/PDF để cuối, là tuỳ chọn — không ảnh hưởng phần lõi |
-| Bị hỏi sâu về thiết kế khi bảo vệ | Tài liệu thiết kế làm kỹ từ tuần 1, sơ đồ khớp với code |
-| Cần demo "app điện thoại" | Web responsive → mở bằng trình duyệt điện thoại là đủ |
-
----
-
-## 9. Tiêu chí hoàn thành (Definition of Done)
-- Tất cả chức năng ở mục 4.1–4.4 chạy được
-- Có phân quyền User/Admin
-- Có bộ unit test cho logic và API chính, chạy pass
-- Có đầy đủ tài liệu: SRS, Use Case, Data Model (MongoDB), Sequence
-- Demo được luồng: đăng nhập → tìm địa điểm → tạo chuyến đi → lập lịch trình → xem thời tiết
-- Báo cáo + slide hoàn chỉnh
+- App chạy được bằng `npm run dev`.
+- MongoDB/Redis có hướng dẫn local qua `.env.example` và `docker-compose.yml`.
+- API report khớp route thật.
+- Docs không ghi tính năng chưa có là đã hoàn thành.
+- Lint/build/test được chạy và báo cáo kết quả thật.
+- Báo cáo nêu rõ auth hiện vẫn hỗ trợ `x-user-id` để tương thích UI, chưa phải mô hình production hoàn chỉnh.

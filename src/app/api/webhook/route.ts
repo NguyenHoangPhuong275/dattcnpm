@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { 
   getDb, 
@@ -10,6 +10,7 @@ import {
   MANAGED_COLLECTIONS 
 } from '@/lib/mongodb';
 import { getRedis } from '@/lib/redis';
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,19 +21,19 @@ export async function POST(request: NextRequest) {
     const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'lotus_travel_admin_webhook_secret_2026';
 
     if (authHeader !== WEBHOOK_SECRET && querySecret !== WEBHOOK_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      throw new AppError('UNAUTHORIZED', 'Unauthorized admin access', 401);
     }
 
     let body;
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      throw new AppError('VALIDATION_ERROR', 'Invalid JSON body', 400);
     }
 
     const { event, data } = body;
     if (!event || typeof event !== 'string') {
-      return NextResponse.json({ error: 'Missing event field' }, { status: 400 });
+      throw new AppError('VALIDATION_ERROR', 'Missing event field', 400);
     }
 
     const db = await getDb();
@@ -61,12 +62,8 @@ export async function POST(request: NextRequest) {
     switch (event) {
       case 'db.reset':
       case 'db.clear': {
-        
-        
         const dropped = await dropAllManagedCollections();
-
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           message: `Đã xóa trắng ${dropped.length} collection(s): ${dropped.join(', ') || '(không có)'}. Collection sẽ tự tạo lại khi có dữ liệu mới.`,
           dropped,
         });
@@ -74,8 +71,7 @@ export async function POST(request: NextRequest) {
 
       case 'db.dropUnknown': {
         const dropped = await dropUnknownCollections();
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           message: dropped.length 
             ? `Đã xóa ${dropped.length} collection(s) lạ: ${dropped.join(', ')}`
             : 'Không có collection lạ nào cần xóa.',
@@ -86,20 +82,18 @@ export async function POST(request: NextRequest) {
       case 'db.hardReset':
       case 'db.nuke': {
         await hardResetDatabase();
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           message: 'Hard reset hoàn tất: tất cả collection managed + unknown đã bị drop. Lần getDb() tiếp theo sẽ tạo lại sạch.',
         });
       }
 
       case 'db.listCollections': {
-        const db = mongoose.connection.db;
-        const current: string[] = db 
-          ? (await db.listCollections().toArray()).map((c: any) => c.name)
+        const mongoDb = mongoose.connection.db;
+        const current: string[] = mongoDb 
+          ? (await mongoDb.listCollections().toArray()).map((c: any) => c.name)
           : [];
 
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           managed: MANAGED_COLLECTIONS,
           current,
           unknown: current.filter((c: string) => !MANAGED_COLLECTIONS.includes(c as any)),
@@ -110,8 +104,7 @@ export async function POST(request: NextRequest) {
       case 'db.consistency':
       case 'db.inspect': {
         const report = await checkDatabaseConsistency();
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           report,
           message: report.isClean
             ? 'Database is clean and consistent with current code.'
@@ -124,8 +117,7 @@ export async function POST(request: NextRequest) {
       case 'db.ensureTables': {
         const created = await createAllCollections();
         const report = await checkDatabaseConsistency();
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           created,
           report,
           message: created.length > 0
@@ -138,7 +130,7 @@ export async function POST(request: NextRequest) {
       case 'user.unlock': {
         const { email } = data || {};
         if (!email || typeof email !== 'string') {
-          return NextResponse.json({ error: 'Missing user email' }, { status: 400 });
+          throw new AppError('VALIDATION_ERROR', 'Missing user email', 400);
         }
 
         try {
@@ -147,20 +139,18 @@ export async function POST(request: NextRequest) {
           await db.users.updateOne(user._id, { isLocked });
           await logAudit(isLocked ? 'LOCK_USER' : 'UNLOCK_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
 
-          return NextResponse.json({
-            success: true,
+          return sendSuccess({
             message: `User ${user.email} is now ${isLocked ? 'LOCKED' : 'UNLOCKED'}.`,
           });
         } catch (e: unknown) {
-          const message = e instanceof Error ? e.message : 'User not found';
-          return NextResponse.json({ error: message }, { status: 404 });
+          throw new AppError('NOT_FOUND', e instanceof Error ? e.message : 'User not found', 404);
         }
       }
 
       case 'user.delete': {
         const { email, hard } = data || {};
         if (!email || typeof email !== 'string') {
-          return NextResponse.json({ error: 'Missing user email' }, { status: 400 });
+          throw new AppError('VALIDATION_ERROR', 'Missing user email', 400);
         }
 
         try {
@@ -172,20 +162,18 @@ export async function POST(request: NextRequest) {
           }
           await logAudit(hard ? 'HARD_DELETE_USER' : 'SOFT_DELETE_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
 
-          return NextResponse.json({
-            success: true,
+          return sendSuccess({
             message: `User ${user.email} has been ${hard ? 'hard' : 'soft'} deleted.`,
           });
         } catch (e: unknown) {
-          const message = e instanceof Error ? e.message : 'User not found';
-          return NextResponse.json({ error: message }, { status: 404 });
+          throw new AppError('NOT_FOUND', e instanceof Error ? e.message : 'User not found', 404);
         }
       }
 
       case 'notification.broadcast': {
         const { title, content, type } = data || {};
         if (!content || typeof content !== 'string') {
-          return NextResponse.json({ error: 'Missing notification content' }, { status: 400 });
+          throw new AppError('VALIDATION_ERROR', 'Missing notification content', 400);
         }
 
         const users = await db.users.find();
@@ -202,8 +190,7 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           message: `Successfully broadcasted notification to ${notificationCount} users.`,
         });
       }
@@ -221,8 +208,7 @@ export async function POST(request: NextRequest) {
           notifications: await db.notifications.count(),
         };
 
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           stats,
         });
       }
@@ -232,8 +218,7 @@ export async function POST(request: NextRequest) {
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 15);
 
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           logs,
         });
       }
@@ -248,8 +233,7 @@ export async function POST(request: NextRequest) {
           emailVerified: u.emailVerified,
           createdAt: u.createdAt,
         }));
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           users,
         });
       }
@@ -259,15 +243,13 @@ export async function POST(request: NextRequest) {
 
         const fetchRes = await fetch(VN_ADMIN_URL);
         if (!fetchRes.ok) {
-          return NextResponse.json({ error: 'Failed to fetch Vietnam administrative data' }, { status: 502 });
+          throw new AppError('SERVICE_UNAVAILABLE', 'Failed to fetch Vietnam administrative data', 502);
         }
 
         const vnData: Record<string, any> = await fetchRes.json();
 
         let inserted = 0;
         let updated = 0;
-
-        const now = new Date();
 
         const upsertAdminLocation = async (doc: any) => {
           const existing = await db.places.findOne({ osmId: doc.osmId });
@@ -360,14 +342,13 @@ export async function POST(request: NextRequest) {
           createdAt: now,
         } as any);
 
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           message: `Đã seed thành công dữ liệu hành chính Việt Nam. Inserted: ${inserted}, Updated: ${updated}. Dữ liệu ~11k phường/xã đã sẵn sàng cho search nhanh trong DB.`,
         });
       }
 
       case 'places.clear-cache': {
-        await db.places.reset([]);
+        await db.places.reset();
 
         const redis = getRedis();
         const geoKeys = await redis.keys('geo:search:*');
@@ -375,18 +356,16 @@ export async function POST(request: NextRequest) {
         if (geoKeys.length > 0) await redis.del(...geoKeys);
         if (poiKeys.length > 0) await redis.del(...poiKeys);
 
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           message: `Đã xóa cache trong database places (dùng reset). Cleared ${geoKeys.length} geo caches and ${poiKeys.length} poi caches in Redis. Giờ search sẽ dùng dữ liệu thật 100% từ API (không sample). Re-seed admin nếu cần với event 'locations.seed-vn'.`,
         });
       }
 
       default: {
-        return NextResponse.json({ error: `Unsupported event: ${event}` }, { status: 400 });
+        throw new AppError('VALIDATION_ERROR', `Unsupported event: ${event}`, 400);
       }
     }
-  } catch (err) {
-    console.error('[webhook] Unexpected error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

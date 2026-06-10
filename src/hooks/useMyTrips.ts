@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback } from 'react';
 import { TripSummary } from '@/types/profile';
 
 interface UseMyTripsOptions {
@@ -24,8 +24,6 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const [, startTransition] = useTransition();
-
   const loadTrips = useCallback(async (uid?: string) => {
     const id = uid || userId;
     if (!id) return;
@@ -39,8 +37,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
           setTrips(json.data);
         }
       }
-    } catch (e) {
-      console.warn('loadTrips failed', e);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -76,13 +73,17 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       const json = await res.json();
 
       if (json.success && json.data) {
-        setTrips(prev => [json.data, ...prev]);
+        setTrips(prev => {
+          if (prev.some(t => t._id === json.data._id)) {
+            return prev; 
+          }
+          return [json.data, ...prev];
+        });
         return { success: true };
       } else {
         return { success: false, message: json.message || 'Tạo chuyến đi thất bại' };
       }
-    } catch (e) {
-      console.warn('Create trip failed', e);
+    } catch {
       return { success: false, message: 'Không thể tạo chuyến đi lúc này' };
     } finally {
       setCreating(false);
@@ -102,9 +103,9 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       });
 
       if (!res.ok) throw new Error();
-    } catch (e) {
+    } catch {
       setTrips(previous);
-      throw e; 
+      throw new Error('Delete trip failed');
     }
   }, [userId, trips]);
 

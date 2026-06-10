@@ -1,13 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { NextRequest } from 'next/server';
 import { cacheGet, cacheSet } from '@/lib/redis';
-
-const PoiQuerySchema = z.object({
-  lat: z.coerce.number().min(-90).max(90),
-  lng: z.coerce.number().min(-180).max(180),
-  radius: z.coerce.number().min(500).max(50000).default(5000),
-  type: z.string().default('tourism'),
-});
+import { PlacesPoiSchema } from '@/lib/validations/validation';
+import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-response';
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const CACHE_TTL = 43200;
@@ -15,29 +9,25 @@ const CACHE_TTL = 43200;
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const parsed = PoiQuerySchema.safeParse({
+    const parsed = PlacesPoiSchema.parse({
       lat: searchParams.get('lat'),
       lng: searchParams.get('lng'),
       radius: searchParams.get('radius') || undefined,
       type: searchParams.get('type') || undefined,
     });
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      );
-    }
+    const lat = parsed.lat;
+    const lng = parsed.lng;
+    const radius = parsed.radius || 5000;
+    const type = parsed.type || 'tourism';
 
-    const { lat, lng, radius, type } = parsed.data;
     const cacheKey = `poi:${lat.toFixed(4)}:${lng.toFixed(4)}:${radius}:${type}`;
 
     const cached = await cacheGet(cacheKey);
     if (cached) {
       try {
         const parsedCached = JSON.parse(cached);
-        return NextResponse.json({
-          success: true,
+        return sendSuccess({
           results: parsedCached,
           cached: true,
         });
@@ -61,11 +51,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      console.error('[POI API] Overpass API error:', response.status);
-      return NextResponse.json(
-        { error: 'Không thể lấy dữ liệu địa điểm du lịch từ máy chủ bản đồ.' },
-        { status: 502 }
-      );
+      throw new AppError('SERVICE_UNAVAILABLE', 'Không thể lấy dữ liệu địa điểm du lịch từ máy chủ bản đồ.', 502);
     }
 
     const data = await response.json();
@@ -89,7 +75,6 @@ export async function GET(request: NextRequest) {
         const amenity = (tags.amenity || '').toLowerCase();
         const shop = (tags.shop || '').toLowerCase();
 
-        
         if (badTourismTypes.includes(t)) return null;
         if (amenity === 'fuel' || amenity.includes('fuel') || amenity === 'massage') return null;
         if (shop === 'convenience') return null;
@@ -116,24 +101,15 @@ export async function GET(request: NextRequest) {
 
     await cacheSet(cacheKey, JSON.stringify(results), CACHE_TTL);
 
-    return NextResponse.json({
-      success: true,
+    return sendSuccess({
       results,
       cached: false,
     });
-  } catch (error: any) {
-    console.error('[POI API] Error:', error);
-
-    if (error.name === 'TimeoutError') {
-      return NextResponse.json(
-        { error: 'Yêu cầu tới máy chủ bản đồ quá hạn. Vui lòng thử lại.' },
-        { status: 504 }
-      );
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'TimeoutError') {
+      return sendError('SERVICE_UNAVAILABLE', 'Yêu cầu tới máy chủ bản đồ quá hạn. Vui lòng thử lại.', 504);
     }
-
-    return NextResponse.json(
-      { error: 'Đã xảy ra lỗi hệ thống khi tìm kiếm địa điểm du lịch.' },
-      { status: 500 }
-    );
+    return handleApiError(err);
   }
 }
+

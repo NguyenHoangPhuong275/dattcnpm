@@ -1,100 +1,69 @@
-# Kế hoạch Tuần 2 — Smart Travel Guide
+# Kế hoạch Chi tiết Tuần 2 - Smart Travel Guide
 
-<aside>
-🎯
+Ngày cập nhật: 2026-06-09
 
-**Mục tiêu Tuần 2:** Hiện thực hoá các tính năng lõi (Auth + Places Search + Trips/Itinerary) theo thiết kế Tuần 1. Ưu tiên chạy được end-to-end ở local với MongoDB + Redis.
+## 1. Mục tiêu Tuần 2
 
-</aside>
+Hiện thực các tính năng lõi: Auth, Places Search, POI, Weather, Trips, Itinerary, Favorites, Profile, Search History tối thiểu và Admin webhook. Mục tiêu là app chạy ổn định ở mức demo/báo cáo và tài liệu phản ánh đúng code thật.
 
-## 📦 Sản phẩm bàn giao
+## 2. Checklist backend/API
 
-### A. Backend/API (Next.js Route Handlers)
+- [x] Auth đăng ký qua OTP: `POST /api/auth/send-otp`, `POST /api/auth/verify-otp`.
+- [x] Auth đăng nhập: `POST /api/auth/login`.
+- [x] Logout route: `POST /api/auth/logout`.
+- [x] JWT HttpOnly cookie: login set cookie, logout xóa cookie, API user đọc được cookie hoặc `x-user-id`.
+- [x] Middleware/Guard JWT: có `middleware.ts` bảo vệ `/profile`.
+- [x] Rate limit OTP: Redis key `otp:limit:{email}`.
+- [x] Rate limit login: `POST /api/auth/login` dùng Redis helper với fallback bộ nhớ, giới hạn theo IP + email.
+- [x] Rate limit search: `GET /api/places/search` dùng Redis helper với fallback bộ nhớ, giới hạn theo userId hoặc IP.
+- [x] Places search: `GET /api/places/search?q=`.
+- [x] POI: `GET /api/places/poi?lat=&lng=&radius=&type=`.
+- [x] Weather: `GET /api/weather?lat=&lng=` dùng Open-Meteo.
+- [x] Trips list/create: `GET /api/trips`, `POST /api/trips`.
+- [x] Trips dynamic CRUD: `GET`, `PATCH`, `DELETE /api/trips/[id]`.
+- [x] Itinerary list/create: `GET`, `POST /api/trips/[id]/itinerary`.
+- [x] Itinerary item update/delete: `PATCH`, `DELETE /api/trips/[id]/itinerary/[itemId]`.
+- [x] Favorites list/create/delete: `GET`, `POST /api/favorites`, `DELETE /api/favorites/[id]`.
+- [x] Search history tối thiểu: `GET`, `POST`, `DELETE /api/search-history`, `DELETE /api/search-history/[id]`.
+- [x] Audit log tối thiểu cho auth/trip/itinerary.
+- [x] Admin webhook: `/api/webhook`.
+- [x] Validate input bằng Zod ở Places/POI/Weather/Login/Search History.
+- [x] Validate input các API nghiệp vụ: đã chuẩn hóa Zod toàn bộ route nghiệp vụ (auth, profile, trips, itinerary, favorites, search, places, weather).
+- [x] Error handling: đã chuẩn hóa tuyệt đối với helper chung (src/lib/http.ts) + mã lỗi rõ ràng (VALIDATION_ERROR, UNAUTHORIZED, RATE_LIMITED...).
 
-- [ ]  Auth: đăng ký / đăng nhập / đăng xuất (JWT HttpOnly cookie)
-- [ ]  Places: tìm địa danh (Nominatim) + POI xung quanh (Overpass) + cache Redis
-- [ ]  Weather: xem thời tiết (OpenWeatherMap) + cache Redis
-- [ ]  Trips: CRUD chuyến đi
-- [ ]  Itinerary: thêm/xoá/sắp xếp địa điểm theo ngày (orderIndex)
-- [ ]  Favorites: lưu/bỏ lưu địa điểm
-- [ ]  Audit log: ghi log cho các hành động chính (tối thiểu CREATE_TRIP)
+## 3. Checklist frontend
 
-### B. Nền tảng kỹ thuật
+- [x] Trang Login/Register.
+- [x] Modal Login/Register trên trang chủ.
+- [x] Trang chủ có search địa danh, POI và weather.
+- [x] Trang Profile có thông tin cá nhân, sở thích, trips, favorites, reviews, security.
+- [x] UI tạo trip và danh sách trip.
+- [x] Trip detail có itinerary UI mức demo/báo cáo, gọi API thật để lấy/thêm/sửa/xóa item.
+- [x] Admin page qua webhook.
+- [x] Search history UI riêng đã có (tab "Lịch sử tìm kiếm" trong Profile, component SearchHistorySection, gọi API thật, có preview kết quả, xóa từng mục / xóa hết).
 
-- [ ]  Middleware/Guard: kiểm tra JWT cho route cần đăng nhập
-- [ ]  Validate input bằng Zod cho tất cả API
-- [ ]  Error handling thống nhất (HTTP status + message)
-- [ ]  Rate limit Redis: login + search
-- [ ]  Seed/fixtures (tuỳ chọn): dữ liệu mẫu để test nhanh
+## 4. Trạng thái theo ngày kế hoạch
 
-### C. Frontend (tối thiểu để demo)
+| Ngày | Theo kế hoạch | Trạng thái hiện tại |
+| --- | --- | --- |
+| Ngày 8 | Schema, bcrypt, JWT helper, requireAuth | Đã có schema, bcrypt, JWT helper, middleware profile |
+| Ngày 9 | Register/Login/Logout + rate limit login | Đã có OTP register, login, logout, rate limit login |
+| Ngày 10 | Places search + cache + DB upsert | Đã có |
+| Ngày 11 | POI + Weather + search rate limit | Đã có POI, Weather, search rate limit |
+| Ngày 12 | Trips CRUD + audit log | Đã có GET/POST/PATCH/DELETE và audit log tạo/sửa/xóa trip |
+| Ngày 13 | Itinerary + Favorites | Đã có favorites và itinerary API CRUD |
+| Ngày 14 | UI demo + lint/build/test | UI demo đã có; lint/typecheck/test/build cần chạy trước khi nộp |
 
-- [ ]  Trang Login/Register
-- [ ]  Trang Search địa danh + hiển thị kết quả
-- [ ]  Trang Trips: tạo chuyến đi + xem danh sách
-- [ ]  Trang Trip detail: itinerary theo ngày (tối thiểu list)
+## 5. Test coverage
 
----
+| Nhóm | Trạng thái | Bằng chứng |
+| --- | --- | --- |
+| Auth token | Có test tối thiểu | `src/lib/auth.test.ts` |
+| Logout | Có test tối thiểu | `src/app/api/auth/logout/route.test.ts` |
+| Rate limit helper | Có test fallback/IP | `src/lib/rate-limit.test.ts` |
+| Weather utils | Có test tiện ích | `src/__tests__/weather-utils.test.ts` |
+| API DB thật | Đã có integration test (Mongo + Redis thật) | tests/integration/*.integration.test.ts + .env.test.example |
 
-## 📅 Lộ trình 7 ngày (Tuần 2)
+## 6. Kết luận Tuần 2
 
-### Ngày 8 — Setup nền Auth + Model
-
-- [ ]  Tạo schema Mongoose: `User`, `Trip`, `Place`, `ItineraryItem`, `FavoritePlace`, `AuditLog`
-- [ ]  Viết helper hash/verify password (bcrypt)
-- [ ]  Viết helper JWT (jose): sign/verify + set cookie HttpOnly
-- [ ]  Viết middleware/utility `requireAuth` cho API
-
-### Ngày 9 — API Auth (Register/Login/Logout) + Rate limit login
-
-- [ ]  `POST /api/auth/register`
-- [ ]  `POST /api/auth/login` (rate limit `rl:login:{ip}`)
-- [ ]  `POST /api/auth/logout` (blacklist token nếu dùng jti)
-- [ ]  Test bằng Postman/Thunder Client
-
-### Ngày 10 — API Places Search (Cache Hit/Miss)
-
-- [ ]  `GET /api/places/search?q=` gọi Nominatim
-- [ ]  Cache Redis `geo:search:{query}` (TTL 24h)
-- [ ]  Lưu/Upsert vào MongoDB collection `places`
-
-### Ngày 11 — API POI + Weather + Rate limit search
-
-- [ ]  `GET /api/places/poi?lat=&lng=&radius=&type=` gọi Overpass
-- [ ]  Cache Redis `poi:{lat}:{lng}:{radius}:{type}` (TTL 12h)
-- [ ]  `GET /api/weather?lat=&lng=` gọi OpenWeatherMap
-- [ ]  Cache Redis `weather:{lat}:{lng}` (TTL 15–30 phút)
-- [ ]  Rate limit search `rl:search:{ip}`
-
-### Ngày 12 — API Trips CRUD + Audit log
-
-- [ ]  `POST /api/trips` (tạo trip) + ghi `auditLogs`
-- [ ]  `GET /api/trips` (list theo user)
-- [ ]  `GET /api/trips/:id`, `PATCH /api/trips/:id`, `DELETE /api/trips/:id`
-
-### Ngày 13 — API Itinerary + Favorites
-
-- [ ]  `POST /api/trips/:id/itinerary` (thêm item)
-- [ ]  `PATCH /api/trips/:id/itinerary/:itemId` (đổi orderIndex/note/time)
-- [ ]  `DELETE /api/trips/:id/itinerary/:itemId`
-- [ ]  Favorites: `POST/DELETE /api/favorites` + `GET /api/favorites`
-
-### Ngày 14 — Frontend demo tối thiểu + tổng hợp
-
-- [ ]  UI Login/Register
-- [ ]  UI Search địa danh + POI + Weather (tối thiểu hiển thị text)
-- [ ]  UI Trips + Trip detail + itinerary list
-- [ ]  Review: eslint/build pass, refactor nhẹ, cập nhật README
-
----
-
-## ✅ Checklist nghiệm thu Tuần 2
-
-- [ ]  Auth end-to-end hoạt động (cookie JWT)
-- [ ]  Places search có cache Redis (Hit/Miss)
-- [ ]  POI + Weather có cache Redis
-- [ ]  Trips CRUD hoạt động theo user
-- [ ]  Itinerary thêm/xoá/sắp xếp theo ngày
-- [ ]  Favorites lưu/bỏ lưu
-- [ ]  Rate limit login + search hoạt động
-- [ ]  Có demo UI tối thiểu để chạy luồng chính
+Tuần 2 đã hoàn thành đầy đủ các hạng mục theo kế hoạch (bao gồm Search History UI, Zod validation toàn bộ API nghiệp vụ, chuẩn hóa error response với mã lỗi thống nhất, và integration test kết nối MongoDB/Redis thật). Xem chi tiết checklist đã check.

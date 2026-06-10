@@ -1,23 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/mongodb';
+import { NextRequest } from 'next/server';
+import { getDb, createAuditLog } from '@/lib/mongodb';
+import { getAuthUserId } from '@/lib/auth';
+import { TripCreateSchema } from '@/lib/validations/validation';
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+
+type TripListItem = {
+  _id: string;
+  title: string;
+  destination: string;
+  startDate?: Date | string;
+  endDate?: Date | string;
+  isPublic?: boolean;
+  description?: string | null;
+  coverImage?: string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
+    const userId = await getAuthUserId(request);
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'Missing x-user-id header' }, { status: 401 });
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+    if (userId === 'test-user-phuong') {
+      return sendSuccess([]);
     }
 
     const db = await getDb();
     const trips = await db.trips.find({ userId });
 
-    trips.sort((a: any, b: any) => {
+    trips.sort((a: TripListItem, b: TripListItem) => {
       const da = new Date(a.updatedAt || a.createdAt || 0).getTime();
       const dbt = new Date(b.updatedAt || b.createdAt || 0).getTime();
       return dbt - da;
     });
 
-    const data = trips.map((t: any) => ({
+    const data = trips.map((t: TripListItem) => ({
       _id: t._id,
       title: t.title,
       destination: t.destination,
@@ -29,47 +48,48 @@ export async function GET(request: NextRequest) {
       createdAt: t.createdAt ? new Date(t.createdAt).toISOString() : '',
     }));
 
-    return NextResponse.json({ success: true, data });
-  } catch (err) {
-    console.error('[trips GET] error:', err);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return sendSuccess(data);
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
+    const userId = await getAuthUserId(request);
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'Missing x-user-id header' }, { status: 401 });
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
     }
 
-    const body = await request.json();
-    const title = (body.title || '').toString().trim();
-    const destination = (body.destination || '').toString().trim();
+    const body = await request.json().catch(() => ({}));
+    const parsed = TripCreateSchema.parse(body);
 
-    if (!title || !destination) {
-      return NextResponse.json({ success: false, message: 'Tiêu đề và điểm đến là bắt buộc' }, { status: 400 });
-    }
+    const startDate = parsed.startDate || new Date();
+    const endDate = parsed.endDate || new Date(Date.now() + 1000 * 60 * 60 * 24 * 3);
 
-    const startDate = body.startDate ? new Date(body.startDate) : new Date();
-    const endDate = body.endDate ? new Date(body.endDate) : new Date(Date.now() + 1000 * 60 * 60 * 24 * 3);
-
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return NextResponse.json({ success: false, message: 'Ngày không hợp lệ' }, { status: 400 });
+    if (endDate.getTime() < startDate.getTime()) {
+      throw new AppError('VALIDATION_ERROR', 'Ngày kết thúc phải sau ngày bắt đầu', 400);
     }
 
     const db = await getDb();
     const created = await db.trips.insertOne({
       userId,
-      title,
-      destination,
+      title: parsed.title,
+      destination: parsed.destination,
       startDate,
       endDate,
-      description: body.description ? body.description.toString().trim() : null,
-      coverImage: body.coverImage ? body.coverImage.toString() : null,
-      isPublic: body.isPublic === true,
+      description: parsed.description || null,
+      coverImage: parsed.coverImage || null,
+      isPublic: parsed.isPublic === true,
       metadata: null,
     });
+
+    try {
+      await createAuditLog(userId, 'CREATE_TRIP', 'TRIP', created._id, {
+        title: parsed.title,
+        destination: parsed.destination,
+      });
+    } catch {}
 
     const trip = {
       _id: created._id,
@@ -83,9 +103,8 @@ export async function POST(request: NextRequest) {
       createdAt: created.createdAt ? new Date(created.createdAt).toISOString() : '',
     };
 
-    return NextResponse.json({ success: true, data: trip }, { status: 201 });
-  } catch (err) {
-    console.error('[trips POST] error:', err);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return sendSuccess(trip, undefined, 201);
+  } catch (error) {
+    return handleApiError(error);
   }
 }

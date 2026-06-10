@@ -13,7 +13,6 @@ interface FavoritesSectionProps {
 
 const FavoritesSection = memo(({ places, onRemove, loading }: FavoritesSectionProps) => (
   <div>
-    <div className="font-display font-bold text-lg mb-4">Địa điểm yêu thích</div>
     {loading ? (
       <div className="text-center py-8 text-slate-400 text-sm">Đang tải...</div>
     ) : (

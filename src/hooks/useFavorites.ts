@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useTransition } from 'react';
+import { useState, useCallback } from 'react';
 import { FavoritePlaceSummary } from '@/types/profile';
 
 interface UseFavoritesOptions {
@@ -21,8 +21,6 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
   const [favorites, setFavorites] = useState<FavoritePlaceSummary[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [, startTransition] = useTransition();
-
   const loadFavorites = useCallback(async (uid?: string) => {
     const id = uid || userId;
     if (!id) return;
@@ -36,8 +34,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
           setFavorites(json.data);
         }
       }
-    } catch (e) {
-      console.warn('loadFavorites failed', e);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -55,9 +52,9 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
         headers: { 'x-user-id': userId },
       });
       if (!res.ok) throw new Error();
-    } catch (e) {
+    } catch {
       setFavorites(previous);
-      throw e;
+      throw new Error('Remove favorite failed');
     }
   }, [userId, favorites]);
 

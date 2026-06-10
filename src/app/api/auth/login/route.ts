@@ -1,57 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, findUserByEmail } from '@/lib/mongodb';
 import { compare } from 'bcryptjs';
+import { authCookieName, signAuthToken } from '@/lib/auth';
+import { getDb, findUserByEmail } from '@/lib/mongodb';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { LoginSchema } from '@/lib/validations/validation';
+import { handleApiError, AppError } from '@/lib/api-response';
+
+function setAuthCookie(response: NextResponse, token: string) {
+  response.cookies.set(authCookieName, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, password } = body;
+    const body = await request.json().catch(() => ({}));
+    const parsed = LoginSchema.parse(body);
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Vui lòng nhập đầy đủ email và mật khẩu' },
-        { status: 400 }
-      );
+    const normalizedEmail = parsed.email;
+    const password = parsed.password;
+
+    const ip = getClientIp(request);
+    const rate = await checkRateLimit({
+      key: `rl:login:${ip}:${normalizedEmail}`,
+      limit: 8,
+      windowSeconds: 900,
+    });
+
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau.', 429);
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    if (process.env.ENABLE_DEFAULT_TEST_ACCOUNT === 'true' &&
-        normalizedEmail === (process.env.DEFAULT_TEST_EMAIL || '').toLowerCase().trim() &&
-        password === process.env.DEFAULT_TEST_PASSWORD) {
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: 'test-user-phuong',
-          email: normalizedEmail,
-          fullName: 'Nguyễn Hoàng Phương (Test)',
-          role: 'USER',
-        },
-      });
+    if (
+      process.env.ENABLE_DEFAULT_TEST_ACCOUNT === 'true'
+      && normalizedEmail === (process.env.DEFAULT_TEST_EMAIL || '').toLowerCase().trim()
+      && password === process.env.DEFAULT_TEST_PASSWORD
+    ) {
+      const user = {
+        id: 'test-user-phuong',
+        email: normalizedEmail,
+        fullName: 'Nguyễn Hoàng Phương (Test)',
+        role: 'USER' as const,
+      };
+      
+      const token = await signAuthToken(user);
+      const payload = { success: true, user };
+      const response = NextResponse.json(payload);
+      setAuthCookie(response, token);
+      return response;
     }
 
     const user = await findUserByEmail(normalizedEmail);
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Email hoặc mật khẩu không chính xác' },
-        { status: 401 }
-      );
+      throw new AppError('UNAUTHORIZED', 'Email hoặc mật khẩu không chính xác', 401);
     }
 
     if (user.isLocked) {
-      return NextResponse.json(
-        { error: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.' },
-        { status: 403 }
-      );
+      throw new AppError('FORBIDDEN', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.', 403);
     }
 
     const isMatch = await compare(password, user.passwordHash);
     if (!isMatch) {
-      return NextResponse.json(
-        { error: 'Email hoặc mật khẩu không chính xác' },
-        { status: 401 }
-      );
+      throw new AppError('UNAUTHORIZED', 'Email hoặc mật khẩu không chính xác', 401);
     }
 
     const db = await getDb();
@@ -64,20 +79,19 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
     });
 
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-      },
-    });
-  } catch (err) {
-    console.error('[login-api] Unexpected error:', err);
-    return NextResponse.json(
-      { error: 'Đã xảy ra lỗi, vui lòng thử lại sau.' },
-      { status: 500 }
-    );
+    const responseUser = {
+      id: user._id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
+    
+    const token = await signAuthToken(responseUser);
+    const payload = { success: true, user: responseUser };
+    const response = NextResponse.json(payload);
+    setAuthCookie(response, token);
+    return response;
+  } catch (error) {
+    return handleApiError(error);
   }
 }

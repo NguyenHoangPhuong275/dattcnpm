@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { NextRequest } from 'next/server';
 import { cacheGet, cacheSet } from '@/lib/redis';
 import { getDb } from '@/lib/mongodb';
+import { getAuthUserId } from '@/lib/auth';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { PlacesSearchSchema } from '@/lib/validations/validation';
+import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-response';
 import type { Place } from '@/database/schema';
-
-const SearchQuerySchema = z.object({
-  q: z.string().min(2).max(100),
-});
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
@@ -31,6 +30,29 @@ function normalizeQuery(query: string): string {
 
 function buildCacheKey(query: string): string {
   return `geo:search:${encodeURIComponent(normalizeQuery(query))}`;
+}
+
+async function recordSearchHistory(userId: string | null, query: string, resultCount: number, lat?: number | null, lng?: number | null) {
+  if (!userId) return;
+  try {
+    const db = await getDb();
+    await db.searchHistories.insertOne({
+      userId,
+      query,
+      lat: lat ?? null,
+      lng: lng ?? null,
+      resultCount,
+      metadata: null,
+      createdAt: new Date(),
+    });
+    const histories = await db.searchHistories.find({ userId });
+    histories
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(50)
+      .forEach((item) => {
+        db.searchHistories.deleteOne(item._id).catch(() => null);
+      });
+  } catch {}
 }
 
 function removeVietnameseTones(str: string): string {
@@ -145,24 +167,28 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
 
-    const validation = SearchQuerySchema.safeParse({ q: query });
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error.issues[0].message },
-        { status: 400 }
-      );
-    }
-
-    const { q } = validation.data;
+    const validation = PlacesSearchSchema.parse({ q: query });
+    const { q } = validation;
     const normalized = normalizeQuery(q);
     const cacheKey = buildCacheKey(q);
+
+    const userId = await getAuthUserId(request);
+    const rateIdentity = userId || getClientIp(request);
+    const rate = await checkRateLimit({
+      key: `rl:search:${rateIdentity}`,
+      limit: 80,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Quá nhiều yêu cầu tìm kiếm. Vui lòng thử lại sau.', 429);
+    }
 
     const cached = await cacheGet(cacheKey);
     if (cached) {
       try {
         const parsed = JSON.parse(cached) as Place[];
-        return NextResponse.json({ 
-          success: true, 
+        await recordSearchHistory(userId, q, parsed.length, parsed[0]?.lat ?? null, parsed[0]?.lng ?? null);
+        return sendSuccess({ 
           results: parsed,
           cached: true 
         });
@@ -252,7 +278,7 @@ export async function GET(request: NextRequest) {
       if (cachedPois) {
         try { rawPois = JSON.parse(cachedPois); } catch {}
       } else {
-        const overpassQuery = `[out:json][timeout:20];(node["tourism"](around:50000,${centerLat},${centerLng});way["tourism"](around:50000,${centerLat},${centerLng});node["historic"](around:50000,${centerLat},${centerLng});way["historic"](around:50000,${centerLat},${centerLng});node["amenity"="place_of_worship"](around:50000,${centerLat},${centerLng}););out center 50;`;
+        const overpassQuery = `[out:json][timeout:20];(node["tourism"(around:50000,${centerLat},${centerLng});way["tourism"(around:50000,${centerLat},${centerLng});node["historic"(around:50000,${centerLat},${centerLng});way["historic"(around:50000,${centerLat},${centerLng});node["amenity"="place_of_worship"](around:50000,${centerLat},${centerLng}););out center 50;`;
         try {
           const res = await fetch(`${OVERPASS_URL}?data=${encodeURIComponent(overpassQuery)}`, {
             headers: { 'User-Agent': USER_AGENT, 'Accept': 'application/json' },
@@ -277,8 +303,7 @@ export async function GET(request: NextRequest) {
               });
             await cacheSet(poiCacheKey, JSON.stringify(rawPois), 43200);
           }
-        } catch (err) {
-          console.error('Overpass live POI error:', err);
+        } catch {
         }
       }
 
@@ -317,7 +342,6 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      
       if (additionalPOIs.length === 0 && parsedPlaces.length > 0) {
         for (const p of parsedPlaces.slice(0, 12)) {
           if (!isValidTourismPOI(p.name || '', p.type)) continue;
@@ -354,7 +378,7 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb();
     const savePromises = slicedResults.map(async (item) => {
-      let existing = await db.places.findOne({ osmId: item.osmId });
+      const existing = await db.places.findOne({ osmId: item.osmId });
       if (existing) {
         return await db.places.updateOne(existing._id, {
           name: item.name,
@@ -386,22 +410,18 @@ export async function GET(request: NextRequest) {
 
     await cacheSet(cacheKey, JSON.stringify(cachePayload), CACHE_TTL);
 
-    return NextResponse.json({
-      success: true,
+    await recordSearchHistory(userId, q, cachePayload.length, centerLat, centerLng);
+
+    return sendSuccess({
       results: cachePayload,
       cached: false,
     });
-  } catch (error: any) {
-    console.error('[places/search] Unexpected error:', error);
-    if (error.name === 'TimeoutError') {
-      return NextResponse.json(
-        { error: 'Tìm kiếm mất quá lâu. Vui lòng thử lại.' },
-        { status: 504 }
-      );
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'TimeoutError') {
+      return sendError('SERVICE_UNAVAILABLE', 'Tìm kiếm mất quá lâu. Vui lòng thử lại.', 504);
     }
-    return NextResponse.json(
-      { error: 'Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại sau.' },
-      { status: 500 }
-    );
+    return handleApiError(err);
   }
 }
+
+

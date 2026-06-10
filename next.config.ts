@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  reactCompiler: false,
 
   
   async headers() {
@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", 
               "img-src 'self' data: https:",                     
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https:",                       
+              "connect-src 'self' https: ws: wss:",                       
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

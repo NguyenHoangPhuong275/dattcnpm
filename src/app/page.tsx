@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
 import BrandLogo from '@/components/BrandLogo';
 import UserDropdown from '@/components/UserDropdown';
 import * as Icons from '@/components/icons';
+import { getApiErrorMessage } from '@/lib/api-client';
 
 interface SearchResult {
   _id: string;
@@ -17,6 +19,13 @@ interface SearchResult {
   osmId?: string | null;
 }
 
+const SLIDES = [
+  '/images/hoian.png',
+  '/images/hagiang.png',
+  '/images/halongbay.png',
+  '/images/hue.jpg',
+];
+
 export default function HomePage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -24,6 +33,21 @@ export default function HomePage() {
         window.history.scrollRestoration = 'manual';
       }
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+
+      const params = new URLSearchParams(window.location.search);
+      const authParam = params.get('auth');
+      if (authParam === 'login' || authParam === 'register') {
+        setAuthMode(authParam);
+        setIsClosing(false);
+      }
+
+      const queryParam = params.get('q');
+      if (queryParam) {
+        setSearchQuery(queryParam);
+        setTimeout(() => {
+          performSearch(queryParam);
+        }, 100);
+      }
     }
   }, []);
 
@@ -44,14 +68,8 @@ export default function HomePage() {
   const [isWeatherLoading, setIsWeatherLoading] = useState(false);
   const [isPoisLoading, setIsPoisLoading] = useState(false);
 
-  const slides = [
-    '/images/hoian.png',
-    '/images/hagiang.png',
-    '/images/halongbay.png',
-    '/images/hue.jpg',
-  ];
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [baseBg, setBaseBg] = useState(slides[0]);
+  const [baseBg, setBaseBg] = useState(SLIDES[0]);
 
   useEffect(() => {
     if (!selectedPlace) {
@@ -74,7 +92,7 @@ export default function HomePage() {
             setWeather(data.weather);
           }
         })
-        .catch(err => console.error(err))
+        .catch(() => null)
         .finally(() => setIsWeatherLoading(false));
 
       const isProvince = selectedPlace.address?.toLowerCase().includes('tỉnh') || 
@@ -89,7 +107,7 @@ export default function HomePage() {
             setPois(data.results);
           }
         })
-        .catch(err => console.error(err))
+        .catch(() => null)
         .finally(() => setIsPoisLoading(false));
     };
 
@@ -164,7 +182,7 @@ export default function HomePage() {
       if (searchAbortControllerRef.current !== controller) return;
 
       if (!res.ok) {
-        setSearchError(data.error || 'Không thể tìm kiếm');
+        setSearchError(getApiErrorMessage(data, 'Không thể tìm kiếm'));
         setIsDropdownOpen(true);
         return;
       }
@@ -177,9 +195,8 @@ export default function HomePage() {
         setSearchError('Không tìm thấy địa điểm phù hợp. Thử từ khóa khác (ví dụ: Hà Nội, Đà Lạt, Hội An).');
         setIsDropdownOpen(true);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      console.error(err);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setSearchError('Lỗi kết nối. Vui lòng thử lại.');
       setIsDropdownOpen(true);
     } finally {
@@ -210,13 +227,15 @@ export default function HomePage() {
   }, [searchQuery, selectedPlace]);
 
   useEffect(() => {
+    if (authMode) return;
+
     let cancelled = false;
     let timer: ReturnType<typeof setInterval> | null = null;
 
     const preloadAndStart = async () => {
       await Promise.all(
-        slides.map((src) => {
-          const img = new Image();
+        SLIDES.map((src) => {
+          const img = new window.Image();
           img.src = src;
           return img.decode().catch(() => null);
         })
@@ -226,7 +245,7 @@ export default function HomePage() {
       setTimeout(() => {
         if (!cancelled) {
           timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % slides.length);
+            setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
           }, 6200);
         }
       }, 120);
@@ -238,15 +257,15 @@ export default function HomePage() {
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  }, [slides.length]);
+  }, [authMode]);
 
   useEffect(() => {
     if (currentSlide === 0) return;
     const t = setTimeout(() => {
-      setBaseBg(slides[currentSlide]);
+      setBaseBg(SLIDES[currentSlide]);
     }, 3400);
     return () => clearTimeout(t);
-  }, [currentSlide, slides]);
+  }, [currentSlide]);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] overflow-x-hidden">
@@ -258,18 +277,18 @@ export default function HomePage() {
           style={{ backgroundImage: `url('${baseBg}')` }}
         />
 
-        <div className="absolute inset-0 z-[1] transform-gpu [perspective:1000px]">
-          {slides.map((src, index) => (
-            <img
+        <div className="absolute inset-0 z-[1]">
+          {SLIDES.map((src, index) => (
+            <Image
               key={index}
               src={src}
               alt=""
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[3400ms] ease-in-out will-change-[opacity] [backface-visibility:hidden] [transform:translateZ(0)] ${
+              fill
+              sizes="100vw"
+              className={`object-cover transition-opacity duration-700 ease-in-out ${
                 currentSlide === index ? 'opacity-100' : 'opacity-0 pointer-events-none'
               }`}
-              loading={index === 0 ? 'eager' : 'lazy'}
-              decoding="async"
-              fetchPriority={index === 0 ? 'high' : 'auto'}
+              priority={index === 0}
             />
           ))}
         </div>
@@ -361,20 +380,6 @@ export default function HomePage() {
                   <div className="max-h-72 overflow-auto divide-y divide-slate-100">
                     {searchResults.map((place) => {
                       const isSelected = selectedPlace?._id === place._id;
-
-                      const getPlaceTypeLabel = (type?: string) => {
-                        if (!type) return 'Địa điểm';
-                        const t = type.toLowerCase();
-                        if (['province', 'city', 'town', 'administrative'].includes(t)) return 'Tỉnh/Thành phố';
-                        if (t === 'district') return 'Quận/Huyện';
-                        if (t === 'ward') return 'Phường/Xã';
-                        if (t === 'historic') return 'Di tích lịch sử';
-                        if (['tourism', 'attraction', 'viewpoint', 'museum', 'gallery', 'zoo'].includes(t)) return 'Địa điểm du lịch';
-                        if (t === 'place') return 'Địa điểm';
-                        if (t === 'amenity') return 'Tiện ích';
-                        if (['hotel', 'guest_house', 'hostel', 'motel', 'resort'].includes(t)) return 'Địa điểm du lịch';
-                        return 'Địa điểm du lịch';
-                      };
 
                       return (
                         <button
@@ -636,7 +641,7 @@ export default function HomePage() {
       {authMode && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
-            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
+            className={`absolute inset-0 bg-black/60 transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
             onClick={closeAuth}
           />
 
@@ -645,10 +650,12 @@ export default function HomePage() {
             onClick={e => e.stopPropagation()}
           >
             <div className="relative w-full md:w-[48%] h-48 md:h-full overflow-hidden bg-slate-100 flex-shrink-0">
-              <img
+              <Image
                 src="/images/hoian_auth.png"
                 alt="Phố cổ Hội An"
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 408px"
+                className="object-cover"
               />
               <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-1.5 pointer-events-none">
                 <span className={`h-1.5 rounded-full bg-white transition-all duration-300 ${authMode === 'login' ? 'w-5 opacity-100' : 'w-1.5 opacity-40'}`} />
@@ -715,7 +722,7 @@ export default function HomePage() {
 
 function Header({ onAuthClick }: { onAuthClick: (mode: 'login' | 'register') => void }) {
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-[var(--color-border)]">
+    <header className="sticky top-0 z-40 bg-white border-b border-[var(--color-border)]">
       <div className="w-full flex items-center px-8 lg:px-12 h-16">
         <div className="flex items-center gap-6 flex-shrink-0">
           <BrandLogo />
@@ -788,3 +795,4 @@ function AuthNav({ onAuthClick }: { onAuthClick: (mode: 'login' | 'register') =>
     </>
   );
 }
+

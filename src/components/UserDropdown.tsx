@@ -34,10 +34,12 @@ export default function UserDropdown({ user }: UserDropdownProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
     localStorage.removeItem('user');
     setOpen(false);
-
     window.location.href = '/';
   };
 

@@ -11,7 +11,6 @@ interface SecuritySectionProps {
 
 const SecuritySection = memo(({ is2FAEnabled, onToggle2FA, onChangePassword, saving }: SecuritySectionProps) => (
   <div className="space-y-4">
-    <div className="text-lg font-display font-bold mb-2">Bảo mật tài khoản</div>
 
     <div className="flex items-center justify-between rounded-2xl border border-slate-100 px-5 py-4">
       <div>

@@ -10,13 +10,7 @@ function getRedisClient(): Redis {
       lazyConnect: true,
     });
 
-    redisClient.on('error', (err) => {
-      console.error('[Redis] Connection error:', err);
-    });
-
-    redisClient.on('connect', () => {
-      console.log('[Redis] Connected successfully');
-    });
+    redisClient.on('error', () => {});
   }
   return redisClient;
 }
@@ -38,7 +32,6 @@ export async function disconnectRedis(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
     redisClient = null;
-    console.log('[Redis] Disconnected');
   }
 }
 

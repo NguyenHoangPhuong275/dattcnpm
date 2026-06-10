@@ -1,101 +1,169 @@
-# Smart Travel Guide (Hệ thống Tổng hợp & Gợi ý Du lịch Thông minh)
+# Smart Travel Guide
 
-Smart Travel Guide là ứng dụng Web giúp người dùng khám phá địa điểm du lịch, xem thông tin điểm tham quan (POI), cập nhật tình hình thời tiết, lưu địa điểm yêu thích và lập lịch trình chuyến đi cá nhân một cách chi tiết.
+Smart Travel Guide là web app hỗ trợ tìm kiếm địa điểm du lịch, xem POI/thời tiết, quản lý hồ sơ người dùng, lưu địa điểm yêu thích, tạo chuyến đi và lập lịch trình cá nhân.
 
-Dự án được xây dựng phục vụ môn học **Đồ án Thực tế Công nghệ Phần mềm**.
+Project phục vụ môn Đồ án Thực tế Công nghệ Phần mềm.
 
----
+## Trạng thái hiện tại
 
-## 🛠️ Công nghệ sử dụng
+Tuần 1 đã hoàn thành theo phạm vi repo hiện tại, trừ commit/push GitHub vì không đủ dữ liệu để xác minh. Tuần 2 đã hoàn thành phần lõi ở mức demo/báo cáo: auth OTP/login/logout, JWT cookie, middleware profile, places search, POI, weather, trips, itinerary, favorites, search history API, rate limit OTP/login/search và test tối thiểu.
 
-*   **Framework:** Next.js 15+ (App Router, TypeScript, ESLint)
-*   **Giao diện:** Tailwind CSS
-*   **Cơ sở dữ liệu chính:** MongoDB
-*   **Cache, Session & Rate Limit:** Redis
-*   **Định vị & Bản đồ:** OpenStreetMap (Tile Server), Overpass API, Nominatim, OSRM
+Tuần 3-6 đã có tài liệu kế hoạch chi tiết trong `docs/`, nhưng code chưa hoàn thành toàn bộ các mục bản đồ, search history UI, add-to-trip từ search, test integration, responsive polish và bàn giao cuối.
 
----
+## Stack hiện tại
 
-## 📂 Cấu trúc thư mục (Scaffold Tuần 1)
+| Nhóm | Công nghệ |
+| --- | --- |
+| Framework | Next.js 16.2.6 App Router |
+| Ngôn ngữ | TypeScript |
+| UI | React 19, Tailwind CSS 4 |
+| Database | MongoDB qua Mongoose |
+| Cache/OTP/Rate limit | Redis qua ioredis |
+| Email OTP | Resend |
+| Validation | Zod và validation thủ công ở một số API nghiệp vụ |
+| Password hash | bcryptjs |
+| Auth token | jose JWT |
+| Test runner | Vitest |
 
-```text
-smart-travel-guide/
-├── docs/                      # Tài liệu phân tích và thiết kế Tuần 1
-│   ├── 01_SRS.md              # Đặc tả yêu cầu phần mềm
-│   ├── 02_USE_CASE.md         # Biểu đồ và đặc tả Use Case
-│   ├── 03_DATA_MODEL.md       # Thiết kế dữ liệu MongoDB và Redis
-│   └── 04_SEQUENCE.md         # Sơ đồ tuần tự các luồng xử lý chính
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── health/        # Endpoint kiểm tra trạng thái hoạt động
-│   │   │   └── debug/
-│   │   │       ├── db/        # Kiểm tra kết nối MongoDB
-│   │   │       └── redis/     # Kiểm tra kết nối Redis
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── lib/
-│   │   ├── mongodb.ts         # Singleton kết nối MongoDB (Mongoose)
-│   │   └── redis.ts           # Kết nối Redis client (ioredis)
-│   └── types/                 # Định nghĩa kiểu dữ liệu TypeScript
-├── .env.example               # Khung biến môi trường
-├── docker-compose.yml         # Container chạy MongoDB & Redis tại local
-├── package.json
-└── README.md
+Auth hiện set HttpOnly JWT cookie khi login và vẫn giữ `localStorage` + `x-user-id` để tương thích UI hiện có. Các API user đọc được `x-user-id` hoặc JWT cookie. Middleware đã bảo vệ `/profile`.
+
+Font chuẩn toàn hệ thống là **Be Vietnam Pro**, khai báo bằng `next/font/google` trong `src/app/layout.tsx` và map vào `--font-sans`, `--font-display` tại `src/app/globals.css`. Form controls kế thừa cùng font để hiển thị tiếng Việt có dấu nhất quán trên desktop và mobile browser.
+
+## Cấu trúc thư mục chính
+
+```
+DATTCNPM/
+  docs/
+  public/images/
+  scripts/
+  src/
+    app/
+      admin/
+      api/
+      login/
+      profile/
+      register/
+    components/
+    database/
+    hooks/
+    lib/
+    types/
+  .env.example
+  docker-compose.yml
+  API_REPORT.md
+  KE_HOACH_DU_AN.md
+  package.json
+  README.md
 ```
 
----
+## Cài đặt local
 
-## 🚀 Hướng dẫn cài đặt & Chạy ứng dụng
+1. Cài dependencies:
 
-### 1. Yêu cầu hệ thống
-Đảm bảo máy tính của bạn đã cài đặt các công cụ sau:
-*   [Node.js (phiên bản 18 trở lên)](https://nodejs.org/)
-*   [Docker & Docker Compose](https://www.docker.com/)
-
-### 2. Thiết lập cơ sở dữ liệu và bộ nhớ đệm
-Khởi chạy dịch vụ MongoDB và Redis bằng Docker Compose:
-```bash
-docker compose up -d
-```
-Lệnh này sẽ tải xuống các hình ảnh và khởi chạy hai container:
-*   **MongoDB:** chạy trên cổng `27017`
-*   **Redis:** chạy trên cổng `6379`
-
-### 3. Cấu hình biến môi trường
-Sao chép tệp tin cấu hình môi trường mẫu:
-```bash
-cp .env.example .env
-```
-*(Nếu sử dụng Windows PowerShell, dùng lệnh: `copy .env.example .env`)*
-
-Tệp tin `.env` được cấu hình mặc định để kết nối trực tiếp đến các container chạy qua Docker Compose ở local.
-
-### 4. Cài đặt các thư viện phụ thuộc
-Cài đặt tất cả các package cần thiết của dự án Next.js:
 ```bash
 npm install
 ```
 
-### 5. Khởi chạy dự án ở môi trường Phát triển (Development)
-Chạy lệnh khởi động máy chủ phát triển:
+2. Tạo file môi trường:
+
+```bash
+copy .env.example .env
+```
+
+3. Chạy MongoDB và Redis local nếu không dùng dịch vụ cloud:
+
+```bash
+docker compose up -d
+```
+
+4. Chạy dev server:
+
 ```bash
 npm run dev
 ```
-Mở trình duyệt và truy cập [http://localhost:3000](http://localhost:3000) để xem ứng dụng hoạt động.
 
----
+Ứng dụng chạy tại `http://localhost:3000`.
 
-## 🔌 Các Endpoint Kiểm tra kỹ thuật (Health & Debug API)
+## Biến môi trường
 
-Để hỗ trợ kiểm tra tính thông suốt của kết nối dịch vụ trong giai đoạn phát triển, hệ thống cung cấp các API sau:
+| Biến | Mục đích |
+| --- | --- |
+| `MONGODB_URI` | Kết nối MongoDB |
+| `REDIS_URL` | Kết nối Redis |
+| `JWT_SECRET` | Secret ký JWT auth cookie |
+| `NEXT_PUBLIC_APP_URL` | URL app |
+| `ENABLE_DEFAULT_TEST_ACCOUNT` | Bật/tắt tài khoản test mặc định |
+| `DEFAULT_TEST_EMAIL` | Email test mặc định |
+| `DEFAULT_TEST_PASSWORD` | Mật khẩu test mặc định |
+| `API_KEY_RESEND` | API key Resend |
+| `WEBHOOK_SECRET` | Secret cho admin webhook |
 
-*   **Health Check:** `GET /api/health`
-    *   *Mục đích:* Kiểm tra ứng dụng hoạt động.
-    *   *Kết quả mong đợi:* `{"status": "ok", ...}`
-*   **MongoDB Connection Check:** `GET /api/debug/db`
-    *   *Mục đích:* Kiểm tra kết nối từ Next.js đến MongoDB.
-    *   *Kết quả mong đợi:* `{"status": "success", "connected": true, ...}`
-*   **Redis Connection Check:** `GET /api/debug/redis`
-    *   *Mục đích:* Kiểm tra kết nối từ Next.js đến Redis qua lệnh PING-PONG.
-    *   *Kết quả mong đợi:* `{"status": "success", "connected": true, "response": "PONG"}`
+## Scripts thật
+
+| Lệnh | Mục đích |
+| --- | --- |
+| `npm run dev` | Chạy dev server |
+| `npm run build` | Build production |
+| `npm run start` | Chạy production server sau build |
+| `npm run lint` | Chạy ESLint |
+| `npm run lint:fix` | Chạy ESLint fix |
+| `npm run typecheck` | Chạy TypeScript no emit |
+| `npm test` | Chạy Vitest |
+| `npm run test:ui` | Chạy Vitest UI |
+| `npm run test:coverage` | Chạy Vitest coverage |
+
+## API chính hiện có
+
+| Method | Path | Ghi chú |
+| --- | --- | --- |
+| GET | `/api/health` | Health check |
+| GET | `/api/debug/db` | Kiểm tra MongoDB |
+| GET | `/api/debug/redis` | Kiểm tra Redis |
+| POST | `/api/auth/login` | Đăng nhập, JWT cookie, rate limit |
+| POST | `/api/auth/logout` | Logout, xóa auth cookie |
+| POST | `/api/auth/send-otp` | Gửi OTP đăng ký |
+| POST | `/api/auth/verify-otp` | Xác minh OTP và tạo user |
+| GET | `/api/profile` | Lấy profile |
+| PATCH | `/api/profile` | Cập nhật profile |
+| POST | `/api/profile/password` | Đổi mật khẩu |
+| GET | `/api/places/search` | Tìm địa điểm bằng Nominatim/Overpass, Redis cache, rate limit |
+| GET | `/api/places/poi` | Tìm POI quanh tọa độ |
+| GET | `/api/weather` | Thời tiết Open-Meteo |
+| GET | `/api/trips` | Danh sách trip |
+| POST | `/api/trips` | Tạo trip |
+| GET | `/api/trips/[id]` | Chi tiết trip |
+| PATCH | `/api/trips/[id]` | Cập nhật trip |
+| DELETE | `/api/trips/[id]` | Xóa trip |
+| GET | `/api/trips/[id]/itinerary` | Danh sách itinerary |
+| POST | `/api/trips/[id]/itinerary` | Thêm itinerary item |
+| PATCH | `/api/trips/[id]/itinerary/[itemId]` | Sửa itinerary item |
+| DELETE | `/api/trips/[id]/itinerary/[itemId]` | Xóa itinerary item |
+| GET | `/api/favorites` | Danh sách yêu thích |
+| POST | `/api/favorites` | Thêm yêu thích |
+| DELETE | `/api/favorites/[id]` | Xóa yêu thích |
+| GET | `/api/search-history` | Danh sách lịch sử tìm kiếm |
+| POST | `/api/search-history` | Thêm lịch sử tìm kiếm |
+| DELETE | `/api/search-history` | Xóa toàn bộ lịch sử tìm kiếm |
+| DELETE | `/api/search-history/[id]` | Xóa một bản ghi lịch sử |
+| GET | `/api/reviews/my` | Review của user |
+| POST | `/api/webhook` | Admin/maintenance events |
+
+## Kiểm tra
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+## Chức năng còn thiếu hoặc chưa hoàn chỉnh
+
+| Hạng mục | Trạng thái |
+| --- | --- |
+| Bản đồ trực quan/marker/popup | Chưa triển khai |
+| Search history UI riêng | Đã triển khai (Profile tab "Lịch sử tìm kiếm") |
+| Add-to-trip trực tiếp từ search result | Chưa triển khai |
+| Validate Zod toàn bộ API nghiệp vụ | Đã hoàn tất (src/lib/validations/* + áp dụng toàn route) |
+| Test integration với MongoDB/Redis | Đã có (tests/integration/ + .env.test.example) |
+| Production deployment | Chưa có cấu hình riêng |

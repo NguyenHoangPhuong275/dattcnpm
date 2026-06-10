@@ -1,123 +1,66 @@
-# Smart Travel Guide — Design System
+# Smart Travel Guide - Design System
 
-**Dự án:** Smart Travel Guide (Web app hỗ trợ lập kế hoạch du lịch)  
-**Công nghệ:** Next.js 15+ (App Router) + TypeScript + Tailwind CSS + Leaflet  
-**Mục tiêu:** Xây dựng giao diện hiện đại, sạch sẽ, dễ sử dụng, đáng tin cậy và truyền cảm hứng du lịch.
+Ngày cập nhật: 2026-06-09
 
----
+Tài liệu này phản ánh hướng giao diện hiện tại trong `src/app/globals.css` và các component React. Khi cần quyết định UI chi tiết, ưu tiên tham khảo thêm các DESIGN.md thực tế từ getdesign.md.
 
-### 1. Project Context & Target Audience
+## 1. Bối cảnh
 
-- **Sản phẩm:** Web application giúp người dùng tìm kiếm địa điểm, xem bản đồ, quản lý chuyến đi và lập lịch trình chi tiết.
-- **Đối tượng chính:** Người 20–45 tuổi, thích du lịch tự túc, cần công cụ lập kế hoạch nhanh và trực quan.
-- **Tone & cảm xúc:** Hiện đại, sạch sẽ, ấm áp, đáng tin cậy, không quá "du lịch sến".
-- **Thiết bị chính:** Desktop + Mobile (responsive mạnh).
+Smart Travel Guide là web app du lịch, tập trung vào tìm kiếm điểm đến, thời tiết, POI, profile, trip và admin. Giao diện hiện tại dùng phong cách sạch, sáng, nhiều surface trắng, màu chủ đạo xanh lavender theo logo LOTUS TRAVEL.
 
----
+## 2. Pattern chính
 
-### 2. Design Pattern (Cấu trúc trang)
+| Khu vực | Pattern hiện tại |
+| --- | --- |
+| Trang chủ | Hero ảnh du lịch, search box nổi, kết quả POI/weather bên dưới |
+| Auth | Form login/register riêng và modal auth trên home |
+| Profile | Sidebar menu, content panel theo tab |
+| Admin | Dashboard tối, dùng webhook secret và stats/logs/actions |
 
-**Pattern chính:** **Hero-Centric + Map-First + Progressive Disclosure**
-
-- Trang chủ / Tìm kiếm: Hero mạnh + bản đồ ngay bên dưới.
-- Trang chi tiết chuyến đi: Map làm trung tâm + sidebar quản lý lịch trình.
-- Luồng chính: Tìm kiếm → Xem chi tiết → Thêm vào lịch trình → Xem tổng quan chuyến đi.
-
-**Nguyên tắc:** Người dùng luôn có cảm giác "đang ở trên bản đồ" thay vì bị đẩy vào form phức tạp.
-
----
-
-### 3. Recommended Style
-
-**Style:** **Soft UI Evolution** kết hợp **Nature Distilled**
-
-- Dùng soft shadows, rounded corners vừa phải (12–16px).
-- Màu sắc tự nhiên, dịu mắt, phù hợp với chủ đề du lịch.
-- Tránh cảm giác lạnh lùng (enterprise) hoặc quá trẻ trung (Gen-Z neon).
-
-**Lý do:** Phù hợp với đối tượng 20–45 tuổi, dễ nhìn khi dùng lâu, đặc biệt khi xem bản đồ.
-
----
-
-### 4. Color Palette
+## 3. Token màu đang dùng
 
 ```css
-/* Primary */
---color-primary:        #2D5A5A;   /* Teal đậm, chủ đạo */
---color-primary-light:  #4A7C7C;
-
-/* Accent */
---color-accent:         #E07A5F;   /* Terracotta / Cam đất ấm */
---color-accent-light:   #F4A261;
-
-/* Neutral */
---color-bg:             #F8F5F0;   /* Kem nhạt, dễ chịu */
---color-surface:        #FFFFFF;
---color-text:           #2C2C2C;
---color-text-muted:     #6B6B6B;
-
-/* Map & Functional */
---color-map-overlay:    rgba(248, 245, 240, 0.92);
---color-success:        #4A7C59;
---color-warning:        #D97706;
---color-danger:         #B45309;
+--color-primary: #acc0eb;
+--color-primary-light: #cfe3f8;
+--color-primary-lightest: #e9f2fb;
+--color-primary-dark: #8aa3d4;
+--color-primary-darker: #6b87bd;
+--color-bg: #f4f7fc;
+--color-surface: rgba(255, 255, 255, 0.95);
+--color-text: #0f172a;
+--color-text-secondary: #475569;
+--color-text-muted: #64748b;
+--color-accent: #7c8cf5;
+--color-accent-warm: #e07a5f;
 ```
 
-**Nguyên tắc sử dụng:**
-- Nền chính luôn dùng `--color-bg`.
-- Card và vùng nội dung dùng `--color-surface`.
-- Nút chính dùng `--color-primary` hoặc `--color-accent`.
-- Tránh dùng màu quá bão hòa trên bản đồ.
+Palette teal/terracotta trong bản thiết kế cũ không còn là palette chính của code hiện tại.
 
----
+## 4. Typography
 
-### 5. Typography
+Code hiện dùng **Be Vietnam Pro** cho toàn bộ UI. Font được khai báo bằng `next/font/google` trong `src/app/layout.tsx`, sau đó map qua CSS variables trong `src/app/globals.css`.
 
-- **Heading:** `Playfair Display` (serif) hoặc `Cormorant Garamond`
-  - Dùng cho tiêu đề lớn, tạo cảm giác du lịch cao cấp.
-- **Body & UI:** `Inter` hoặc `Satoshi` (sans-serif)
-  - Rất rõ ràng trên bản đồ và dữ liệu.
+| Token | Mục đích |
+| --- | --- |
+| `--font-be-vietnam-pro` | Font source từ `next/font` |
+| `--font-sans` | UI/body/form controls |
+| `--font-display` | Heading/brand, cùng family để tránh lệch dấu tiếng Việt |
 
-**Scale đề xuất:**
-- `text-5xl` → Tiêu đề Hero
-- `text-3xl` → Tiêu đề section
-- `text-xl` → Card title
-- `text-base` → Nội dung chính
-- `text-sm` → Metadata, phụ đề
+`html`, `body`, `button`, `input`, `textarea` và `select` đều dùng cùng font-family. Không import font trong component hoặc CSS khác.
 
----
+## 5. Radius và surface
 
-### 6. Spacing & Layout
+| Token | Giá trị |
+| --- | --- |
+| `--radius-sm` | `8px` |
+| `--radius-md` | `12px` |
+| `--radius-lg` | `16px` |
+| `--radius-xl` | `24px` |
+| `--radius-full` | `9999px` |
 
-- **Base unit:** 4px
-- **Common spacing:** 8px, 12px, 16px, 24px, 32px, 48px
-- **Container max-width:** `1280px` (desktop), `100%` (mobile)
-- **Map area:** Nên chiếm ít nhất 55–60% màn hình trên desktop.
+## 6. Hướng cập nhật UI
 
----
-
-### 7. Component Direction (High-level)
-
-- Buttons: Primary uses the main teal direction from the palette. Keep them clear and substantial.
-- Cards: Soft elevation, generous radius, good breathing room.
-- Map area: Should feel central and calm — overlays should be subtle and readable.
-- Forms: Clear labels, calm error states, generous tap targets on mobile.
-- Itinerary / timeline: Use visual rhythm (color or weight) to separate days and steps. Drag-and-drop friendly when implemented.
-
----
-
----
-
-**Design Reference Approach**
-
-This DESIGN.md captures the project's own visual direction and layout patterns.
-
-For detailed component-level decisions, spacing, typography scales, motion, and interaction details, prefer pulling real DESIGN.md analyses from https://getdesign.md (pick sites whose aesthetic fits the travel/guide domain) rather than following abstract universal rules.
-
-Keep this file as a lightweight project-specific reference, not a strict compliance checklist.
-
-**Phiên bản:** 1.0 (updated)  
-**Ngày tạo:** Tháng 4/2026  
-**Người chịu trách nhiệm:** Nguyễn Hoàng Phương
-
-**Ghi chú:** When building UI, reference actual shipped product analyses from getdesign.md alongside this file.
+- Không redesign lớn khi đang đồng bộ tài liệu và API.
+- Giữ style hiện tại để tránh lệch giao diện.
+- Khi thêm UI mới cho itinerary, nên bám layout profile hiện có.
+- Khi nâng cấp auth cho môi trường triển khai thật, không đổi trải nghiệm login/register nếu không cần.

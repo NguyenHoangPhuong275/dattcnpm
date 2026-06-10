@@ -1,36 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
+import { getAuthUserId } from '@/lib/auth';
+import { ObjectIdSchema } from '@/lib/validations/validation';
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+type RouteCtx = {
+  params: Promise<{ id: string }>;
+};
+
+export async function DELETE(request: NextRequest, ctx: RouteCtx) {
   try {
-    const userId = request.headers.get('x-user-id');
+    const userId = await getAuthUserId(request);
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'Missing x-user-id header' }, { status: 401 });
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
     }
 
-    const { id } = await params;
-    if (!id) {
-      return NextResponse.json({ success: false, message: 'Missing favorite id' }, { status: 400 });
-    }
+    const { id } = await ctx.params;
+    ObjectIdSchema.parse(id);
 
     const db = await getDb();
-    const fav = await db.favorites.findById(id);
-
-    if (!fav) {
-      return NextResponse.json({ success: false, message: 'Favorite not found' }, { status: 404 });
-    }
-    if (fav.userId !== userId) {
-      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    const favorite = await db.favorites.findById(id);
+    if (!favorite || String(favorite.userId) !== userId) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm yêu thích', 404);
     }
 
-    await db.favorites.deleteOne(id);
+    const deleted = await db.favorites.deleteOne(id);
+    if (!deleted) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm yêu thích', 404);
+    }
 
-    return NextResponse.json({ success: true, message: 'Favorite removed' });
-  } catch (err) {
-    console.error('[favorites DELETE] error:', err);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return sendSuccess({ message: 'Favorite removed' });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

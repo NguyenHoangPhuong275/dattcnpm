@@ -56,4 +56,4 @@ export interface MyReview {
   place?: { id?: string; name?: string; type?: string; address?: string };
 }
 
-export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security';
+export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security' | 'search-history';

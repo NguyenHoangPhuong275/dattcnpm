@@ -33,8 +33,7 @@ export function useMyReviews({ userId }: UseMyReviewsOptions): UseMyReviewsRetur
           setReviews(json.data);
         }
       }
-    } catch (e) {
-      console.warn('loadReviews failed', e);
+    } catch {
     } finally {
       setLoading(false);
     }

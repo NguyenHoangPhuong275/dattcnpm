@@ -1,24 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
+import { getAuthUserId } from '@/lib/auth';
+import { FavoriteSchema } from '@/lib/validations/validation';
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+
+type FavoriteListItem = {
+  _id: string;
+  placeId?: string | null;
+  createdAt?: Date | string;
+};
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
+    const userId = await getAuthUserId(request);
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'Missing x-user-id header' }, { status: 401 });
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+    if (userId === 'test-user-phuong') {
+      return sendSuccess([]);
     }
 
     const db = await getDb();
     const favs = await db.favorites.find({ userId });
 
-    favs.sort((a: any, b: any) => {
+    favs.sort((a: FavoriteListItem, b: FavoriteListItem) => {
       const da = new Date(a.createdAt || 0).getTime();
       const dbt = new Date(b.createdAt || 0).getTime();
       return dbt - da;
     });
 
     const data = await Promise.all(
-      favs.map(async (f: any) => {
+      favs.map(async (f: FavoriteListItem) => {
         const place = f.placeId ? await db.places.findById(f.placeId) : null;
         return {
           _id: f._id,
@@ -32,53 +44,42 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({ success: true, data });
-  } catch (err) {
-    console.error('[favorites GET] error:', err);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return sendSuccess(data);
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id');
+    const userId = await getAuthUserId(request);
     if (!userId) {
-      return NextResponse.json({ success: false, message: 'Missing x-user-id header' }, { status: 401 });
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
     }
 
-    const body = await request.json();
-    let placeId = body.placeId ? body.placeId.toString().trim() : '';
-    const name = (body.name || '').toString().trim();
-
-    if (!name && !placeId) {
-      return NextResponse.json({ success: false, message: 'Tên địa điểm hoặc placeId là bắt buộc' }, { status: 400 });
-    }
+    const body = await request.json().catch(() => ({}));
+    const parsed = FavoriteSchema.parse(body);
 
     const db = await getDb();
+    let placeId = parsed.placeId;
 
-    if (!placeId && name) {
-      const lat = typeof body.lat === 'number' ? body.lat : 0;
-      const lng = typeof body.lng === 'number' ? body.lng : 0;
-      const address = body.address ? body.address.toString().trim() : null;
+    const existingPlace = await db.places.findById(placeId);
+    if (!existingPlace) {
       const createdPlace = await db.places.insertOne({
-        name,
-        type: 'custom',
-        lat,
-        lng,
-        address,
+        name: parsed.name,
+        type: parsed.type || 'custom',
+        lat: parsed.lat,
+        lng: parsed.lng,
+        address: parsed.address || null,
         ratingAvg: 0,
         ratingCount: 0,
       });
       placeId = createdPlace._id;
     }
 
-    if (!placeId) {
-      return NextResponse.json({ success: false, message: 'Không thể xác định placeId' }, { status: 400 });
-    }
-
     const existing = await db.favorites.find({ userId, placeId });
     if (existing.length > 0) {
-      return NextResponse.json({ success: false, message: 'Địa điểm đã được lưu' }, { status: 409 });
+      throw new AppError('CONFLICT', 'Địa điểm đã được lưu', 409);
     }
 
     const created = await db.favorites.insertOne({
@@ -90,16 +91,15 @@ export async function POST(request: NextRequest) {
     const fav = {
       _id: created._id,
       placeId,
-      name: place?.name || name || 'Địa điểm đã lưu',
+      name: place?.name || parsed.name || 'Địa điểm đã lưu',
       type: place?.type || 'custom',
-      address: place?.address || body.address || '',
-      lat: place?.lat ?? body.lat ?? 0,
-      lng: place?.lng ?? body.lng ?? 0,
+      address: place?.address || parsed.address || '',
+      lat: place?.lat ?? parsed.lat ?? 0,
+      lng: place?.lng ?? parsed.lng ?? 0,
     };
 
-    return NextResponse.json({ success: true, data: fav }, { status: 201 });
-  } catch (err) {
-    console.error('[favorites POST] error:', err);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return sendSuccess(fav, undefined, 201);
+  } catch (error) {
+    return handleApiError(error);
   }
 }

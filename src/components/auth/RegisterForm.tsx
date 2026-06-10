@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { getApiErrorMessage } from '@/lib/api-client';
 
 type Step = 'form' | 'otp' | 'success';
 
@@ -96,7 +97,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ form: data.error || 'Không thể gửi mã xác minh' });
+        setErrors({ form: getApiErrorMessage(data, 'Không thể gửi mã xác minh') });
         return;
       }
 
@@ -137,7 +138,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ otp: data.error || 'Xác minh thất bại' });
+        setErrors({ otp: getApiErrorMessage(data, 'Xác minh thất bại') });
         if (res.status === 400) {
           setOtpDigits(['', '', '', '', '', '']);
           setTimeout(() => otpRefs.current[0]?.focus(), 100);
@@ -209,7 +210,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ otp: data.error || 'Không thể gửi lại mã' });
+        setErrors({ otp: getApiErrorMessage(data, 'Không thể gửi lại mã') });
         return;
       }
 
@@ -488,3 +489,4 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     </form>
   );
 }
+

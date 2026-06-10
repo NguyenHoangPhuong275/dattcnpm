@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getApiErrorMessage } from '@/lib/api-client';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -65,13 +66,13 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ form: data.error || 'Email hoặc mật khẩu không chính xác' });
+        setErrors({ form: getApiErrorMessage(data, 'Email hoặc mật khẩu không chính xác') });
         return;
       }
 
       setIsSuccess(true);
       localStorage.setItem('user', JSON.stringify(data.user));
-    } catch (err) {
+    } catch {
       setErrors({ form: 'Lỗi kết nối, vui lòng thử lại sau' });
     } finally {
       setIsLoading(false);
@@ -228,3 +229,4 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     </form>
   );
 }
+

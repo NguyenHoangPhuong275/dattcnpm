@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PersonalInfo, TravelPreferences } from '@/types/profile';
+import { getApiErrorMessage } from '@/lib/api-client';
 
 interface UseProfileOptions {
   userId: string | null;
@@ -51,8 +52,6 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
 
-  const [, startTransition] = useTransition();
-
   
   useEffect(() => {
     if (!userId) {
@@ -96,8 +95,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
             setIs2FAEnabled(!!p.twoFactorEnabled);
           }
         }
-      } catch (e) {
-        console.warn('Profile load failed', e);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -154,7 +152,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || data.message || 'Lưu thất bại');
+        throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
       }
 
       
@@ -189,7 +187,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || data.message || 'Lưu thất bại');
+        throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
       }
 
       return; 
@@ -204,7 +202,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     if (!userId) return;
 
     const newVal = !is2FAEnabled;
-    setIs2FAEnabled(newVal); // optimistic
+    setIs2FAEnabled(newVal); 
 
     try {
       const res = await fetch('/api/profile', {
@@ -214,12 +212,12 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) {
-        // rollback on failure
+        
         setIs2FAEnabled(!newVal);
-        throw new Error(data.error || data.message || 'Cập nhật 2FA thất bại');
+        throw new Error(getApiErrorMessage(data, 'Cập nhật 2FA thất bại'));
       }
     } catch (err) {
-      // ensure rollback if not already done
+      
       setIs2FAEnabled(!newVal);
       throw err;
     }
@@ -242,3 +240,4 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     updateAvatar,
   };
 }
+

@@ -2,7 +2,7 @@
 
 import React, { memo } from 'react';
 
-export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security';
+export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security' | 'search-history';
 
 interface TabButtonProps {
   tab: ProfileTab;
@@ -47,6 +47,7 @@ export default function ProfileMenu({ activeTab, onTabChange }: ProfileMenuProps
         <TabButton tab="preferences" label="Sở thích du lịch" isActive={activeTab === 'preferences'} onClick={onTabChange} />
         <TabButton tab="trips" label="Hành trình của tôi" isActive={activeTab === 'trips'} onClick={onTabChange} />
         <TabButton tab="favorites" label="Địa điểm yêu thích" isActive={activeTab === 'favorites'} onClick={onTabChange} />
+        <TabButton tab="search-history" label="Lịch sử tìm kiếm" isActive={activeTab === 'search-history'} onClick={onTabChange} />
         <TabButton tab="reviews" label="Đánh giá của tôi" isActive={activeTab === 'reviews'} onClick={onTabChange} />
         <TabButton tab="security" label="Bảo mật" isActive={activeTab === 'security'} onClick={onTabChange} />
       </div>

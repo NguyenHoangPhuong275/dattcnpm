@@ -11,7 +11,7 @@ export interface TravelPreferences {
 
 interface TravelPreferencesFormProps {
   preferences: TravelPreferences;
-  onPreferenceChange: (field: keyof TravelPreferences, value: any) => void;
+  onPreferenceChange: <K extends keyof TravelPreferences>(field: K, value: TravelPreferences[K]) => void;
   onToggleInterest: (tag: string) => void;
   onSave: (e: React.FormEvent) => void;
   saving?: boolean;
@@ -66,7 +66,7 @@ const TravelPreferencesForm = memo(({
         <div className="relative">
           <select
             value={preferences.budgetLevel}
-            onChange={(e) => onPreferenceChange('budgetLevel', e.target.value)}
+            onChange={(e) => onPreferenceChange('budgetLevel', e.target.value as TravelPreferences['budgetLevel'])}
             className="w-full appearance-none bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10] cursor-pointer"
           >
             <option value="Tiết kiệm">Tiết kiệm</option>

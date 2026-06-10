@@ -9,6 +9,7 @@ import UserManagement from '@/components/admin/UserManagement';
 import BroadcastForm from '@/components/admin/BroadcastForm';
 import DatabaseActions from '@/components/admin/DatabaseActions';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
+import { getApiErrorMessage } from '@/lib/api-client';
 
 interface Stats {
   users: number;
@@ -75,7 +76,6 @@ export default function AdminControlPage() {
   const handle401Error = useCallback((currentSecret: string) => {
     const defaultSecret = 'lotus_travel_admin_webhook_secret_2026';
     if (currentSecret !== defaultSecret) {
-      console.warn('[Self-Healing] Webhook 401 Unauthorized. Resetting local secret to default...');
       setSecret(defaultSecret);
       localStorage.setItem('WEBHOOK_SECRET', defaultSecret);
       triggerAlert('Secret Token sai đã được tự động đặt lại về mặc định.', 'success');
@@ -112,7 +112,7 @@ export default function AdminControlPage() {
           triggerAlert('Webhook secret không hợp lệ. Vui lòng kiểm tra lại ở phần trên.', 'error');
           return;
         }
-        throw new Error(data.error || 'Failed to fetch stats');
+        throw new Error(getApiErrorMessage(data, 'Failed to fetch stats'));
       }
       setStats(data.stats);
     } catch (err: unknown) {
@@ -143,7 +143,7 @@ export default function AdminControlPage() {
           triggerAlert('Webhook secret không hợp lệ. Vui lòng kiểm tra lại ở phần trên.', 'error');
           return;
         }
-        throw new Error(data.error || 'Failed to fetch logs');
+        throw new Error(getApiErrorMessage(data, 'Failed to fetch logs'));
       }
       setLogs(data.logs || []);
     } catch (err: unknown) {
@@ -258,11 +258,10 @@ export default function AdminControlPage() {
         body: JSON.stringify({ event, data: payload }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Thao tác thất bại');
+      if (!res.ok) throw new Error(getApiErrorMessage(data, 'Thao tác thất bại'));
 
       if (event === 'db.check' || event === 'db.consistency' || event === 'db.inspect') {
-        console.log('[DB Check] Full consistency report:', data.report);
-        triggerAlert(data.message || 'Đã kiểm tra DB (xem console cho report chi tiết)', data.report?.isClean ? 'success' : 'error');
+        triggerAlert(data.message || 'Đã kiểm tra DB', data.report?.isClean ? 'success' : 'error');
       } else {
         triggerAlert(data.message || 'Thao tác thành công', 'success');
         fetchStats();
@@ -421,3 +420,4 @@ export default function AdminControlPage() {
     </div>
   );
 }
+

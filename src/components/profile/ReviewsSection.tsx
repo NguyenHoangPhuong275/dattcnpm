@@ -12,7 +12,6 @@ interface ReviewsSectionProps {
 
 const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
   <div>
-    <div className="font-display font-bold text-lg mb-4">Đánh giá của tôi</div>
     {loading ? (
       <div className="text-center py-8 text-slate-400 text-sm">Đang tải đánh giá...</div>
     ) : reviews.length > 0 ? (

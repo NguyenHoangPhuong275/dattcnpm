@@ -12,7 +12,6 @@ export const mockRedis = getMockRedis();
 export function resetAllMocks() {
   getMockDatabase().resetAll();
   getMockRedis().flushAll();
-  console.log('[MOCK] All database mocks have been reset to seed data.');
 }
 
 export function findMockUserByEmail(email: string) {

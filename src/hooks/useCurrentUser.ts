@@ -36,7 +36,7 @@ export function useCurrentUser(options?: { redirectIfNone?: boolean }): UseCurre
   
   useEffect(() => {
     if (!isLoading && !user && redirectIfNone) {
-      router.replace('/login');
+      router.replace('/?auth=login');
     }
   }, [isLoading, user, router, redirectIfNone]);
 

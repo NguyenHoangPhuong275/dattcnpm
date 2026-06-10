@@ -12,6 +12,7 @@ import TravelPreferencesForm from '@/components/profile/TravelPreferencesForm';
 import MyTripsSection from '@/components/profile/MyTripsSection';
 import FavoritesSection from '@/components/profile/FavoritesSection';
 import ReviewsSection from '@/components/profile/ReviewsSection';
+import SearchHistorySection from '@/components/profile/SearchHistorySection';
 import SecuritySection from '@/components/profile/SecuritySection';
 import CreateTripModal from '@/components/profile/CreateTripModal';
 import PasswordChangeModal from '@/components/profile/PasswordChangeModal';
@@ -25,11 +26,15 @@ import { useMyTrips } from '@/hooks/useMyTrips';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useMyReviews } from '@/hooks/useMyReviews';
 
-import { BasicUser, TripSummary } from '@/types/profile';
+import { TripSummary } from '@/types/profile';
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function ProfilePage() {
   
-  const { user, isLoading: userLoading, setUser } = useCurrentUser({ redirectIfNone: true });
+  const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: true });
   const { message: toastMessage, visible: showToastVisible, showToast } = useToast();
 
   const profile = useProfile({ userId: user?.id ?? null });
@@ -50,10 +55,10 @@ export default function ProfilePage() {
   const [confirmPass, setConfirmPass] = useState('');
 
   
-  const { personal, preferences, memberSince, is2FAEnabled, loading: profileLoading, savingPersonal, savingPreferences, setPersonal, setPreferences, setIs2FAEnabled, savePersonal, savePreferences, toggle2FA, updateAvatar } = profile;
-  const { trips: myTrips, loading: loadingTrips, creating: creatingTrip, createTrip, deleteTrip } = myTripsHook;
-  const { favorites, loading: loadingFavorites, removeFavorite } = favoritesHook;
-  const { reviews: myReviews, loading: loadingReviews } = reviewsHook;
+  const { personal, preferences, memberSince, is2FAEnabled, loading: profileLoading, savingPersonal, savingPreferences, setPersonal, setPreferences, savePersonal, savePreferences, toggle2FA, updateAvatar } = profile;
+  const { trips: myTrips, loading: loadingTrips, creating: creatingTrip, createTrip, deleteTrip, loadTrips } = myTripsHook;
+  const { favorites, loading: loadingFavorites, removeFavorite, loadFavorites } = favoritesHook;
+  const { reviews: myReviews, loading: loadingReviews, loadReviews } = reviewsHook;
 
   
   const handlePersonalChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -61,7 +66,7 @@ export default function ProfilePage() {
     setPersonal(prev => ({ ...prev, [name]: value }));
   }, [setPersonal]);
 
-  const handlePreferenceChange = useCallback((field: keyof typeof preferences, value: any) => {
+  const handlePreferenceChange = useCallback(<K extends keyof typeof preferences,>(field: K, value: (typeof preferences)[K]) => {
     setPreferences(prev => ({ ...prev, [field]: value }));
   }, [setPreferences]);
 
@@ -101,6 +106,7 @@ export default function ProfilePage() {
 
   
   const handleCreateNewTrip = useCallback(async () => {
+    if (creatingTrip) return; 
     if (!newTripTitle.trim() || !newTripDest.trim()) {
       showToast('Vui lòng nhập tiêu đề và điểm đến');
       return;
@@ -112,10 +118,12 @@ export default function ProfilePage() {
       setNewTripTitle('');
       setNewTripDest('');
       showToast('Chuyến đi mới đã được tạo!');
+      
+      loadTrips();
     } else {
       showToast(result.message || 'Tạo chuyến đi thất bại');
     }
-  }, [newTripTitle, newTripDest, createTrip, showToast]);
+  }, [newTripTitle, newTripDest, createTrip, showToast, creatingTrip, loadTrips]);
 
   
   const handleChangePassword = useCallback(async () => {
@@ -135,7 +143,7 @@ export default function ProfilePage() {
       setShowPasswordModal(false);
       setOldPass(''); setNewPass(''); setConfirmPass('');
       showToast(json.success ? 'Đổi mật khẩu thành công!' : (json.message || 'Đổi mật khẩu thất bại'));
-    } catch (e) {
+    } catch {
       setShowPasswordModal(false);
       setOldPass(''); setNewPass(''); setConfirmPass('');
       showToast('Không thể đổi mật khẩu lúc này');
@@ -144,9 +152,6 @@ export default function ProfilePage() {
 
   const handleToggle2FA = useCallback(async () => {
     toggle2FA();
-    
-    
-    
   }, [toggle2FA]);
 
   
@@ -155,14 +160,12 @@ export default function ProfilePage() {
   }, [updateAvatar]);
 
   
-  
-  
   const handleSavePersonal = useCallback(async (e: React.FormEvent) => {
     try {
       await savePersonal(e);
       showToast('Đã lưu thông tin cá nhân!');
-    } catch (err: any) {
-      showToast(err?.message || 'Lưu thông tin cá nhân thất bại, vui lòng thử lại');
+    } catch (err: unknown) {
+      showToast(getErrorMessage(err, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại'));
     }
   }, [savePersonal, showToast]);
 
@@ -170,10 +173,19 @@ export default function ProfilePage() {
     try {
       await savePreferences(e);
       showToast('Đã cập nhật sở thích du lịch!');
-    } catch (err: any) {
-      showToast(err?.message || 'Lưu sở thích thất bại, vui lòng thử lại');
+    } catch (err: unknown) {
+      showToast(getErrorMessage(err, 'Lưu sở thích thất bại, vui lòng thử lại'));
     }
   }, [savePreferences, showToast]);
+
+  
+  useEffect(() => {
+    if (user?.id) {
+      loadTrips();
+      loadFavorites();
+      loadReviews();
+    }
+  }, [user?.id, loadTrips, loadFavorites, loadReviews]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -243,6 +255,7 @@ export default function ProfilePage() {
                   {activeTab === 'preferences' && 'Sở thích du lịch'}
                   {activeTab === 'trips' && 'Hành trình của tôi'}
                   {activeTab === 'favorites' && 'Địa điểm yêu thích'}
+                  {activeTab === 'search-history' && 'Lịch sử tìm kiếm'}
                   {activeTab === 'reviews' && 'Đánh giá của tôi'}
                   {activeTab === 'security' && 'Bảo mật tài khoản'}
                 </h2>
@@ -290,6 +303,10 @@ export default function ProfilePage() {
                 <ReviewsSection reviews={myReviews} loading={loadingReviews} />
               )}
 
+              {activeTab === 'search-history' && (
+                <SearchHistorySection />
+              )}
+
               {activeTab === 'security' && (
                 <SecuritySection
                   is2FAEnabled={is2FAEnabled}
@@ -329,8 +346,10 @@ export default function ProfilePage() {
         <TripDetailModal
           trip={selectedTripForDetail}
           onClose={() => setSelectedTripForDetail(null)}
+          userId={user?.id ?? null}
         />
       </div>
     </div>
   );
 }
+

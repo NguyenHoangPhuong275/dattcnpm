@@ -201,8 +201,7 @@ export class MockDatabase {
         const dataMap = (this.users as unknown as { data: Map<string, User> }).data;
         const allUsers = Array.from(dataMap.values());
         savePersistedUsers(allUsers);
-      } catch (e) {
-        console.warn('[mock-db] Failed to persist user to disk:', e);
+      } catch {
       }
       return created;
     };
