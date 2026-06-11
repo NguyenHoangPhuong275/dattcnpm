@@ -39,8 +39,8 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'", 
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", 
-              "img-src 'self' data: https:",                     
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com", 
+              "img-src 'self' data: https: https://*.tile.openstreetmap.org",                     
               "font-src 'self' data: https://fonts.gstatic.com",
               "connect-src 'self' https: ws: wss:",                       
               "frame-ancestors 'none'",

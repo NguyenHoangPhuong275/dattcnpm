@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { apiRequest } from '@/lib/api-client';
 import { FavoritePlaceSummary } from '@/types/profile';
 
 interface UseFavoritesOptions {
@@ -27,12 +28,9 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
 
     setLoading(true);
     try {
-      const res = await fetch('/api/favorites', { headers: { 'x-user-id': id } });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setFavorites(json.data);
-        }
+      const { response, data } = await apiRequest<{ success?: boolean; data?: FavoritePlaceSummary[] }>('/api/favorites', { userId: id });
+      if (response.ok && data.success && Array.isArray(data.data)) {
+        setFavorites(data.data);
       }
     } catch {
     } finally {
@@ -47,11 +45,8 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
     setFavorites(prev => prev.filter(f => f._id !== id));
 
     try {
-      const res = await fetch(`/api/favorites/${id}`, {
-        method: 'DELETE',
-        headers: { 'x-user-id': userId },
-      });
-      if (!res.ok) throw new Error();
+      const { response } = await apiRequest(`/api/favorites/${id}`, { method: 'DELETE', userId });
+      if (!response.ok) throw new Error();
     } catch {
       setFavorites(previous);
       throw new Error('Remove favorite failed');

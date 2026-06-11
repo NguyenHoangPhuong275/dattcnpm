@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { TripSummary } from '@/types/profile';
 
 interface UseMyTripsOptions {
@@ -30,12 +31,9 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/trips', { headers: { 'x-user-id': id } });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setTrips(json.data);
-        }
+      const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary[] }>('/api/trips', { userId: id });
+      if (response.ok && data.success && Array.isArray(data.data)) {
+        setTrips(data.data);
       }
     } catch {
     } finally {
@@ -59,9 +57,10 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       const start = new Date().toISOString().split('T')[0];
       const end = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString().split('T')[0];
 
-      const res = await fetch('/api/trips', {
+      const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary; message?: string }>('/api/trips', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        userId,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: trimmedTitle,
           destination: trimmedDest,
@@ -70,18 +69,17 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
         }),
       });
 
-      const json = await res.json();
-
-      if (json.success && json.data) {
+      if (response.ok && data.success && data.data) {
+        const createdTrip = data.data;
         setTrips(prev => {
-          if (prev.some(t => t._id === json.data._id)) {
+          if (prev.some(t => t._id === createdTrip._id)) {
             return prev; 
           }
-          return [json.data, ...prev];
+          return [createdTrip, ...prev];
         });
         return { success: true };
       } else {
-        return { success: false, message: json.message || 'Tạo chuyến đi thất bại' };
+        return { success: false, message: getApiErrorMessage(data, 'Tạo chuyến đi thất bại') };
       }
     } catch {
       return { success: false, message: 'Không thể tạo chuyến đi lúc này' };
@@ -97,12 +95,9 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     setTrips(prev => prev.filter(t => t._id !== id));
 
     try {
-      const res = await fetch(`/api/trips/${id}`, {
-        method: 'DELETE',
-        headers: { 'x-user-id': userId },
-      });
+      const { response } = await apiRequest(`/api/trips/${id}`, { method: 'DELETE', userId });
 
-      if (!res.ok) throw new Error();
+      if (!response.ok) throw new Error();
     } catch {
       setTrips(previous);
       throw new Error('Delete trip failed');

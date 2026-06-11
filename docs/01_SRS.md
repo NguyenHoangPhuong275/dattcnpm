@@ -6,22 +6,22 @@ Ngày cập nhật: 2026-06-09
 
 Tài liệu mô tả phạm vi, actor, yêu cầu chức năng, yêu cầu phi chức năng và trạng thái triển khai hiện tại của Smart Travel Guide. Nội dung đã được đồng bộ theo code thật trong `src`.
 
-## 2. Phạm vi hiện tại
+## 2. Phạm vi hiện tại (đã điều chỉnh)
 
 Project hiện là web app Next.js App Router có:
 
-- Trang chủ tìm kiếm điểm đến, POI và thời tiết.
+- Trang chủ tìm kiếm điểm đến, xem POI du lịch nổi bật và thời tiết theo địa điểm đã chọn (**không có bản đồ trực quan** — đã loại bỏ theo yêu cầu).
 - Đăng ký bằng email OTP.
 - Đăng nhập bằng email/password.
 - JWT HttpOnly cookie và middleware bảo vệ `/profile`.
-- Hồ sơ người dùng.
-- Quản lý chuyến đi.
-- Lập lịch trình trong chi tiết trip.
+- Hồ sơ người dùng (thông tin, sở thích, avatar).
+- Quản lý chuyến đi (CRUD).
+- Lập lịch trình (itinerary) trong chi tiết trip.
 - Lưu địa điểm yêu thích.
-- Search history API tối thiểu.
+- Quản lý lịch sử tìm kiếm (API + UI trong Profile).
 - Review của người dùng.
-- Admin page qua webhook.
-- MongoDB/Mongoose và Redis.
+- Admin page qua webhook (stats, user management, db actions, logs).
+- MongoDB/Mongoose và Redis (cache, rate limit, OTP).
 
 Auth hiện vẫn giữ `localStorage` và `x-user-id` để tương thích UI hiện có. Đây chưa phải mô hình production hoàn chỉnh.
 
@@ -38,7 +38,7 @@ Auth hiện vẫn giữ `localStorage` và `x-user-id` để tương thích UI h
 
 | Mã | Tên | Trạng thái code |
 | --- | --- | --- |
-| FR-01 | Xem trang chủ/tìm điểm đến | Hoàn thành một phần |
+| FR-01 | Xem trang chủ/tìm điểm đến (không bản đồ) | Hoàn thành một phần (search + POI + weather theo điểm chọn) |
 | FR-02 | Tìm địa danh | Hoàn thành |
 | FR-03 | Xem POI xung quanh | Hoàn thành |
 | FR-04 | Xem thời tiết | Hoàn thành, dùng Open-Meteo |

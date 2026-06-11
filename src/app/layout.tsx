@@ -24,30 +24,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={beVietnamPro.variable} data-scroll-behavior="smooth" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                var suppress = ['[HMR]', 'Download the React DevTools'];
-                var intercept = function(orig) {
-                  return orig ? function() {
-                    if (arguments[0] && typeof arguments[0] === 'string') {
-                      for (var i = 0; i < suppress.length; i++) {
-                        if (arguments[0].indexOf(suppress[i]) !== -1) return;
-                      }
-                    }
-                    orig.apply(console, arguments);
-                  } : orig;
-                };
-                console.log = intercept(console.log);
-                console.info = intercept(console.info);
-                console.warn = intercept(console.warn);
-              })();
-            `
-          }}
-        />
-      </head>
       <body className="font-sans bg-[var(--color-bg)] text-[var(--color-text)] antialiased min-h-screen selection:bg-[var(--color-primary-darker)] selection:text-white">
         {children}
       </body>

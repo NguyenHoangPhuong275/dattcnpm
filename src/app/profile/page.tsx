@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 
-import BrandLogo from '@/components/BrandLogo';
-import UserDropdown from '@/components/UserDropdown';
+import AppHeader from '@/components/AppHeader';
 
 import ProfileMenu, { ProfileTab } from '@/components/profile/ProfileMenu';
 import PersonalInfoForm from '@/components/profile/PersonalInfoForm';
@@ -28,9 +26,7 @@ import { useMyReviews } from '@/hooks/useMyReviews';
 
 import { TripSummary } from '@/types/profile';
 
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
-}
+import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 
 export default function ProfilePage() {
   
@@ -134,18 +130,22 @@ export default function ProfilePage() {
     if (!user?.id) return;
 
     try {
-      const res = await fetch('/api/profile/password', {
+      const { data } = await apiRequest<{ success?: boolean; message?: string }>('/api/profile/password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user.id },
+        userId: user.id,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: oldPass, newPassword: newPass }),
       });
-      const json = await res.json();
       setShowPasswordModal(false);
-      setOldPass(''); setNewPass(''); setConfirmPass('');
-      showToast(json.success ? 'Đổi mật khẩu thành công!' : (json.message || 'Đổi mật khẩu thất bại'));
+      setOldPass('');
+      setNewPass('');
+      setConfirmPass('');
+      showToast(data.success ? 'Đổi mật khẩu thành công!' : (data.message || 'Đổi mật khẩu thất bại'));
     } catch {
       setShowPasswordModal(false);
-      setOldPass(''); setNewPass(''); setConfirmPass('');
+      setOldPass('');
+      setNewPass('');
+      setConfirmPass('');
       showToast('Không thể đổi mật khẩu lúc này');
     }
   }, [oldPass, newPass, confirmPass, user?.id, showToast]);
@@ -165,7 +165,7 @@ export default function ProfilePage() {
       await savePersonal(e);
       showToast('Đã lưu thông tin cá nhân!');
     } catch (err: unknown) {
-      showToast(getErrorMessage(err, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại'));
+      showToast(getApiErrorMessage(err, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại'));
     }
   }, [savePersonal, showToast]);
 
@@ -174,7 +174,7 @@ export default function ProfilePage() {
       await savePreferences(e);
       showToast('Đã cập nhật sở thích du lịch!');
     } catch (err: unknown) {
-      showToast(getErrorMessage(err, 'Lưu sở thích thất bại, vui lòng thử lại'));
+      showToast(getApiErrorMessage(err, 'Lưu sở thích thất bại, vui lòng thử lại'));
     }
   }, [savePreferences, showToast]);
 
@@ -226,23 +226,7 @@ export default function ProfilePage() {
     <div className="min-h-dvh bg-white text-slate-800 font-sans antialiased">
       <div className="min-h-dvh flex flex-col">
         <ProfileToast message={toastMessage} visible={showToastVisible} />
-
-        <header className="sticky top-0 z-40 bg-white border-b border-slate-200">
-          <div className="w-full flex items-center px-8 lg:px-12 h-16">
-            <div className="flex items-center gap-6 flex-shrink-0">
-              <BrandLogo />
-              <nav className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-500">
-                <Link href="/" className="hover:text-slate-800 transition-colors cursor-pointer">Khám phá</Link>
-                <a href="/#features" className="hover:text-slate-800 transition-colors cursor-pointer">Tính năng</a>
-                <a href="/#how" className="hover:text-slate-800 transition-colors cursor-pointer">Cách hoạt động</a>
-              </nav>
-            </div>
-            <div className="flex-1"></div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <UserDropdown user={user} />
-            </div>
-          </div>
-        </header>
+        <AppHeader active="profile" />
 
         <main className="w-full py-8 flex-1">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 px-4 lg:px-8 w-full">

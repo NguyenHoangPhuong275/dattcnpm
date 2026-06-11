@@ -16,9 +16,7 @@ interface SearchPreview {
   results: Array<{ _id?: string; name: string; type?: string; address?: string | null }>;
 }
 
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getApiErrorMessage } from '@/lib/api-client';
 
 export default function SearchHistorySection() {
   const [items, setItems] = useState<SearchHistoryItem[]>([]);
@@ -45,7 +43,7 @@ export default function SearchHistorySection() {
       }
       setItems(Array.isArray(json.data) ? json.data : []);
     } catch (e: unknown) {
-      setError(getErrorMessage(e, 'Lỗi khi tải lịch sử tìm kiếm'));
+      setError(getApiErrorMessage(e, 'Lỗi khi tải lịch sử tìm kiếm'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +72,7 @@ export default function SearchHistorySection() {
         setPreviewData(null);
       }
     } catch (e: unknown) {
-      showToast(getErrorMessage(e, 'Không thể xóa mục này'));
+      showToast(getApiErrorMessage(e, 'Không thể xóa mục này'));
     } finally {
       setDeletingId(null);
     }
@@ -99,7 +97,7 @@ export default function SearchHistorySection() {
       setPreviewData(null);
       showToast('Đã xóa toàn bộ lịch sử');
     } catch (e: unknown) {
-      showToast(getErrorMessage(e, 'Không thể xóa lịch sử'));
+      showToast(getApiErrorMessage(e, 'Không thể xóa lịch sử'));
     } finally {
       setClearing(false);
     }

@@ -39,7 +39,7 @@ export default function BroadcastForm({
             type="text"
             value={notifTitle}
             onChange={(e) => onTitleChange(e.target.value)}
-            className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm cursor-text"
+            className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-slate-100 placeholder-slate-600 focus:outline-none text-sm cursor-text"
             placeholder="Tiêu đề thông báo..."
           />
         </div>
@@ -49,7 +49,7 @@ export default function BroadcastForm({
           <select
             value={notifType}
             onChange={(e) => onTypeChange(e.target.value)}
-            className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm cursor-pointer"
+            className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-slate-100 focus:outline-none text-sm cursor-pointer"
           >
             <option value="SYSTEM">Hệ thống (SYSTEM)</option>
             <option value="WEATHER_ALERT">Thời tiết (WEATHER_ALERT)</option>
@@ -65,7 +65,7 @@ export default function BroadcastForm({
           value={notifContent}
           onChange={(e) => onContentChange(e.target.value)}
           rows={3}
-          className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm cursor-text resize-none"
+          className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-slate-100 placeholder-slate-600 focus:outline-none text-sm cursor-text resize-none"
           placeholder="Nhập nội dung thông báo gửi đến toàn bộ người dùng..."
         />
       </div>

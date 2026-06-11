@@ -511,7 +511,6 @@ export async function connectMongo(): Promise<'connected'> {
   try {
     await mongoose.connect(uri);
     isConnected = true;
-    console.log('[MongoDB] Connected successfully');
 
     if (!collectionsEnsured) {
       await createAllCollections();
@@ -520,7 +519,6 @@ export async function connectMongo(): Promise<'connected'> {
 
     return 'connected';
   } catch (error) {
-    console.error('[MongoDB] Connection error:', error);
     throw error;
   }
 }
@@ -529,7 +527,6 @@ export async function disconnectMongo(): Promise<void> {
   if (!isConnected) return;
   await mongoose.disconnect();
   isConnected = false;
-  console.log('[MongoDB] Disconnected');
 }
 
 function createCollection<T extends { _id: MongoId }>(mongooseModel: Model<any>) {
@@ -673,13 +670,10 @@ export async function dropAllManagedCollections(): Promise<string[]> {
       await db.dropCollection(name);
       dropped.push(name);
     } catch (err: any) {
-      if (err?.code !== 26) {
-        console.warn(`[MongoDB] Failed to drop ${name}:`, err?.message);
-      }
+      if (err?.code !== 26) throw err;
     }
   }
   dbInstance = null;
-  console.log('[MongoDB] Dropped managed collections:', dropped.length ? dropped.join(', ') : '(none)');
   return dropped;
 }
 
@@ -698,14 +692,11 @@ export async function dropUnknownCollections(): Promise<string[]> {
         await db.dropCollection(col.name);
         dropped.push(col.name);
       } catch (err: any) {
-        if (err?.code !== 26) {
-          console.warn(`[MongoDB] Failed to drop unknown ${col.name}:`, err?.message);
-        }
+        if (err?.code !== 26) throw err;
       }
     }
   }
 
-  console.log('[MongoDB] Dropped unknown collections:', dropped.length ? dropped.join(', ') : '(none)');
   return dropped;
 }
 
@@ -714,7 +705,6 @@ export async function hardResetDatabase(): Promise<void> {
   await dropUnknownCollections();
   dbInstance = null;
   isConnected = false;
-  console.log('[MongoDB] Hard reset complete. Next getDb() will create fresh collections.');
 }
 
 export async function createAllCollections(): Promise<string[]> {
@@ -734,9 +724,6 @@ export async function createAllCollections(): Promise<string[]> {
     }
   }
 
-  if (created.length > 0) {
-    console.log('[MongoDB] Created collections:', created.join(', '));
-  }
   return created;
 }
 

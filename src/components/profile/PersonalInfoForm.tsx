@@ -73,19 +73,19 @@ const PersonalInfoForm = memo(({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
         <div>
           <label className="form-label">Tên <span className="text-red-500">*</span></label>
-          <input type="text" name="firstName" value={personal.firstName} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" required />
+          <input type="text" name="firstName" value={personal.firstName} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" required />
         </div>
         <div>
           <label className="form-label">Họ và tên đệm <span className="text-red-500">*</span></label>
-          <input type="text" name="lastName" value={personal.lastName} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" required />
+          <input type="text" name="lastName" value={personal.lastName} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" required />
         </div>
         <div>
           <label className="form-label">Email <span className="text-red-500">*</span></label>
-          <input type="email" name="email" value={personal.email} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" required />
+          <input type="email" name="email" value={personal.email} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" required />
         </div>
         <div>
           <label className="form-label">Số điện thoại</label>
-          <input type="text" name="phone" value={personal.phone} onChange={onChange} placeholder="Ví dụ: 0901 234 567" className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" />
+          <input type="text" name="phone" value={personal.phone} onChange={onChange} placeholder="Ví dụ: 0901 234 567" className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" />
         </div>
       </div>
     </div>
@@ -95,7 +95,7 @@ const PersonalInfoForm = memo(({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
         <div>
           <label className="form-label">Ngày sinh</label>
-          <input type="date" name="dateOfBirth" value={personal.dateOfBirth || ''} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" />
+          <input type="date" name="dateOfBirth" value={personal.dateOfBirth || ''} onChange={onChange} className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" />
         </div>
         <div>
           <label className="form-label">Giới tính</label>
@@ -104,7 +104,7 @@ const PersonalInfoForm = memo(({
               name="gender"
               value={personal.gender || ''}
               onChange={onChange}
-              className="w-full appearance-none bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10] cursor-pointer"
+              className="w-full appearance-none bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all cursor-pointer"
             >
               <option value="">Chọn giới tính</option>
               <option value="Nam">Nam</option>
@@ -120,7 +120,7 @@ const PersonalInfoForm = memo(({
         </div>
         <div>
           <label className="form-label">Quốc tịch</label>
-          <input type="text" name="nationality" value={personal.nationality || ''} onChange={onChange} placeholder="Việt Nam" className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" />
+          <input type="text" name="nationality" value={personal.nationality || ''} onChange={onChange} placeholder="Việt Nam" className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" />
         </div>
         <div>
           <label className="form-label">Ngôn ngữ ưu tiên</label>
@@ -129,7 +129,7 @@ const PersonalInfoForm = memo(({
               name="preferredLanguage"
               value={personal.preferredLanguage || ''}
               onChange={onChange}
-              className="w-full appearance-none bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10] cursor-pointer"
+              className="w-full appearance-none bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all cursor-pointer"
             >
               <option value="">Chọn ngôn ngữ</option>
               <option value="Tiếng Việt">Tiếng Việt</option>
@@ -146,7 +146,7 @@ const PersonalInfoForm = memo(({
         </div>
         <div>
           <label className="form-label">Thành phố thường trú</label>
-          <input type="text" name="homeCity" value={personal.homeCity || ''} onChange={onChange} placeholder="Hà Nội, TP.HCM..." className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" />
+          <input type="text" name="homeCity" value={personal.homeCity || ''} onChange={onChange} placeholder="Hà Nội, TP.HCM..." className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" />
         </div>
       </div>
     </div>
@@ -156,11 +156,11 @@ const PersonalInfoForm = memo(({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
         <div>
           <label className="form-label">Tên liên hệ khẩn cấp</label>
-          <input type="text" name="emergencyContactName" value={personal.emergencyContactName || ''} onChange={onChange} placeholder="Nguyễn Văn A" className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" />
+          <input type="text" name="emergencyContactName" value={personal.emergencyContactName || ''} onChange={onChange} placeholder="Nguyễn Văn A" className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" />
         </div>
         <div>
           <label className="form-label">SĐT liên hệ khẩn cấp</label>
-          <input type="text" name="emergencyContactPhone" value={personal.emergencyContactPhone || ''} onChange={onChange} placeholder="0901 234 567" className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10]" />
+          <input type="text" name="emergencyContactPhone" value={personal.emergencyContactPhone || ''} onChange={onChange} placeholder="0901 234 567" className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all" />
         </div>
       </div>
     </div>

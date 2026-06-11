@@ -67,7 +67,7 @@ const TravelPreferencesForm = memo(({
           <select
             value={preferences.budgetLevel}
             onChange={(e) => onPreferenceChange('budgetLevel', e.target.value as TravelPreferences['budgetLevel'])}
-            className="w-full appearance-none bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-[var(--color-primary-dark)/10] cursor-pointer"
+            className="w-full appearance-none bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all cursor-pointer"
           >
             <option value="Tiết kiệm">Tiết kiệm</option>
             <option value="Trung bình">Trung bình</option>
@@ -87,7 +87,7 @@ const TravelPreferencesForm = memo(({
           type="text"
           value={preferences.preferredDestinations.join(', ')}
           onChange={(e) => onPreferenceChange('preferredDestinations', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-          className="w-full bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200/80 focus:border-[var(--color-primary-dark)] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all"
+          className="w-full bg-slate-50/50 hover:bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all"
           placeholder="Đà Lạt, Hội An, Sapa..."
         />
       </div>

@@ -37,21 +37,21 @@ export default function PasswordChangeModal({
             placeholder="Mật khẩu cũ"
             value={oldPass}
             onChange={(e) => onOldChange(e.target.value)}
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary-dark)]"
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none"
           />
           <input
             type="password"
             placeholder="Mật khẩu mới"
             value={newPass}
             onChange={(e) => onNewChange(e.target.value)}
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary-dark)]"
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none"
           />
           <input
             type="password"
             placeholder="Xác nhận mật khẩu mới"
             value={confirmPass}
             onChange={(e) => onConfirmChange(e.target.value)}
-            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary-dark)]"
+            className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none"
           />
         </div>
         <div className="flex gap-3 mt-6">

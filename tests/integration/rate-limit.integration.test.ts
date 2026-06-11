@@ -17,13 +17,16 @@ describe('Integration: Rate limit with real Redis', () => {
   });
 
   it('exceeds limit returns limited=true and correct count', async () => {
-    const r1 = await checkRateLimit({ key: RL_KEY, limit: 3, windowSeconds: 60 });
+    const key = `${RL_KEY}:${Date.now()}`;
+    const opts = { key, limit: 3, windowSeconds: 60 };
+
+    const r1 = await checkRateLimit(opts);
     expect(r1.limited).toBe(false);
 
-    await checkRateLimit({ key: RL_KEY, limit: 3, windowSeconds: 60 });
-    await checkRateLimit({ key: RL_KEY, limit: 3, windowSeconds: 60 });
+    await checkRateLimit(opts);
+    await checkRateLimit(opts);
 
-    const r4 = await checkRateLimit({ key: RL_KEY, limit: 3, windowSeconds: 60 });
+    const r4 = await checkRateLimit(opts);
     expect(r4.limited).toBe(true);
     expect(r4.count).toBeGreaterThanOrEqual(4);
   });

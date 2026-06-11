@@ -2,11 +2,34 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { PersonalInfo, TravelPreferences } from '@/types/profile';
-import { getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { updateStoredUser } from '@/lib/user';
 
 interface UseProfileOptions {
   userId: string | null;
 }
+
+type ProfileApiData = {
+  fullName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  dateOfBirth?: string | null;
+  gender?: PersonalInfo['gender'] | null;
+  nationality?: string | null;
+  preferredLanguage?: string | null;
+  homeCity?: string | null;
+  emergencyContact?: {
+    name?: string | null;
+    phone?: string | null;
+  } | null;
+  avatarUrl?: string | null;
+  travelStyles?: string[];
+  interests?: string[];
+  budgetLevel?: TravelPreferences['budgetLevel'] | null;
+  preferredDestinations?: string[];
+  createdAt?: string | null;
+  twoFactorEnabled?: boolean | null;
+};
 
 export interface UseProfileReturn {
   personal: PersonalInfo;
@@ -62,38 +85,33 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/profile', {
-          headers: { 'x-user-id': userId },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.profile) {
-            const p = data.profile;
-            
-            const names = p.fullName ? p.fullName.trim().split(' ') : [];
-            setPersonal({
-              firstName: names[0] || '',
-              lastName: names.slice(1).join(' ') || '',
-              email: p.email || '',
-              phone: p.phone || '',
-              dateOfBirth: p.dateOfBirth || '',
-              gender: p.gender || '',
-              nationality: p.nationality || 'Việt Nam',
-              preferredLanguage: p.preferredLanguage || 'Tiếng Việt',
-              homeCity: p.homeCity || '',
-              emergencyContactName: p.emergencyContact?.name || '',
-              emergencyContactPhone: p.emergencyContact?.phone || '',
-              avatarUrl: p.avatarUrl || '',
-            });
-            setPreferences({
-              travelStyles: p.travelStyles || [],
-              interests: p.interests || [],
-              budgetLevel: p.budgetLevel || 'Trung bình',
-              preferredDestinations: p.preferredDestinations || [],
-            });
-            setMemberSince(p.createdAt || '');
-            setIs2FAEnabled(!!p.twoFactorEnabled);
-          }
+        const { response, data } = await apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', { userId });
+        if (response.ok && data.success && data.profile) {
+          const p = data.profile;
+          const names = p.fullName ? p.fullName.trim().split(' ') : [];
+
+          setPersonal({
+            firstName: names[0] || '',
+            lastName: names.slice(1).join(' ') || '',
+            email: p.email || '',
+            phone: p.phone || '',
+            dateOfBirth: p.dateOfBirth || '',
+            gender: p.gender || '',
+            nationality: p.nationality || 'Việt Nam',
+            preferredLanguage: p.preferredLanguage || 'Tiếng Việt',
+            homeCity: p.homeCity || '',
+            emergencyContactName: p.emergencyContact?.name || '',
+            emergencyContactPhone: p.emergencyContact?.phone || '',
+            avatarUrl: p.avatarUrl || '',
+          });
+          setPreferences({
+            travelStyles: p.travelStyles || [],
+            interests: p.interests || [],
+            budgetLevel: p.budgetLevel || 'Trung bình',
+            preferredDestinations: p.preferredDestinations || [],
+          });
+          setMemberSince(p.createdAt || '');
+          setIs2FAEnabled(!!p.twoFactorEnabled);
         }
       } catch {
       } finally {
@@ -114,24 +132,17 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
     setSavingPersonal(true);
 
-    
-    try {
-      const stored = localStorage.getItem('user');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const updated = {
-          ...parsed,
-          fullName: `${personal.firstName} ${personal.lastName}`.trim(),
-          email: personal.email,
-        };
-        localStorage.setItem('user', JSON.stringify(updated));
-      }
-    } catch {}
+    updateStoredUser((current) => ({
+      ...current,
+      fullName: `${personal.firstName} ${personal.lastName}`.trim(),
+      email: personal.email,
+    }));
 
     try {
-      const res = await fetch('/api/profile', {
+      const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        userId,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: `${personal.firstName} ${personal.lastName}`.trim(),
           email: personal.email,
@@ -149,18 +160,9 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.success) {
+      if (!response.ok || !data.success) {
         throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
       }
-
-      
-      
-      return; 
-    } catch (err) {
-      
-      throw err;
     } finally {
       setSavingPersonal(false);
     }
@@ -173,9 +175,10 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     setSavingPreferences(true);
 
     try {
-      const res = await fetch('/api/profile', {
+      const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        userId,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           travelStyles: preferences.travelStyles,
           budgetLevel: preferences.budgetLevel,
@@ -184,15 +187,9 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok || !data.success) {
+      if (!response.ok || !data.success) {
         throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
       }
-
-      return; 
-    } catch (err) {
-      throw err;
     } finally {
       setSavingPreferences(false);
     }
@@ -205,19 +202,18 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     setIs2FAEnabled(newVal); 
 
     try {
-      const res = await fetch('/api/profile', {
+      const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        userId,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ twoFactorEnabled: newVal }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.success) {
-        
+
+      if (!response.ok || !data.success) {
         setIs2FAEnabled(!newVal);
         throw new Error(getApiErrorMessage(data, 'Cập nhật 2FA thất bại'));
       }
     } catch (err) {
-      
       setIs2FAEnabled(!newVal);
       throw err;
     }

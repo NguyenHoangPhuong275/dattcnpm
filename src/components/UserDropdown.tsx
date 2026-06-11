@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { clearStoredUser } from '@/lib/user';
+import { apiRequest } from '@/lib/api-client';
 
 interface User {
   fullName?: string;
@@ -19,69 +21,64 @@ export default function UserDropdown({ user }: UserDropdownProps) {
   const displayName = user.fullName?.split(' ').pop() || user.email?.split('@')[0] || 'Bạn';
   const initials = (user.fullName || user.email || 'U')
     .split(' ')
-    .map((n) => n[0])
+    .map((part) => part[0])
     .join('')
     .slice(0, 2)
     .toUpperCase();
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
-    }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await apiRequest('/api/auth/logout', { method: 'POST' });
     } catch {}
-    localStorage.removeItem('user');
+
+    clearStoredUser();
     setOpen(false);
     window.location.href = '/';
-  };
-
-  const handleProfile = () => {
-    setOpen(false);
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-slate-100 hover:text-[var(--color-text)] transition-colors cursor-pointer"
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-slate-100 hover:text-[var(--color-text)]"
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <div className="h-7 w-7 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center text-[10px] font-bold text-[var(--color-primary-darker)]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-[10px] font-bold text-[var(--color-primary-darker)]">
           {initials}
-        </div>
+        </span>
         <span className="hidden sm:inline">Xin chào, {displayName}</span>
-        <svg
-          className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <span className="text-xs text-[var(--color-text-muted)]" aria-hidden="true">
+          {open ? 'Ẩn' : 'Mở'}
+        </span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-[var(--color-border)] rounded-2xl shadow-lg py-1 z-50">
+        <div className="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[var(--color-border)] bg-white py-1 shadow-lg">
           <Link
             href="/profile"
-            onClick={handleProfile}
-            className="block px-4 py-2.5 text-sm text-[var(--color-text)] hover:bg-slate-50 transition-colors cursor-pointer"
+            onClick={() => setOpen(false)}
+            className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-slate-50"
           >
             Quản lý profile
           </Link>
-          <div className="border-t border-[var(--color-border)] my-1" />
+          <div className="my-1 border-t border-[var(--color-border)]" />
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+            className="w-full cursor-pointer px-4 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
           >
             Đăng xuất
           </button>

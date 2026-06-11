@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getApiErrorMessage } from '@/lib/api-client';
+import { setStoredUser } from '@/lib/user';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -71,7 +72,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       }
 
       setIsSuccess(true);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      setStoredUser(data.user);
     } catch {
       setErrors({ form: 'Lỗi kết nối, vui lòng thử lại sau' });
     } finally {
@@ -123,7 +124,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`block w-full pl-10 pr-3 py-3.5 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-base focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:ring-slate-300 transition-all min-h-[44px] cursor-text ${errors.email ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+              className={`block w-full pl-10 pr-3 py-3.5 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-base focus:outline-none transition-all min-h-[44px] cursor-text ${errors.email ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
               placeholder="email@example.com"
             />
           </div>
@@ -148,7 +149,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`block w-full pl-10 pr-10 py-3.5 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-base focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:ring-slate-300 transition-all min-h-[44px] cursor-text ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+              className={`block w-full pl-10 pr-10 py-3.5 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-base focus:outline-none transition-all min-h-[44px] cursor-text ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
               placeholder="••••••••"
             />
             {password.length > 0 && (
@@ -190,7 +191,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] focus:ring-offset-white transition-all min-h-[44px] cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-60"
+          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none transition-all min-h-[44px] cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-60"
         >
           {isLoading ? (
             <>

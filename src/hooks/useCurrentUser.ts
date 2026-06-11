@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { BasicUser } from '@/types/profile';
+import { getStoredUser, setStoredUser } from '@/lib/user';
 
 export interface UseCurrentUserReturn {
   user: BasicUser | null;
@@ -11,47 +12,32 @@ export interface UseCurrentUserReturn {
 }
 
 export function useCurrentUser(options?: { redirectIfNone?: boolean }): UseCurrentUserReturn {
-  const [user, setUser] = useState<BasicUser | null>(null);
+  const [user, setUserState] = useState<BasicUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const { redirectIfNone = true } = options || {};
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setUser(parsed);
-      } catch {
-        localStorage.removeItem('user');
-        setUser(null);
-      }
-    } else {
-      setUser(null);
-    }
+    const stored = getStoredUser();
+    setUserState(stored);
     setIsLoading(false);
   }, []);
 
-  
   useEffect(() => {
     if (!isLoading && !user && redirectIfNone) {
       router.replace('/?auth=login');
     }
   }, [isLoading, user, router, redirectIfNone]);
 
-  const updateUser = useCallback((newUser: BasicUser | null) => {
-    setUser(newUser);
-    if (newUser) {
-      localStorage.setItem('user', JSON.stringify(newUser));
-    } else {
-      localStorage.removeItem('user');
-    }
+  const setUser = useCallback((newUser: BasicUser | null) => {
+    setUserState(newUser);
+    setStoredUser(newUser);
   }, []);
 
   return {
     user,
     isLoading,
-    setUser: updateUser,
+    setUser,
   };
 }

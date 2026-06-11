@@ -3,6 +3,15 @@ import { getDb } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
+type ReviewListItem = {
+  _id: string;
+  placeId?: string | null;
+  rating?: number;
+  comment?: string | null;
+  images?: string[] | null;
+  createdAt?: Date | string;
+};
+
 export async function GET(request: NextRequest) {
   try {
     const userId = await getAuthUserId(request);
@@ -16,14 +25,14 @@ export async function GET(request: NextRequest) {
     const db = await getDb();
     const reviews = await db.reviews.find({ userId });
 
-    reviews.sort((a: any, b: any) => {
+    reviews.sort((a: ReviewListItem, b: ReviewListItem) => {
       const da = new Date(a.createdAt || 0).getTime();
       const dbt = new Date(b.createdAt || 0).getTime();
       return dbt - da;
     });
 
     const data = await Promise.all(
-      reviews.map(async (r: any) => {
+      reviews.map(async (r: ReviewListItem) => {
         const place = r.placeId ? await db.places.findById(r.placeId) : null;
         return {
           _id: r._id,

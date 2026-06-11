@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { TripSummary } from './MyTripsSection';
 
 interface TripDetailModalProps {
@@ -26,6 +27,12 @@ type ItineraryDraft = {
   note: string;
   cost: string;
   currency: string;
+};
+
+type ApiListResponse<T> = {
+  success?: boolean;
+  data?: T;
+  message?: string;
 };
 
 const emptyDraft: ItineraryDraft = {
@@ -66,15 +73,12 @@ export default function TripDetailModal({ trip, onClose, userId }: TripDetailMod
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`/api/trips/${trip._id}/itinerary`, {
-        headers: { 'x-user-id': userId },
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.success) {
-        setError(json.message || 'Không thể tải lịch trình');
+      const { response, data } = await apiRequest<ApiListResponse<ItineraryItem[]>>(`/api/trips/${trip._id}/itinerary`, { userId });
+      if (!response.ok || !data.success) {
+        setError(getApiErrorMessage(data, 'Không thể tải lịch trình'));
         return;
       }
-      setItems(Array.isArray(json.data) ? json.data : []);
+      setItems(Array.isArray(data.data) ? data.data : []);
     } catch {
       setError('Không thể tải lịch trình');
     } finally {
@@ -116,14 +120,15 @@ export default function TripDetailModal({ trip, onClose, userId }: TripDetailMod
       const url = editingId
         ? `/api/trips/${trip._id}/itinerary/${editingId}`
         : `/api/trips/${trip._id}/itinerary`;
-      const res = await fetch(url, {
+      const { response, data } = await apiRequest<ApiListResponse<ItineraryItem>>(url, {
         method: editingId ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        userId,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.success) {
-        setError(json.message || 'Không thể lưu lịch trình');
+
+      if (!response.ok || !data.success) {
+        setError(getApiErrorMessage(data, 'Không thể lưu lịch trình'));
         return;
       }
       resetForm();
@@ -151,13 +156,13 @@ export default function TripDetailModal({ trip, onClose, userId }: TripDetailMod
     if (!trip || !userId) return;
     setError('');
     try {
-      const res = await fetch(`/api/trips/${trip._id}/itinerary/${itemId}`, {
+      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/itinerary/${itemId}`, {
         method: 'DELETE',
-        headers: { 'x-user-id': userId },
+        userId,
       });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.success) {
-        setError(json.message || 'Không thể xóa điểm dừng');
+
+      if (!response.ok || !data.success) {
+        setError(getApiErrorMessage(data, 'Không thể xóa điểm dừng'));
         return;
       }
       if (editingId === itemId) resetForm();

@@ -4,11 +4,13 @@ Smart Travel Guide là web app hỗ trợ tìm kiếm địa điểm du lịch, 
 
 Project phục vụ môn Đồ án Thực tế Công nghệ Phần mềm.
 
-## Trạng thái hiện tại
+## Trạng thái hiện tại (cập nhật 2026-06-11)
 
-Tuần 1 đã hoàn thành theo phạm vi repo hiện tại, trừ commit/push GitHub vì không đủ dữ liệu để xác minh. Tuần 2 đã hoàn thành phần lõi ở mức demo/báo cáo: auth OTP/login/logout, JWT cookie, middleware profile, places search, POI, weather, trips, itinerary, favorites, search history API, rate limit OTP/login/search và test tối thiểu.
+Tuần 1 đã hoàn thành. Tuần 2 đã hoàn thành phần lõi ở mức demo/báo cáo (auth, places, weather, trips, itinerary, favorites, search history).
 
-Tuần 3-6 đã có tài liệu kế hoạch chi tiết trong `docs/`, nhưng code chưa hoàn thành toàn bộ các mục bản đồ, search history UI, add-to-trip từ search, test integration, responsive polish và bàn giao cuối.
+**Phạm vi điều chỉnh:** Bản đồ trực quan, marker, popup map và plan trải nghiệm khám phá của Tuần 3 **đã được loại bỏ hoàn toàn**. Tuần 3 chỉ ghi nhận phần đã có: search + POI + Weather + Search History UI. Tiếp theo ưu tiên luồng tạo/add vào trip, hoàn thiện quản lý lịch trình, test và polish.
+
+Tuần 3 đã hoàn thành theo scope rút gọn. Code hiện tập trung hoàn thiện luồng "tìm kiếm → thêm vào trip/itinerary", polish Trip UI, test integration và responsive. Tuần 4-6 còn lại chủ yếu là add-to-trip từ search, integration test, polish và final verification.
 
 ## Stack hiện tại
 
@@ -161,9 +163,9 @@ npm run build
 
 | Hạng mục | Trạng thái |
 | --- | --- |
-| Bản đồ trực quan/marker/popup | Chưa triển khai |
-| Search history UI riêng | Đã triển khai (Profile tab "Lịch sử tìm kiếm") |
-| Add-to-trip trực tiếp từ search result | Chưa triển khai |
-| Validate Zod toàn bộ API nghiệp vụ | Đã hoàn tất (src/lib/validations/* + áp dụng toàn route) |
-| Test integration với MongoDB/Redis | Đã có (tests/integration/ + .env.test.example) |
+| Bản đồ trực quan/marker/popup | **Đã loại bỏ** khỏi phạm vi theo yêu cầu |
+| Add-to-trip trực tiếp từ search result | Chưa triển khai (**ưu tiên cao**) |
+| Cập nhật thông tin trip đầy đủ | API có, UI còn cơ bản |
+| Test integration mở rộng (trips, itinerary, favorites...) | Có một số, cần bổ sung thêm |
+| Responsive + polish UI | Đang thực hiện |
 | Production deployment | Chưa có cấu hình riêng |

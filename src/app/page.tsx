@@ -4,8 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
-import BrandLogo from '@/components/BrandLogo';
-import UserDropdown from '@/components/UserDropdown';
+import AppHeader from '@/components/AppHeader';
 import * as Icons from '@/components/icons';
 import { getApiErrorMessage } from '@/lib/api-client';
 
@@ -95,8 +94,8 @@ export default function HomePage() {
         .catch(() => null)
         .finally(() => setIsWeatherLoading(false));
 
-      const isProvince = selectedPlace.address?.toLowerCase().includes('tỉnh') || 
-                         selectedPlace.name.toLowerCase().startsWith('tỉnh') || 
+      const isProvince = selectedPlace.address?.toLowerCase().includes('tỉnh') ||
+                         selectedPlace.name.toLowerCase().startsWith('tỉnh') ||
                          ['hồ chí minh', 'hà nội', 'đà nẵng', 'hải phòng', 'cần thơ'].includes(selectedPlace.name.toLowerCase());
       const radius = isProvince ? 50000 : 10000;
 
@@ -269,7 +268,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] overflow-x-hidden">
-      <Header onAuthClick={openAuth} />
+      <AppHeader onAuthClick={openAuth} showSearch={false} />
 
       <section className="relative w-full h-[460px] sm:h-[520px] md:h-[560px] flex items-center justify-center bg-slate-900 overflow-hidden">
         <div
@@ -464,8 +463,8 @@ export default function HomePage() {
                     openAuth('register');
                   }}
                   className={`w-full py-3 font-bold rounded-full transition-all cursor-pointer shadow-md text-sm tracking-wide whitespace-nowrap text-center ${
-                    selectedPlace 
-                      ? 'bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-dark)] text-white active:scale-[0.98]' 
+                    selectedPlace
+                      ? 'bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-dark)] text-white active:scale-[0.98]'
                       : 'bg-slate-100 hover:bg-slate-200 text-[var(--color-primary-darker)] border border-[var(--color-border)] disabled:opacity-60'
                   }`}
                   disabled={!selectedPlace}
@@ -564,16 +563,15 @@ export default function HomePage() {
         <div className="w-full">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <h2 className="font-display text-3xl font-bold text-[var(--color-text)]">Địa điểm phổ biến</h2>
-              <p className="text-[var(--color-text-secondary)] mt-1 text-sm">Các địa điểm nổi bật</p>
+              <h2 className="font-display text-3xl font-bold text-[var(--color-text)]">Gợi ý điểm đến</h2>
+              <p className="text-[var(--color-text-secondary)] mt-1 text-sm">Các địa điểm du lịch phổ biến (sẽ mở rộng sau)</p>
             </div>
-            <div className="hidden sm:block text-sm text-[var(--color-primary-darker)] hover:underline cursor-pointer">Xem tất cả →</div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="h-64 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white flex items-center justify-center text-[var(--color-text-muted)] text-sm">
-                Place Card #{i}
+                Gợi ý điểm đến #{i}
               </div>
             ))}
           </div>
@@ -622,13 +620,13 @@ export default function HomePage() {
             Tạo tài khoản miễn phí và bắt đầu lập kế hoạch cho chuyến đi tiếp theo ngay hôm nay.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
+            <button
               onClick={() => openAuth('register')}
               className="px-8 py-3.5 bg-[var(--color-primary-darker)] text-white font-semibold rounded-full hover:bg-[var(--color-primary-dark)] transition-all cursor-pointer shadow-sm"
             >
               Tạo tài khoản miễn phí
             </button>
-            <button 
+            <button
               onClick={() => openAuth('login')}
               className="px-8 py-3.5 border border-[var(--color-border-strong)] font-medium rounded-full hover:bg-white transition-all cursor-pointer"
             >
@@ -720,79 +718,4 @@ export default function HomePage() {
   );
 }
 
-function Header({ onAuthClick }: { onAuthClick: (mode: 'login' | 'register') => void }) {
-  return (
-    <header className="sticky top-0 z-40 bg-white border-b border-[var(--color-border)]">
-      <div className="w-full flex items-center px-8 lg:px-12 h-16">
-        <div className="flex items-center gap-6 flex-shrink-0">
-          <BrandLogo />
-
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[var(--color-text-secondary)]">
-            <a href="#features" className="hover:text-[var(--color-text)] transition-colors cursor-pointer">
-              Khám phá
-            </a>
-            <a href="#features" className="hover:text-[var(--color-text)] transition-colors cursor-pointer">
-              Tính năng
-            </a>
-            <a href="#how" className="hover:text-[var(--color-text)] transition-colors cursor-pointer">
-              Cách hoạt động
-            </a>
-          </nav>
-        </div>
-
-        <div className="flex-1"></div>
-
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <div className="hidden lg:flex items-center bg-slate-100 rounded-full px-3 py-1.5 text-sm w-52 focus-within:bg-white focus-within:ring-1 focus-within:ring-[var(--color-primary)] transition-all">
-            <Icons.SearchIcon className="w-4 h-4 text-[var(--color-text-muted)] mr-2" />
-            <input
-              type="text"
-              placeholder="Tìm địa điểm..."
-              className="bg-transparent outline-none w-full text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] text-sm"
-            />
-          </div>
-
-          <AuthNav onAuthClick={onAuthClick} />
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function AuthNav({ onAuthClick }: { onAuthClick: (mode: 'login' | 'register') => void }) {
-  const [user, setUser] = useState<{ fullName?: string; email?: string } | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setTimeout(() => setUser(parsed), 0);
-      } catch {
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
-
-  if (user) {
-    return <UserDropdown user={user} />;
-  }
-
-  return (
-    <>
-      <button
-        onClick={() => onAuthClick('login')}
-        className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors cursor-pointer"
-      >
-        Đăng nhập
-      </button>
-      <button
-        onClick={() => onAuthClick('register')}
-        className="px-5 py-2 text-sm font-semibold rounded-full bg-[var(--color-primary-darker)] text-white hover:bg-[var(--color-primary-dark)] transition-all cursor-pointer shadow-sm"
-      >
-        Đăng ký
-      </button>
-    </>
-  );
-}
 

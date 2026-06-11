@@ -295,7 +295,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
                 value={digit}
                 onChange={(e) => handleOtpChange(i, e.target.value)}
                 onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                className={`w-11 h-13 text-center text-lg font-bold rounded-xl border-0 bg-white ring-1 ring-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:ring-slate-300 transition-all cursor-text ${errors.otp ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+                className={`w-11 h-13 text-center text-lg font-bold rounded-xl border-0 bg-white ring-1 ring-slate-200 text-slate-900 focus:outline-none transition-all cursor-text ${errors.otp ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
                 autoComplete="one-time-code"
               />
             ))}
@@ -307,7 +307,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             type="button"
             onClick={() => handleVerifyOTP()}
             disabled={isLoading || otpDigits.some((d) => !d)}
-            className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] focus:ring-offset-white disabled:opacity-60 disabled:cursor-not-allowed transition-all min-h-[44px] cursor-pointer flex items-center justify-center"
+          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all min-h-[44px] cursor-pointer flex items-center justify-center"
           >
             {isLoading ? 'Đang xác minh...' : 'XÁC MINH'}
           </button>
@@ -353,7 +353,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className={`block w-full px-3 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:ring-slate-300 transition-all min-h-[44px] ${errors.fullName ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+            className={`block w-full px-3 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.fullName ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
             placeholder="Nguyễn Văn A"
           />
           {errors.fullName && <p className="text-xs text-red-600 mt-0.5">{errors.fullName}</p>}
@@ -367,7 +367,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={`block w-full px-3 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:ring-slate-300 transition-all min-h-[44px] ${errors.email ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+            className={`block w-full px-3 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.email ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
             placeholder="email@example.com"
           />
           {errors.email && <p className="text-xs text-red-600 mt-0.5">{errors.email}</p>}
@@ -383,7 +383,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:ring-slate-300 transition-all min-h-[44px] ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+                className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
                 placeholder="••••••••"
               />
               {password.length > 0 && (
@@ -418,7 +418,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:ring-slate-300 transition-all min-h-[44px] ${errors.confirmPassword ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+                className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.confirmPassword ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
                 placeholder="••••••••"
               />
               {confirmPassword.length > 0 && (
@@ -454,7 +454,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             type="checkbox"
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
-            className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-slate-700 focus:ring-[var(--color-primary)] cursor-pointer"
+            className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-slate-700 focus:outline-none cursor-pointer"
           />
           <label htmlFor="agreeTerms" className="text-xs text-slate-700">
             Tôi đồng ý với <a href="#" className="font-semibold text-slate-700 hover:underline">Điều khoản</a> và <a href="#" className="font-semibold text-slate-700 hover:underline">Chính sách bảo mật</a>
@@ -469,7 +469,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] focus:ring-offset-white transition-all min-h-[44px] cursor-pointer flex items-center justify-center disabled:opacity-60"
+          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none transition-all min-h-[44px] cursor-pointer flex items-center justify-center disabled:opacity-60"
         >
           {isLoading ? 'Đang gửi mã...' : 'TIẾP TỤC'}
         </button>

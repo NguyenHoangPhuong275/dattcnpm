@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { apiRequest } from '@/lib/api-client';
 import { MyReview } from '@/types/profile';
 
 interface UseMyReviewsOptions {
@@ -26,12 +27,9 @@ export function useMyReviews({ userId }: UseMyReviewsOptions): UseMyReviewsRetur
 
     setLoading(true);
     try {
-      const res = await fetch('/api/reviews/my', { headers: { 'x-user-id': id } });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setReviews(json.data);
-        }
+      const { response, data } = await apiRequest<{ success?: boolean; data?: MyReview[] }>('/api/reviews/my', { userId: id });
+      if (response.ok && data.success && Array.isArray(data.data)) {
+        setReviews(data.data);
       }
     } catch {
     } finally {

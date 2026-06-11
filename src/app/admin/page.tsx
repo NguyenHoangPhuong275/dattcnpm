@@ -365,7 +365,7 @@ export default function AdminControlPage() {
               type="password"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
-              className="flex-1 bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm cursor-text"
+              className="flex-1 bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none text-sm cursor-text"
               placeholder="Nhập x-webhook-secret token..."
             />
             <button

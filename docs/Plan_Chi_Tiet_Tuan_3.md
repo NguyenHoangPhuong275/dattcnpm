@@ -1,18 +1,19 @@
-# Plan Chi Tiết Tuần 3 - Bản đồ, địa điểm và trải nghiệm khám phá
+# Plan Chi Tiết Tuần 3 - Scope rút gọn: Search, POI, Weather
+
+> [!NOTE]
+> Theo yêu cầu điều chỉnh của dự án, phần bản đồ trực quan, marker, popup địa điểm trên bản đồ và plan trải nghiệm khám phá của Tuần 3 **đã được loại bỏ hoàn toàn** khỏi phạm vi. Tuần 3 chỉ ghi nhận các phần đã có: tìm kiếm địa điểm, POI, thời tiết và lịch sử tìm kiếm.
 
 ## 1. Mục tiêu tuần
 
-- Hoàn thiện trải nghiệm khám phá địa điểm.
-- Bổ sung bản đồ trực quan.
-- Hiển thị marker địa điểm.
-- Hiển thị popup thông tin địa điểm.
-- Hoàn thiện search + filter cơ bản.
-- Tối ưu cache dữ liệu địa điểm.
-- Đồng bộ với Places/POI/Weather API đã có.
+- Ghi nhận luồng tìm kiếm địa điểm đã có trên trang chủ.
+- Ghi nhận POI du lịch nổi bật và thời tiết theo địa điểm đã chọn.
+- Ghi nhận cache dữ liệu địa điểm qua Redis và MongoDB upsert.
+- Ghi nhận UI quản lý lịch sử tìm kiếm trong Profile.
+- Chuyển các phần mở rộng như favorite từ search và add-to-trip từ search sang các tuần sau nếu còn thời gian.
 
 ## 2. Phạm vi nghiệp vụ
 
-Người dùng tìm kiếm địa điểm, xem danh sách kết quả, xem vị trí trên bản đồ, mở popup địa điểm, xem POI xung quanh, xem thời tiết địa điểm, lưu địa điểm yêu thích và thêm địa điểm vào trip nếu đã đăng nhập.
+Người dùng tìm kiếm địa điểm du lịch, chọn điểm đến, xem thông tin thời tiết và các địa danh du lịch nổi bật (POI) xung quanh khu vực đó, sau đó có thể xem lại lịch sử các từ khóa đã tìm kiếm trong Profile.
 
 ## 3. Actor
 
@@ -20,77 +21,53 @@ Người dùng tìm kiếm địa điểm, xem danh sách kết quả, xem vị 
 - User
 - Admin nếu cần xem thống kê/log liên quan
 
-## 4. Chức năng cần có
+## 4. Chức năng và trạng thái thực hiện
 
 | Mã | Chức năng | Mô tả | API liên quan | UI liên quan | Trạng thái |
 | -- | --------- | ----- | ------------- | ------------ | ---------- |
-| W3-01 | Search địa điểm | Tìm địa danh/điểm du lịch | `GET /api/places/search` | Home search section | Đã có cơ bản |
-| W3-02 | Xem bản đồ | Hiển thị kết quả trên bản đồ | Chưa có route riêng | Map section | Chưa triển khai |
-| W3-03 | Marker địa điểm | Marker theo tọa độ place | `GET /api/places/search` | Map marker | Chưa triển khai |
-| W3-04 | Popup địa điểm | Xem tên, địa chỉ, loại, hành động | `GET /api/places/search` | Place popup/modal | Chưa triển khai |
-| W3-05 | POI xung quanh | Lấy điểm xung quanh tọa độ | `GET /api/places/poi` | POI list/card | Đã có cơ bản |
-| W3-06 | Weather địa điểm | Xem thời tiết hiện tại | `GET /api/weather` | Weather panel | Đã có cơ bản |
-| W3-07 | Favorite place | Lưu/xóa địa điểm yêu thích | `GET/POST /api/favorites`, `DELETE /api/favorites/[id]` | Favorite button | Đã có ở profile/API |
-| W3-08 | Add to trip | Thêm địa điểm vào trip/itinerary | `POST /api/trips/[id]/itinerary` | Add to trip action | Chưa có UI từ search |
-| W3-09 | Search history | Lưu/xem lịch sử tìm kiếm | `GET/POST/DELETE /api/search-history` | Search history panel | API đã có, UI chưa có |
+| W3-01 | Search địa điểm | Tìm địa danh/điểm du lịch với auto-suggest | `GET /api/places/search` | Home search section | Hoàn thành |
+| W3-05 | POI xung quanh | Lấy danh sách địa danh du lịch nổi bật xung quanh tọa độ đã chọn | `GET /api/places/poi` | POI list/card | Hoàn thành |
+| W3-06 | Weather địa điểm | Xem thời tiết hiện tại tại điểm đến đã chọn | `GET /api/weather` | Weather panel | Hoàn thành |
+| W3-07 | Favorite place | Lưu/xóa địa điểm yêu thích | `GET/POST /api/favorites`, `DELETE /api/favorites/[id]` | Profile/Favorites; action từ search chưa bắt buộc | Ngoài scope Tuần 3 |
+| W3-08 | Add to trip | Thêm địa điểm vào trip/itinerary | `POST /api/trips/[id]/itinerary` | Add to trip action | Ngoài scope Tuần 3 |
+| W3-09 | Search history | Lưu/xem/xóa lịch sử tìm kiếm | `GET/POST/DELETE /api/search-history` | Search history panel (trong Profile) | Hoàn thành |
 
 ## 5. API liên quan
 
 - `GET /api/places/search?q=`
 - `GET /api/places/poi?lat=&lng=&radius=&type=`
 - `GET /api/weather?lat=&lng=`
-- `GET /api/favorites`
-- `POST /api/favorites`
-- `DELETE /api/favorites/[id]`
 - `GET /api/search-history`
 - `POST /api/search-history`
 - `DELETE /api/search-history`
 - `DELETE /api/search-history/[id]`
-- `POST /api/trips/[id]/itinerary`
 
-## 6. UI cần hoàn thiện
+## 6. UI đã hoàn thiện
 
-- Home search section.
-- Map section.
-- Result list.
-- Place card.
-- Place popup/modal.
-- Favorite button.
-- Add to trip action.
-- Empty/loading/error state.
+- Home search section (Tìm kiếm điểm đến).
+- Result list & Place details (Tên địa điểm, địa chỉ).
+- POI list (Danh sách địa danh du lịch nổi bật xung quanh).
+- Weather panel (Thời tiết hiện tại của địa điểm).
+- Search history panel (Quản lý lịch sử tìm kiếm trong profile).
 
 ## 7. Database/Redis liên quan
 
 - `places`
-- `favorite_places`
 - `search_histories`
-- Redis `geo:search:*`
-- Redis `poi:*`, `poi:live:*`
+- Redis `poi:*`
 - Redis `weather:*`
 - Redis `rl:search:*`
 
-## 8. Checklist nghiệm thu Tuần 3
+## 8. Checklist nghiệm thu Tuần 3 (Cập nhật - không còn bản đồ)
 
-- [ ] Có bản đồ hiển thị trong luồng khám phá.
-- [ ] Kết quả search có marker trên bản đồ.
-- [ ] Popup địa điểm hiển thị thông tin chính.
-- [ ] POI và weather đồng bộ theo địa điểm đang chọn.
-- [ ] Có favorite action từ UI khám phá.
-- [ ] Có add-to-trip action từ UI khám phá.
-- [ ] Có search history UI hoặc ghi rõ chưa triển khai.
-- [ ] Empty/loading/error state rõ ràng.
+- [x] Tìm kiếm địa danh hoạt động chính xác với auto-suggest và chọn điểm đến.
+- [x] Thông tin POI (địa danh du lịch nổi bật) và Weather được tải + hiển thị rõ ràng theo địa điểm đã chọn.
+- [x] Người dùng có thể xem, tìm lại và xóa lịch sử tìm kiếm trên UI (SearchHistorySection).
+- [x] Không còn yêu cầu bản đồ, marker, popup map hoặc plan trải nghiệm khám phá trong Tuần 3.
 
-## 9. Rủi ro
+## 9. Kết quả bàn giao
 
-- API ngoài bị rate limit.
-- Dữ liệu OSM thiếu hoặc không đồng nhất.
-- Map UI nặng trên thiết bị yếu.
-- Cache sai dữ liệu làm kết quả cũ.
-- Không có GPS/location permission.
-
-## 10. Kết quả bàn giao
-
-- UI tìm kiếm + bản đồ.
-- API search/POI/weather ổn định.
-- Docs cập nhật theo code.
-- Demo flow tìm kiếm địa điểm.
+- Luồng tìm kiếm địa điểm cơ bản (chọn điểm đến → xem weather + POI nổi bật xung quanh).
+- UI quản lý lịch sử tìm kiếm đầy đủ (xem lại, tìm lại, xóa).
+- API search/POI/weather đã ổn định + cache Redis.
+- Tài liệu kế hoạch Tuần 3 được cập nhật đồng bộ: bản đồ và trải nghiệm khám phá đã loại bỏ.
