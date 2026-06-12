@@ -27,10 +27,6 @@ export function clearStoredUser(): void {
   localStorage.removeItem(USER_STORAGE_KEY);
 }
 
-export function syncUserToStorage(user: BasicUser | null): void {
-  setStoredUser(user);
-}
-
 export function updateStoredUser(updater: (user: BasicUser) => BasicUser): void {
   const current = getStoredUser();
   if (!current) return;

@@ -35,7 +35,6 @@ export {
   clearStoredUser,
   getStoredUser,
   setStoredUser,
-  syncUserToStorage,
   updateStoredUser,
 } from './user';
 

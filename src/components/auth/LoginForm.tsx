@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getApiErrorMessage } from '@/lib/api-client';
 import { setStoredUser } from '@/lib/user';
+import { loginSchema } from '@/lib/validations/auth';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -20,39 +21,37 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
-    if (isSuccess) {
-      const timer = setTimeout(() => {
-        if (onSuccess) {
-          onSuccess();
-        }
+    if (!isSuccess) return;
 
+    const timer = setTimeout(() => {
+      if (onSuccess) {
+        onSuccess();
+      } else {
         router.push('/profile');
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
   }, [isSuccess, router, onSuccess]);
-
-  const validate = () => {
-    const tempErrors: typeof errors = {};
-    if (!email) {
-      tempErrors.email = 'Vui lòng nhập email';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      tempErrors.email = 'Email không đúng định dạng';
-    }
-
-    if (!password) {
-      tempErrors.password = 'Vui lòng nhập mật khẩu';
-    } else if (password.length < 6) {
-      tempErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
-    }
-
-    setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+
+    const result = loginSchema.safeParse({
+      email: email.trim(),
+      password,
+    });
+
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+
+      setErrors({
+        email: fieldErrors.email?.[0],
+        password: fieldErrors.password?.[0],
+      });
+
+      return;
+    }
 
     setIsLoading(true);
     setErrors({});
@@ -61,7 +60,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ email: result.data.email, password: result.data.password }),
       });
 
       const data = await res.json();
@@ -191,7 +190,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none transition-all min-h-[44px] cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-60"
+          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none transition-all min-h-[44px] cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-60"
         >
           {isLoading ? (
             <>

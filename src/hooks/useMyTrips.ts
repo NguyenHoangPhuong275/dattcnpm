@@ -22,6 +22,7 @@ export interface UseMyTripsReturn {
   trips: TripSummary[];
   loading: boolean;
   creating: boolean;
+  error: string | null;
 
   loadTrips: (uid?: string) => Promise<void>;
   createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string }>;
@@ -34,18 +35,21 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadTrips = useCallback(async (uid?: string) => {
     const id = uid || userId;
     if (!id) return;
 
     setLoading(true);
+    setError(null);
     try {
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary[] }>('/api/trips', { userId: id });
       if (response.ok && data.success && Array.isArray(data.data)) {
         setTrips(data.data);
       }
     } catch {
+      setError('Không thể tải danh sách chuyến đi');
     } finally {
       setLoading(false);
     }
@@ -123,6 +127,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     trips,
     loading,
     creating,
+    error,
     loadTrips,
     createTrip,
     deleteTrip,

@@ -6,8 +6,7 @@ import { usePathname } from 'next/navigation';
 import BrandLogo from '@/components/BrandLogo';
 import UserDropdown from '@/components/UserDropdown';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-
-type AuthMode = 'login' | 'register';
+import type { AuthMode } from '@/hooks/useAuthModal';
 
 interface AppHeaderProps {
   active?: 'local' | 'destinations' | 'news' | 'profile';
@@ -16,7 +15,7 @@ interface AppHeaderProps {
   showSearch?: boolean;
   onSearchChange?: (value: string) => void;
   onSearchSubmit?: () => void;
-  onAuthClick?: (mode: AuthMode) => void;
+  onAuthClick?: (mode: Exclude<AuthMode, null>) => void;
 }
 
 const NAV_ITEMS = [
@@ -59,7 +58,7 @@ export default function AppHeader({
     }
   };
 
-  const openAuth = (mode: AuthMode) => {
+  const openAuth = (mode: Exclude<AuthMode, null>) => {
     if (onAuthClick) {
       onAuthClick(mode);
       return;

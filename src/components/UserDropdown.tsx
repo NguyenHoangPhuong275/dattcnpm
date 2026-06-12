@@ -52,7 +52,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-slate-100 hover:text-[var(--color-text)]"
+        className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-offset)] hover:text-[var(--color-text)]"
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -66,18 +66,18 @@ export default function UserDropdown({ user }: UserDropdownProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[var(--color-border)] bg-white py-1 shadow-lg">
+        <div className="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-lg">
           <Link
             href="/profile"
             onClick={() => setOpen(false)}
-            className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-slate-50"
+            className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-offset)]"
           >
             Thông tin của bạn
           </Link>
           <Link
             href="/profile?tab=trips"
             onClick={() => setOpen(false)}
-            className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-slate-50"
+            className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-offset)]"
           >
             Chuyến đi của tôi
           </Link>
