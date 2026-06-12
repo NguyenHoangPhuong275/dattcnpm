@@ -1,9 +1,10 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRedis } from '@/lib/redis';
 import { getDb, findUserByEmail } from '@/lib/mongodb';
 import { hash } from 'bcryptjs';
 import { VerifyOtpSchema } from '@/lib/validations/validation';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { signAuthToken, authCookieName } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,13 +16,33 @@ export async function POST(request: NextRequest) {
     if (process.env.ENABLE_DEFAULT_TEST_ACCOUNT === 'true' &&
         normalizedEmail === (process.env.DEFAULT_TEST_EMAIL || '').toLowerCase().trim()) {
 
-      return sendSuccess({
+      const userForToken = {
+        id: 'test-user-phuong',
+        email: normalizedEmail,
+        fullName: parsed.fullName.trim(),
+        role: 'USER' as const,
+      };
+
+      const token = await signAuthToken(userForToken);
+
+      const response = NextResponse.json({
+        success: true,
         user: {
-          id: 'test-user-phuong',
-          email: normalizedEmail,
-          fullName: parsed.fullName.trim(),
+          id: userForToken.id,
+          email: userForToken.email,
+          fullName: userForToken.fullName,
         },
       });
+
+      response.cookies.set(authCookieName, token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      return response;
     }
 
     const existingUser = await findUserByEmail(normalizedEmail);
@@ -82,13 +103,33 @@ export async function POST(request: NextRequest) {
       createdAt: now,
     });
 
-    return sendSuccess({
+    const userForToken = {
+      id: String(newUser._id),
+      email: newUser.email,
+      fullName: newUser.fullName,
+      role: 'USER' as const,
+    };
+
+    const token = await signAuthToken(userForToken);
+
+    const response = NextResponse.json({
+      success: true,
       user: {
-        id: newUser._id,
-        email: newUser.email,
-        fullName: newUser.fullName,
+        id: userForToken.id,
+        email: userForToken.email,
+        fullName: userForToken.fullName,
       },
     });
+
+    response.cookies.set(authCookieName, token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     return handleApiError(error);
   }

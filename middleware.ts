@@ -7,6 +7,14 @@ const PROTECTED_PREFIXES = ['/profile', '/trips', '/schedule-reference'];
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
+  if (pathname.startsWith('/api/debug')) {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    }
+
+    return NextResponse.next();
+  }
+
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   if (!isProtected) {
     return NextResponse.next();
@@ -24,5 +32,10 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ['/profile/:path*', '/trips/:path*', '/schedule-reference/:path*'],
+  matcher: [
+    '/profile/:path*',
+    '/trips/:path*',
+    '/schedule-reference/:path*',
+    '/api/debug/:path*',
+  ],
 };
