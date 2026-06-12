@@ -64,7 +64,7 @@ export default function UserManagement({
           <button
             onClick={() => {
               if (confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản ${userEmail}?`)) {
-                onAction('harddelete', 'user.delete', { email: userEmail, hard: true });
+                onAction('harddelete', 'user.delete', { email: userEmail, hard: true, confirm: true });
               }
             }}
             disabled={actionLoading !== null || !userEmail}

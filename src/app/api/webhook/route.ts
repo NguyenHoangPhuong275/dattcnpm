@@ -11,6 +11,7 @@ import {
 } from '@/lib/mongodb';
 import { getRedis } from '@/lib/redis';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 function getWebhookSecret() {
   const secret = process.env.WEBHOOK_SECRET;
@@ -29,6 +30,17 @@ export async function POST(request: NextRequest) {
       throw new AppError('UNAUTHORIZED', 'Unauthorized admin access', 401);
     }
 
+    const ip = getClientIp(request);
+    const rate = await checkRateLimit({
+      key: `rl:webhook:${ip}`,
+      limit: 30,
+      windowSeconds: 60,
+    });
+
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Too many webhook requests. Please try again later.', 429);
+    }
+
     let body;
     try {
       body = await request.json();
@@ -39,6 +51,31 @@ export async function POST(request: NextRequest) {
     const { event, data } = body;
     if (!event || typeof event !== 'string') {
       throw new AppError('VALIDATION_ERROR', 'Missing event field', 400);
+    }
+
+    const destructiveEvents = new Set([
+      'db.reset',
+      'db.clear',
+      'db.dropUnknown',
+      'db.hardReset',
+      'db.nuke',
+      'places.clear-cache',
+    ]);
+
+    if (destructiveEvents.has(event) && data?.confirm !== true) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'Missing confirmation for destructive webhook action',
+        400
+      );
+    }
+
+    if ((event === 'db.hardReset' || event === 'db.nuke') && data?.confirmText !== 'HARD_RESET_DATABASE') {
+      throw new AppError('VALIDATION_ERROR', 'Missing hard reset confirmation text', 400);
+    }
+
+    if (event === 'user.delete' && data?.hard === true && data?.confirm !== true) {
+      throw new AppError('VALIDATION_ERROR', 'Missing confirmation for hard user delete', 400);
     }
 
     const db = await getDb();

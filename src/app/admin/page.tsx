@@ -295,7 +295,7 @@ export default function AdminControlPage() {
       : 'CẢNH BÁO: Hành động này sẽ DROP toàn bộ collections (xóa sạch duplicates + data + indexes). Bạn có chắc không?';
 
     if (confirm(text)) {
-      handleAction(action, action);
+      handleAction(action, action, { confirm: true });
     }
   };
 
