@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
-import { TripSummary } from '@/types/profile';
+import type { TripSummary } from '@/types/profile';
+import { getDefaultStartDate, getDefaultEndDate } from '@/lib/date';
 
 interface UseMyTripsOptions {
   userId: string | null;
@@ -63,8 +64,8 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     setCreating(true);
 
     try {
-      const start = payload.startDate || new Date().toISOString().split('T')[0];
-      const end = payload.endDate || new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString().split('T')[0];
+      const start = payload.startDate || getDefaultStartDate();
+      const end = payload.endDate || getDefaultEndDate(3);
 
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary; message?: string }>('/api/trips', {
         method: 'POST',
@@ -102,18 +103,21 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   const deleteTrip = useCallback(async (id: string) => {
     if (!userId) return;
 
-    const previous = trips;
-    setTrips(prev => prev.filter(t => t._id !== id));
+    let snapshot: TripSummary[] = [];
+    setTrips(prev => {
+      snapshot = prev;
+      return prev.filter(t => t._id !== id);
+    });
 
     try {
       const { response } = await apiRequest(`/api/trips/${id}`, { method: 'DELETE', userId });
 
       if (!response.ok) throw new Error();
     } catch {
-      setTrips(previous);
+      setTrips(snapshot);
       throw new Error('Delete trip failed');
     }
-  }, [userId, trips]);
+  }, [userId]);
 
   return {
     trips,

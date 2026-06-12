@@ -1,3 +1,5 @@
+process.env.JWT_SECRET = 'test-only-secret-must-be-32-chars!!';
+
 import { describe, expect, it } from 'vitest';
 import { signAuthToken, verifyAuthToken } from './auth';
 
