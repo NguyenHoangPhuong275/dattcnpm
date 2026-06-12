@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import HeroSlider from '@/components/home/HeroSlider';
@@ -33,10 +33,15 @@ function HomePageContent() {
 
   const destinationInputRef = useRef<HTMLInputElement>(null);
 
+  const handleMissingPlace = useCallback(
+    () => destinationInputRef.current?.focus(),
+    [],
+  );
+
   const tripActions = useHomepageTripActions({
     userId: user?.id ?? null,
     selectedPlace: search.selectedPlace,
-    onMissingPlace: () => destinationInputRef.current?.focus(),
+    onMissingPlace: handleMissingPlace,
   });
 
   const [activeSection, setActiveSection] = useState<'destinations' | 'news' | 'local' | undefined>(undefined);
