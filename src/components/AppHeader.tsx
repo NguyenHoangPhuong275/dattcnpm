@@ -33,7 +33,7 @@ export default function AppHeader({
   onSearchSubmit,
   onAuthClick,
 }: AppHeaderProps): React.JSX.Element {
-  const { user } = useCurrentUser({ redirectIfNone: false });
+  const { data: user } = useCurrentUser({ redirectIfNone: false });
   const pathname = usePathname();
   const [localSearch, setLocalSearch] = useState('');
   const currentSearch = searchValue ?? localSearch;

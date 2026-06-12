@@ -4,31 +4,34 @@ import { useState, useCallback } from 'react';
 import { apiRequest } from '@/lib/api-client';
 import { FavoritePlaceSummary } from '@/types/profile';
 
+export type FavoritesStatus = 'idle' | 'loading' | 'success' | 'error';
+
 interface UseFavoritesOptions {
   userId: string | null;
 }
 
 export interface UseFavoritesReturn {
-  favorites: FavoritePlaceSummary[];
-  loading: boolean;
-
-  loadFavorites: (uid?: string) => Promise<void>;
-  removeFavorite: (id: string) => Promise<void>;
-
-  setFavorites: React.Dispatch<React.SetStateAction<FavoritePlaceSummary[]>>;
+  data: FavoritePlaceSummary[];
+  status: FavoritesStatus;
+  error: string | null;
+  actions: {
+    loadFavorites: (uid?: string) => Promise<void>;
+    removeFavorite: (id: string) => Promise<void>;
+    setFavorites: React.Dispatch<React.SetStateAction<FavoritePlaceSummary[]>>;
+  };
 }
 
 export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesReturn {
   const [favorites, setFavorites] = useState<FavoritePlaceSummary[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-  const loading = status === 'loading';
+  const [status, setStatus] = useState<FavoritesStatus>('idle');
+  const [error, setError] = useState<string | null>(null);
 
   const loadFavorites = useCallback(async (uid?: string): Promise<void> => {
     const id = uid || userId;
     if (!id) return;
 
     setStatus('loading');
+    setError(null);
     try {
       const { response, data } = await apiRequest<{ success?: boolean; data?: FavoritePlaceSummary[] }>('/api/favorites', { userId: id });
       if (response.ok && data.success && Array.isArray(data.data)) {
@@ -39,6 +42,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
       }
     } catch (err) {
       console.error('Lỗi khi tải danh sách địa điểm yêu thích:', err);
+      setError('Không thể tải danh sách địa điểm yêu thích');
       setStatus('error');
     }
   }, [userId]);
@@ -60,10 +64,13 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
   }, [userId, favorites]);
 
   return {
-    favorites,
-    loading,
-    loadFavorites,
-    removeFavorite,
-    setFavorites,
+    data: favorites,
+    status,
+    error,
+    actions: {
+      loadFavorites,
+      removeFavorite,
+      setFavorites,
+    },
   };
 }

@@ -12,9 +12,12 @@ import { useToast } from '@/hooks/useToast';
 import { getDefaultTripDates } from '@/lib/date';
 
 export default function MyTripsPage(): React.JSX.Element {
-  const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: true });
-  const { trips, loading, createTrip, loadTrips } = useMyTrips({ userId: user?.id ?? null });
-  const { message: toastMessage, visible: showToastVisible, showToast } = useToast();
+  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: true });
+  const userLoading = userStatus === 'loading';
+  const { data: trips, status: tripsStatus, actions: { createTrip, loadTrips } } = useMyTrips({ userId: user?.id ?? null });
+  const loading = tripsStatus === 'loading';
+  const { data: { message: toastMessage }, status: toastStatus, actions: { showToast } } = useToast();
+  const showToastVisible = toastStatus === 'visible';
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDest, setNewDest] = useState('');

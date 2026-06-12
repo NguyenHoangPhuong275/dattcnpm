@@ -6,17 +6,23 @@ import { BasicUser } from '@/types/profile';
 import { setStoredUser } from '@/lib/user';
 import { apiRequest } from '@/lib/api-client';
 
+export type CurrentUserStatus = 'idle' | 'loading' | 'success' | 'error';
+
 export interface UseCurrentUserReturn {
-  user: BasicUser | null;
-  isLoading: boolean;
-  setUser: (user: BasicUser | null) => void;
+  data: BasicUser | null;
+  status: CurrentUserStatus;
+  error: string | null;
+  actions: {
+    setUser: (user: BasicUser | null) => void;
+  };
 }
 
 export function useCurrentUser(
   options?: { redirectIfNone?: boolean }
 ): UseCurrentUserReturn {
   const [user, setUserState] = useState<BasicUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState<CurrentUserStatus>('loading');
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { redirectIfNone = true } = options ?? {};
 
@@ -27,13 +33,13 @@ export function useCurrentUser(
       .then(({ data }) => {
         setUserState(data);
         setStoredUser(data);
+        setStatus('success');
       })
       .catch((err: unknown) => {
         if (err instanceof Error && err.name === 'AbortError') return;
         setUserState(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
+        setError('Không thể lấy thông tin người dùng hiện tại');
+        setStatus('error');
       });
 
     return () => {
@@ -42,15 +48,22 @@ export function useCurrentUser(
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !user && redirectIfNone) {
+    if (status !== 'loading' && !user && redirectIfNone) {
       router.replace('/?auth=login');
     }
-  }, [isLoading, user, router, redirectIfNone]);
+  }, [status, user, router, redirectIfNone]);
 
   const setUser = useCallback((newUser: BasicUser | null): void => {
     setUserState(newUser);
     setStoredUser(newUser);
   }, []);
 
-  return { user, isLoading, setUser };
+  return {
+    data: user,
+    status,
+    error,
+    actions: {
+      setUser,
+    },
+  };
 }

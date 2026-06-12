@@ -5,6 +5,8 @@ import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import type { TripSummary } from '@/types/profile';
 import { getDefaultStartDate, getDefaultEndDate } from '@/lib/date';
 
+export type MyTripsStatus = 'idle' | 'loading' | 'success' | 'error';
+
 interface UseMyTripsOptions {
   userId: string | null;
 }
@@ -19,45 +21,44 @@ export interface CreateTripPayload {
 }
 
 export interface UseMyTripsReturn {
-  trips: TripSummary[];
-  loading: boolean;
-  creating: boolean;
+  data: TripSummary[];
+  status: MyTripsStatus;
   error: string | null;
-
-  loadTrips: (uid?: string) => Promise<void>;
-  createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string }>;
-  deleteTrip: (id: string) => Promise<void>;
-
-  setTrips: React.Dispatch<React.SetStateAction<TripSummary[]>>;
+  actions: {
+    loadTrips: (uid?: string) => Promise<void>;
+    createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string }>;
+    deleteTrip: (id: string) => Promise<void>;
+    setTrips: React.Dispatch<React.SetStateAction<TripSummary[]>>;
+    creating: boolean;
+  };
 }
 
 export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   const [trips, setTrips] = useState<TripSummary[]>([]);
-  const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<MyTripsStatus>('idle');
   const [createStatus, setCreateStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const loading = fetchStatus === 'loading';
   const creating = createStatus === 'loading';
 
   const loadTrips = useCallback(async (uid?: string): Promise<void> => {
     const id = uid || userId;
     if (!id) return;
 
-    setFetchStatus('loading');
+    setStatus('loading');
     setError(null);
     try {
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary[] }>('/api/trips', { userId: id });
       if (response.ok && data.success && Array.isArray(data.data)) {
         setTrips(data.data);
-        setFetchStatus('success');
+        setStatus('success');
       } else {
-        setFetchStatus('error');
+        setStatus('error');
       }
     } catch (err) {
       console.error('Lỗi khi tải danh sách chuyến đi:', err);
       setError('Không thể tải danh sách chuyến đi');
-      setFetchStatus('error');
+      setStatus('error');
     }
   }, [userId]);
 
@@ -133,13 +134,15 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   }, [userId]);
 
   return {
-    trips,
-    loading,
-    creating,
+    data: trips,
+    status,
     error,
-    loadTrips,
-    createTrip,
-    deleteTrip,
-    setTrips,
+    actions: {
+      loadTrips,
+      createTrip,
+      deleteTrip,
+      setTrips,
+      creating,
+    },
   };
 }

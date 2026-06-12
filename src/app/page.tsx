@@ -27,7 +27,8 @@ export default function HomePage(): React.JSX.Element {
 
 function HomePageContent(): React.JSX.Element {
   const searchParams = useSearchParams();
-  const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: false });
+  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: false });
+  const userLoading = userStatus === 'loading';
   const search = usePlaceSearch();
   const details = usePlaceDetails(search.selectedPlace);
 

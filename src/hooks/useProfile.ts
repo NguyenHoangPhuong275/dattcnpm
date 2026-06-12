@@ -5,6 +5,8 @@ import { PersonalInfo, TravelPreferences } from '@/types/profile';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { updateStoredUser } from '@/lib/user';
 
+export type ProfileStatus = 'idle' | 'loading' | 'success' | 'error';
+
 interface UseProfileOptions {
   userId: string | null;
 }
@@ -41,20 +43,25 @@ function toBirthdayInput(value?: string | null): string {
 }
 
 export interface UseProfileReturn {
-  personal: PersonalInfo;
-  preferences: TravelPreferences;
-  memberSince: string;
-  is2FAEnabled: boolean;
-  loading: boolean;
-  savingPersonal: boolean;
-  savingPreferences: boolean;
-  setPersonal: React.Dispatch<React.SetStateAction<PersonalInfo>>;
-  setPreferences: React.Dispatch<React.SetStateAction<TravelPreferences>>;
-  setIs2FAEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-  savePersonal: (e: React.FormEvent) => Promise<void>;
-  savePreferences: (e: React.FormEvent) => Promise<void>;
-  toggle2FA: () => void;
-  updateAvatar: (url: string) => void;
+  data: {
+    personal: PersonalInfo;
+    preferences: TravelPreferences;
+    memberSince: string;
+    is2FAEnabled: boolean;
+    savingPersonal: boolean;
+    savingPreferences: boolean;
+  };
+  status: ProfileStatus;
+  error: string | null;
+  actions: {
+    setPersonal: React.Dispatch<React.SetStateAction<PersonalInfo>>;
+    setPreferences: React.Dispatch<React.SetStateAction<TravelPreferences>>;
+    setIs2FAEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+    savePersonal: (e: React.FormEvent) => Promise<void>;
+    savePreferences: (e: React.FormEvent) => Promise<void>;
+    toggle2FA: () => void;
+    updateAvatar: (url: string) => void;
+  };
 }
 
 export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
@@ -74,24 +81,25 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
   const [memberSince, setMemberSince] = useState('');
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<ProfileStatus>('loading');
+  const [error, setError] = useState<string | null>(null);
   const [savePersonalStatus, setSavePersonalStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [savePreferencesStatus, setSavePreferencesStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const loading = fetchStatus === 'loading';
   const savingPersonal = savePersonalStatus === 'loading';
   const savingPreferences = savePreferencesStatus === 'loading';
 
   useEffect(() => {
     if (!userId) {
-      setFetchStatus('idle');
+      setStatus('idle');
       return;
     }
 
     const controller = new AbortController();
 
     const load = async (): Promise<void> => {
-      setFetchStatus('loading');
+      setStatus('loading');
+      setError(null);
       try {
         const { response, data } = await apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', {
           userId,
@@ -125,14 +133,15 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
           });
           setMemberSince(profile.createdAt || '');
           setIs2FAEnabled(!!profile.twoFactorEnabled);
-          setFetchStatus('success');
+          setStatus('success');
         } else {
-          setFetchStatus('error');
+          setStatus('error');
         }
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') return;
-        console.error('Lỗi khi tải thông tin hồ sơ:', error);
-        setFetchStatus('error');
+      } catch (errorValue) {
+        if (errorValue instanceof Error && errorValue.name === 'AbortError') return;
+        console.error('Lỗi khi tải thông tin hồ sơ:', errorValue);
+        setError('Không thể tải thông tin hồ sơ');
+        setStatus('error');
       }
     };
 
@@ -243,27 +252,32 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         setIs2FAEnabled(!nextValue);
         throw new Error(getApiErrorMessage(data, 'Cập nhật 2FA thất bại'));
       }
-    } catch (error) {
-      console.error('Lỗi khi cập nhật cấu hình 2FA:', error);
+    } catch (errorValue) {
+      console.error('Lỗi khi cập nhật cấu hình 2FA:', errorValue);
       setIs2FAEnabled(!nextValue);
-      throw error;
+      throw errorValue;
     }
   }, [userId, is2FAEnabled]);
 
   return {
-    personal,
-    preferences,
-    memberSince,
-    is2FAEnabled,
-    loading,
-    savingPersonal,
-    savingPreferences,
-    setPersonal,
-    setPreferences,
-    setIs2FAEnabled,
-    savePersonal,
-    savePreferences,
-    toggle2FA,
-    updateAvatar,
+    data: {
+      personal,
+      preferences,
+      memberSince,
+      is2FAEnabled,
+      savingPersonal,
+      savingPreferences,
+    },
+    status,
+    error,
+    actions: {
+      setPersonal,
+      setPreferences,
+      setIs2FAEnabled,
+      savePersonal,
+      savePreferences,
+      toggle2FA,
+      updateAvatar,
+    },
   };
 }

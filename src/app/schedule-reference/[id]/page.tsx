@@ -83,8 +83,10 @@ function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlac
 export default function ItineraryDetailPage(): React.JSX.Element {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: true });
-  const { message: toastMessage, visible: showToastVisible, showToast } = useToast();
+  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: true });
+  const userLoading = userStatus === 'loading';
+  const { data: { message: toastMessage }, status: toastStatus, actions: { showToast } } = useToast();
+  const showToastVisible = toastStatus === 'visible';
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');

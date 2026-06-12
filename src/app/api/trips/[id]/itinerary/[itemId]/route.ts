@@ -1,22 +1,23 @@
 import { NextRequest } from 'next/server';
-
 import { getDb, createAuditLog } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
+import type { ItineraryItem } from '@/database/schema';
 
 type RouteCtx = {
   params: Promise<{ id: string; itemId: string }>;
 };
 
-function toDateOrNull(value: unknown) {
+function toDateOrNull(value: unknown): Date | null {
   if (!value) return null;
   const date = new Date(String(value));
   if (Number.isNaN(date.getTime())) return null;
   return date;
 }
 
-function toItemResponse(item: Record<string, unknown>) {
+function toItemResponse(item: ItineraryItem): Record<string, unknown> {
   return {
     _id: String(item._id || ''),
     tripId: String(item.tripId || ''),
@@ -33,18 +34,27 @@ function toItemResponse(item: Record<string, unknown>) {
   };
 }
 
-async function validateOwnedTrip(tripId: string, userId: string) {
+async function validateOwnedTrip(tripId: string, userId: string): Promise<boolean> {
   const db = await getDb();
   const trip = await db.trips.findById(tripId);
   if (!trip || String(trip.userId) !== userId) return false;
   return true;
 }
 
-export async function PATCH(request: NextRequest, ctx: RouteCtx) {
+export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:update-itinerary-item:${userId}`,
+      limit: 45,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang cập nhật hoạt động quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const { id, itemId } = await ctx.params;
@@ -57,7 +67,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     }
 
     const db = await getDb();
-    const item = await db.itineraryItems.findById(itemId);
+    const item = (await db.itineraryItems.findById(itemId)) as ItineraryItem | null;
     if (!item || String(item.tripId) !== id) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
     }
@@ -123,7 +133,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
 
     updates.updatedAt = new Date();
 
-    const updated = await db.itineraryItems.updateOne(itemId, { $set: updates });
+    const updated = (await db.itineraryItems.updateOne(itemId, { $set: updates })) as ItineraryItem | null;
     if (!updated) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
     }
@@ -133,17 +143,26 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
       fields: Object.keys(updates),
     }).catch(() => null);
 
-    return sendSuccess(toItemResponse(updated as unknown as Record<string, unknown>));
+    return sendSuccess(toItemResponse(updated));
   } catch (error) {
     return handleApiError(error);
   }
 }
 
-export async function DELETE(request: NextRequest, ctx: RouteCtx) {
+export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:delete-itinerary-item:${userId}`,
+      limit: 30,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang xóa hoạt động quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const { id, itemId } = await ctx.params;

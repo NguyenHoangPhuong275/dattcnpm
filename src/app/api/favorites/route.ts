@@ -3,24 +3,26 @@ import { getDb } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
 import { createFavoriteSchema } from '@/lib/validations/favorite';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
+import type { FavoritePlace } from '@/database/schema';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
     }
     const db = await getDb();
-    const favs = await db.favorites.find({ userId });
+    const favs = (await db.favorites.find({ userId })) as FavoritePlace[];
 
-    favs.sort((a: any, b: any) => {
+    favs.sort((a: FavoritePlace, b: FavoritePlace) => {
       const da = new Date(a.createdAt ?? 0).getTime();
       const dbt = new Date(b.createdAt ?? 0).getTime();
       return dbt - da;
     });
 
     const data = await Promise.all(
-      favs.map(async (f: any) => {
+      favs.map(async (f: FavoritePlace) => {
         const place = f.placeId ? await db.places.findById(f.placeId) : null;
         return {
           _id: f._id,
@@ -40,11 +42,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:create-favorite:${userId}`,
+      limit: 30,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang lưu địa điểm quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const body = await request.json().catch(() => ({}));

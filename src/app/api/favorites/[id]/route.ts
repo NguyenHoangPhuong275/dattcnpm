@@ -3,16 +3,26 @@ import { getDb } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 type RouteCtx = {
   params: Promise<{ id: string }>;
 };
 
-export async function DELETE(request: NextRequest, ctx: RouteCtx) {
+export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:delete-favorite:${userId}`,
+      limit: 30,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang xóa địa điểm yêu thích quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const { id } = await ctx.params;

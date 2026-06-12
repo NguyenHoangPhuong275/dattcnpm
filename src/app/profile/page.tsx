@@ -47,8 +47,10 @@ function ProfileLoading() {
 
 function ProfilePageContent() {
   const searchParams = useSearchParams();
-  const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: true });
-  const { message: toastMessage, visible: showToastVisible, showToast } = useToast();
+  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: true });
+  const userLoading = userStatus === 'loading';
+  const { data: { message: toastMessage }, status: toastStatus, actions: { showToast } } = useToast();
+  const showToastVisible = toastStatus === 'visible';
   const profile = useProfile({ userId: user?.id ?? null });
   const myTripsHook = useMyTrips({ userId: user?.id ?? null });
   const favoritesHook = useFavorites({ userId: user?.id ?? null });
@@ -73,10 +75,14 @@ function ProfilePageContent() {
 
   const [viewingTrip, setViewingTrip] = useState<TripSummary | null>(null);
 
-  const { personal, preferences, memberSince, is2FAEnabled, loading: profileLoading, savingPersonal, savingPreferences, setPersonal, setPreferences, savePersonal, savePreferences, toggle2FA, updateAvatar } = profile;
-  const { trips: myTrips, loading: loadingTrips, creating: creatingTrip, createTrip, deleteTrip, loadTrips } = myTripsHook;
-  const { favorites, loading: loadingFavorites, removeFavorite, loadFavorites } = favoritesHook;
-  const { reviews: myReviews, loading: loadingReviews, loadReviews } = reviewsHook;
+  const { data: { personal, preferences, memberSince, is2FAEnabled, savingPersonal, savingPreferences }, status: profileStatus, actions: { setPersonal, setPreferences, savePersonal, savePreferences, toggle2FA, updateAvatar } } = profile;
+  const profileLoading = profileStatus === 'loading';
+  const { data: myTrips, status: tripsStatus, actions: { createTrip, deleteTrip, loadTrips, creating: creatingTrip } } = myTripsHook;
+  const loadingTrips = tripsStatus === 'loading';
+  const { data: favorites, status: favsStatus, actions: { removeFavorite, loadFavorites } } = favoritesHook;
+  const loadingFavorites = favsStatus === 'loading';
+  const { data: myReviews, status: reviewsStatus, actions: { loadReviews } } = reviewsHook;
+  const loadingReviews = reviewsStatus === 'loading';
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') as ProfileTab | null;

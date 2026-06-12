@@ -2,16 +2,23 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 
+export type ToastStatus = 'idle' | 'visible';
+
 export interface UseToastReturn {
-  message: string;
-  visible: boolean;
-  showToast: (msg: string, duration?: number) => void;
-  hideToast: () => void;
+  data: {
+    message: string;
+  };
+  status: ToastStatus;
+  error: null;
+  actions: {
+    showToast: (msg: string, duration?: number) => void;
+    hideToast: () => void;
+  };
 }
 
 export function useToast(): UseToastReturn {
   const [message, setMessage] = useState('');
-  const [visible, setVisible] = useState(false);
+  const [status, setStatus] = useState<ToastStatus>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimer = useCallback((): void => {
@@ -24,16 +31,16 @@ export function useToast(): UseToastReturn {
   const showToast = useCallback((msg: string, duration = 2400): void => {
     clearTimer();
     setMessage(msg);
-    setVisible(true);
+    setStatus('visible');
     timerRef.current = setTimeout(() => {
-      setVisible(false);
+      setStatus('idle');
       timerRef.current = null;
     }, duration);
   }, [clearTimer]);
 
   const hideToast = useCallback((): void => {
     clearTimer();
-    setVisible(false);
+    setStatus('idle');
   }, [clearTimer]);
 
   useEffect(() => {
@@ -41,9 +48,14 @@ export function useToast(): UseToastReturn {
   }, [clearTimer]);
 
   return {
-    message,
-    visible,
-    showToast,
-    hideToast,
+    data: {
+      message,
+    },
+    status,
+    error: null,
+    actions: {
+      showToast,
+      hideToast,
+    },
   };
 }

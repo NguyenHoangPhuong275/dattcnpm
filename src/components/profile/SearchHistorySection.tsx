@@ -41,7 +41,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
   const [activeTripSelectIdx, setActiveTripSelectIdx] = useState<number | null>(null);
   const [addingPlaceLoading, setAddingPlaceLoading] = useState(false);
 
-  const { showToast } = useToast();
+  const { actions: { showToast } } = useToast();
 
   const loadHistory = useCallback(async () => {
     setLoading(true);
