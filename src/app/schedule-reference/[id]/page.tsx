@@ -91,6 +91,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'itinerary' | 'budget'>('itinerary');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const tripId = params?.id;
 
   const loadData = useCallback(async (): Promise<void> => {
@@ -146,9 +147,8 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const duration = getDuration(trip?.startDate, trip?.endDate);
   const totalCost = items.reduce((total, item) => total + (Number(item.cost) || 0), 0);
 
-  const handleDeleteTrip = async (): Promise<void> => {
-    if (!tripId || !user?.id || !confirm('Xóa chuyến đi này?')) return;
-
+  const doDeleteTrip = async (): Promise<void> => {
+    if (!tripId || !user?.id) return;
     try {
       const { response } = await apiRequest(`/api/trips/${tripId}`, { method: 'DELETE', userId: user.id });
       if (!response.ok) throw new Error('Delete failed');
@@ -157,6 +157,10 @@ export default function ItineraryDetailPage(): React.JSX.Element {
     } catch {
       showToast('Xóa thất bại, vui lòng thử lại');
     }
+  };
+
+  const handleDeleteTrip = (): void => {
+    setShowDeleteConfirm(true);
   };
 
   const handleShare = async (): Promise<void> => {
@@ -196,6 +200,44 @@ export default function ItineraryDetailPage(): React.JSX.Element {
       <ProfileToast message={toastMessage} visible={showToastVisible} />
       <AppHeader active="profile" />
 
+      {showDeleteConfirm && (
+        <div
+          id="delete-trip-confirm-dialog"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="delete-trip-confirm-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+            <h3 id="delete-trip-confirm-title" className="text-base font-semibold text-slate-900">
+              Xóa chuyến đi?
+            </h3>
+            <p className="mt-1 text-sm text-slate-500">Hành động này không thể hoàn tác.</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                id="delete-trip-confirm-cancel"
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <button
+                id="delete-trip-confirm-ok"
+                type="button"
+                onClick={async () => {
+                  setShowDeleteConfirm(false);
+                  await doDeleteTrip();
+                }}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="grid min-h-[calc(100dvh-72px)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px]">
         <section className="min-w-0 border-r border-slate-200 bg-white">
           <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur lg:px-8">
@@ -210,16 +252,40 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               </div>
 
               <div className="flex items-center gap-2">
-                <button id="action-print-trip" onClick={() => window.print()} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="In lịch trình">
+                <button
+                  id="action-print-trip"
+                  onClick={() => window.print()}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+                  title="In lịch trình"
+                  aria-label="In lịch trình"
+                >
                   <ListIcon className="h-4 w-4" />
                 </button>
-                <button id="action-share-trip" onClick={handleShare} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="Chia sẻ">
+                <button
+                  id="action-share-trip"
+                  onClick={handleShare}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+                  title="Chia sẻ"
+                  aria-label="Chia sẻ"
+                >
                   <MapIcon className="h-4 w-4" />
                 </button>
-                <button id="action-edit-trip" onClick={() => router.push('/profile')} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="Chỉnh sửa thông tin chuyến đi">
+                <button
+                  id="action-edit-trip"
+                  onClick={() => router.push('/trips')}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+                  title="Quản lý chuyến đi"
+                  aria-label="Quản lý chuyến đi"
+                >
                   <CalendarIcon className="h-4 w-4" />
                 </button>
-                <button id="action-delete-trip" onClick={handleDeleteTrip} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50" title="Xóa chuyến đi">
+                <button
+                  id="action-delete-trip"
+                  onClick={handleDeleteTrip}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50"
+                  title="Xóa chuyến đi"
+                  aria-label="Xóa chuyến đi"
+                >
                   <TrashIcon className="h-4 w-4" />
                 </button>
               </div>

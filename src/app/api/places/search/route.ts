@@ -526,30 +526,34 @@ function sortTourismResults(results: PlaceDraft[], query: string, normalized: st
   });
 }
 
-async function savePlaces(places: PlaceDraft[]): Promise<any[]> {
+type SavedPlace = PlaceDraft & { _id: string; createdAt: Date; updatedAt: Date };
+
+async function savePlaces(places: PlaceDraft[]): Promise<SavedPlace[]> {
   const db = await getDb();
   return Promise.all(places.map(async (item) => {
     const existing = await db.places.findOne({ osmId: item.osmId });
     if (existing) {
-      return await db.places.updateOne(existing._id, {
+      const updated = await db.places.updateOne(existing._id, {
         name: item.name,
         address: item.address,
         type: item.type,
-      }) ?? existing;
+      });
+      return (updated ?? existing) as SavedPlace;
     }
 
     try {
       const now = new Date();
-      return await db.places.insertOne({
+      const inserted = await db.places.insertOne({
         ...item,
         ratingAvg: 0,
         ratingCount: 0,
         createdAt: now,
         updatedAt: now,
       } as unknown as Record<string, unknown>);
+      return inserted as SavedPlace;
     } catch (error) {
       const duplicate = await db.places.findOne({ osmId: item.osmId });
-      if (duplicate) return duplicate;
+      if (duplicate) return duplicate as SavedPlace;
       throw error;
     }
   }));

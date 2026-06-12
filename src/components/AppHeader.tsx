@@ -99,6 +99,7 @@ export default function AppHeader({
             >
               <input
                 id="header-search-input"
+                aria-label="Tìm kiếm địa điểm"
                 type="search"
                 value={currentSearch}
                 onChange={(event) => setSearch(event.target.value)}

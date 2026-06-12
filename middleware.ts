@@ -7,9 +7,12 @@ const PROTECTED_PREFIXES = ['/profile', '/trips', '/schedule-reference'];
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
+  const isTestEnv = process.env.NODE_ENV === 'test';
   const requestHeaders = new Headers(request.headers);
-  if (process.env.NODE_ENV !== 'test') {
+  if (!isTestEnv) {
+    // Strip user-controlled trust headers to prevent spoofing
     requestHeaders.delete('x-user-id');
+    requestHeaders.delete('x-forwarded-user');
   }
 
   if (pathname.startsWith('/api/debug')) {
