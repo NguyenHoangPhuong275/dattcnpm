@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getApiErrorMessage } from '@/lib/api-client';
 import { setStoredUser } from '@/lib/user';
 import { loginSchema } from '@/lib/validations/auth';
+import { ROUTES } from '@/lib/constants';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -27,7 +28,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push('/profile');
+        router.push(ROUTES.profile);
       }
     }, 1200);
 

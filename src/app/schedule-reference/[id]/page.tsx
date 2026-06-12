@@ -11,6 +11,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { formatMoney, formatTripDayDate, getDuration, getTripImage } from '@/lib/trip-utils';
+import { ROUTES } from '@/lib/constants';
 
 interface Trip {
   _id: string;
@@ -83,10 +84,16 @@ function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlac
 export default function ItineraryDetailPage(): React.JSX.Element {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: true });
-  const userLoading = userStatus === 'loading';
-  const { data: { message: toastMessage }, status: toastStatus, actions: { showToast } } = useToast();
+  const userHook = useCurrentUser({ redirectIfNone: true });
+  const user = userHook.data;
+  const userLoading = userHook.status === 'loading';
+
+  const toast = useToast();
+  const toastMessage = toast.data.message;
+  const toastStatus = toast.status;
   const showToastVisible = toastStatus === 'visible';
+  const { showToast } = toast.actions;
+
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
@@ -155,7 +162,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
       const { response } = await apiRequest(`/api/trips/${tripId}`, { method: 'DELETE', userId: user.id });
       if (!response.ok) throw new Error('Delete failed');
       showToast('Đã xóa chuyến đi');
-      router.push('/profile');
+      router.push(ROUTES.profile);
     } catch {
       showToast('Xóa thất bại, vui lòng thử lại');
     }
@@ -191,7 +198,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
       <div className="flex min-h-dvh items-center justify-center p-6">
         <div className="text-center">
           <p className="mb-4 text-sm font-semibold text-red-600">{error || 'Không tìm thấy chuyến đi'}</p>
-          <Link href="/profile" className="text-sm font-semibold text-[var(--color-primary-darker)] underline">Quay lại tài khoản</Link>
+          <Link href={ROUTES.profile} className="text-sm font-semibold text-[var(--color-primary-darker)] underline">Quay lại tài khoản</Link>
         </div>
       </div>
     );
@@ -274,7 +281,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                 </button>
                 <button
                   id="action-edit-trip"
-                  onClick={() => router.push('/trips')}
+                  onClick={() => router.push(ROUTES.trips)}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
                   title="Quản lý chuyến đi"
                   aria-label="Quản lý chuyến đi"

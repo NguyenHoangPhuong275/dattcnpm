@@ -3,6 +3,7 @@ export const ROUTES = {
   trips: '/trips',
   profile: '/profile',
   local: '/local',
+  scheduleReference: '/schedule-reference',
 } as const;
 
 export const ERROR_CODES = {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { BasicUser } from '@/types/profile';
 import { setStoredUser } from '@/lib/user';
 import { apiRequest } from '@/lib/api-client';
+import { ROUTES } from '@/lib/constants';
 
 export type CurrentUserStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -49,7 +50,7 @@ export function useCurrentUser(
 
   useEffect(() => {
     if (status !== 'loading' && !user && redirectIfNone) {
-      router.replace('/?auth=login');
+      router.replace(`${ROUTES.home}?auth=login`);
     }
   }, [status, user, router, redirectIfNone]);
 

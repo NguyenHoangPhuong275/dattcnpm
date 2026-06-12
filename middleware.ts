@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
+import { ROUTES } from '@/lib/constants';
 
-const PROTECTED_PREFIXES = ['/profile', '/trips', '/schedule-reference'];
+const PROTECTED_PREFIXES = [ROUTES.profile, ROUTES.trips, ROUTES.scheduleReference];
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
@@ -10,7 +11,6 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const isTestEnv = process.env.NODE_ENV === 'test';
   const requestHeaders = new Headers(request.headers);
   if (!isTestEnv) {
-    // Strip user-controlled trust headers to prevent spoofing
     requestHeaders.delete('x-user-id');
     requestHeaders.delete('x-forwarded-user');
   }
@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   }
 
   const url = request.nextUrl.clone();
-  url.pathname = '/';
+  url.pathname = ROUTES.home;
   url.searchParams.set('auth', 'login');
   return NextResponse.redirect(url);
 }

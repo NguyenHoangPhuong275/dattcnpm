@@ -47,10 +47,15 @@ function ProfileLoading() {
 
 function ProfilePageContent() {
   const searchParams = useSearchParams();
-  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: true });
+  const userHook = useCurrentUser({ redirectIfNone: true });
+  const user = userHook.data;
+  const userStatus = userHook.status;
   const userLoading = userStatus === 'loading';
-  const { data: { message: toastMessage }, status: toastStatus, actions: { showToast } } = useToast();
+  const toastHook = useToast();
+  const toastMessage = toastHook.data.message;
+  const toastStatus = toastHook.status;
   const showToastVisible = toastStatus === 'visible';
+  const { showToast } = toastHook.actions;
   const profile = useProfile({ userId: user?.id ?? null });
   const myTripsHook = useMyTrips({ userId: user?.id ?? null });
   const favoritesHook = useFavorites({ userId: user?.id ?? null });
@@ -75,13 +80,38 @@ function ProfilePageContent() {
 
   const [viewingTrip, setViewingTrip] = useState<TripSummary | null>(null);
 
-  const { data: { personal, preferences, memberSince, is2FAEnabled, savingPersonal, savingPreferences }, status: profileStatus, actions: { setPersonal, setPreferences, savePersonal, savePreferences, toggle2FA, updateAvatar } } = profile;
+  const profileData = profile.data;
+  const profileStatus = profile.status;
+  const personal = profileData.personal;
+  const preferences = profileData.preferences;
+  const memberSince = profileData.memberSince;
+  const is2FAEnabled = profileData.is2FAEnabled;
+  const savingPersonal = profileData.savingPersonal;
+  const savingPreferences = profileData.savingPreferences;
+  const {
+    setPersonal,
+    setPreferences,
+    savePersonal,
+    savePreferences,
+    toggle2FA,
+    updateAvatar,
+  } = profile.actions;
   const profileLoading = profileStatus === 'loading';
-  const { data: myTrips, status: tripsStatus, actions: { createTrip, deleteTrip, loadTrips, creating: creatingTrip } } = myTripsHook;
+
+  const myTrips = myTripsHook.data;
+  const tripsStatus = myTripsHook.status;
+  const creatingTrip = myTripsHook.creating;
+  const { createTrip, deleteTrip, loadTrips } = myTripsHook.actions;
   const loadingTrips = tripsStatus === 'loading';
-  const { data: favorites, status: favsStatus, actions: { removeFavorite, loadFavorites } } = favoritesHook;
+
+  const favorites = favoritesHook.data;
+  const favsStatus = favoritesHook.status;
+  const { removeFavorite, loadFavorites } = favoritesHook.actions;
   const loadingFavorites = favsStatus === 'loading';
-  const { data: myReviews, status: reviewsStatus, actions: { loadReviews } } = reviewsHook;
+
+  const myReviews = reviewsHook.data;
+  const reviewsStatus = reviewsHook.status;
+  const { loadReviews } = reviewsHook.actions;
   const loadingReviews = reviewsStatus === 'loading';
 
   useEffect(() => {

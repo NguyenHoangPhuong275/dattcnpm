@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getApiErrorMessage } from '@/lib/api-client';
+import { ROUTES } from '@/lib/constants';
 
 type Step = 'form' | 'otp' | 'success';
 
@@ -228,7 +229,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     if (onSuccess) {
       onSuccess();
     } else {
-      router.push('/');
+      router.push(ROUTES.home);
     }
   };
 

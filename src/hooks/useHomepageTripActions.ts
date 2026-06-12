@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { getDefaultTripDates } from '@/lib/date';
 import type { TripSummary } from '@/types/profile';
+import { ROUTES } from '@/lib/constants';
 
 type RequestStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -141,7 +142,7 @@ export function useHomepageTripActions({
       }
 
       setTripActionStatus('success');
-      router.push(`/schedule-reference/${tripId}`);
+      router.push(`${ROUTES.scheduleReference}/${tripId}`);
     } catch {
       setTripActionMessage('Không thể thêm địa điểm vào chuyến đi lúc này');
       setTripActionStatus('error');

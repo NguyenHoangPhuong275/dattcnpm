@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { clearStoredUser } from '@/lib/user';
 import { apiRequest } from '@/lib/api-client';
+import { ROUTES } from '@/lib/constants';
 
 interface User {
   fullName?: string;
@@ -14,7 +15,7 @@ interface UserDropdownProps {
   user: User;
 }
 
-export default function UserDropdown({ user }: UserDropdownProps) {
+export default function UserDropdown({ user }: UserDropdownProps): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -40,11 +41,13 @@ export default function UserDropdown({ user }: UserDropdownProps) {
   const handleLogout = async () => {
     try {
       await apiRequest('/api/auth/logout', { method: 'POST' });
-    } catch {}
+    } catch (error) {
+      console.error('Lỗi khi đăng xuất:', error);
+    }
 
     clearStoredUser();
     setOpen(false);
-    window.location.href = '/';
+    window.location.href = ROUTES.home;
   };
 
   return (
@@ -68,14 +71,14 @@ export default function UserDropdown({ user }: UserDropdownProps) {
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-lg">
           <Link
-            href="/profile"
+            href={ROUTES.profile}
             onClick={() => setOpen(false)}
             className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-offset)]"
           >
             Thông tin của bạn
           </Link>
           <Link
-            href="/profile?tab=trips"
+            href={`${ROUTES.profile}?tab=trips`}
             onClick={() => setOpen(false)}
             className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-offset)]"
           >

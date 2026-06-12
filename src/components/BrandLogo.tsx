@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { ROUTES } from '@/lib/constants';
 
-export default function BrandLogo({ className = '' }: { className?: string }) {
+export default function BrandLogo({ className = '' }: { className?: string }): React.JSX.Element {
   return (
     <Link
-      href="/"
+      href={ROUTES.home}
       className={`flex items-center group cursor-pointer ${className}`}
       aria-label="LOTUS TRAVEL"
     >

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAddToTrip } from '@/hooks/useAddToTrip';
+import { ROUTES } from '@/lib/constants';
 
 interface AddToTripModalProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ export default function AddToTripModal({
   placeName,
   placeId,
   onClose,
-}: AddToTripModalProps) {
+}: AddToTripModalProps): React.JSX.Element | null {
   const { status, trips, errorMessage, openModal, closeModal, addToTrip } = useAddToTrip();
   const [selectedTripId, setSelectedTripId] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<number>(1);
@@ -100,7 +101,7 @@ export default function AddToTripModal({
           <div className="mt-6 text-center">
             <p className="text-sm font-medium text-slate-600">Bạn chưa có chuyến đi nào.</p>
             <Link
-              href="/trips"
+              href={ROUTES.trips}
               className="mt-3 inline-block rounded-2xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white"
               onClick={onClose}
             >

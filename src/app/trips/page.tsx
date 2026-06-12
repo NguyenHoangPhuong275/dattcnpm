@@ -10,14 +10,25 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMyTrips } from '@/hooks/useMyTrips';
 import { useToast } from '@/hooks/useToast';
 import { getDefaultTripDates } from '@/lib/date';
+import { ROUTES } from '@/lib/constants';
 
 export default function MyTripsPage(): React.JSX.Element {
-  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: true });
-  const userLoading = userStatus === 'loading';
-  const { data: trips, status: tripsStatus, actions: { createTrip, loadTrips } } = useMyTrips({ userId: user?.id ?? null });
+  const userHook = useCurrentUser({ redirectIfNone: true });
+  const user = userHook.data;
+  const userLoading = userHook.status === 'loading';
+
+  const myTripsHook = useMyTrips({ userId: user?.id ?? null });
+  const trips = myTripsHook.data;
+  const tripsStatus = myTripsHook.status;
   const loading = tripsStatus === 'loading';
-  const { data: { message: toastMessage }, status: toastStatus, actions: { showToast } } = useToast();
+  const { createTrip, loadTrips } = myTripsHook.actions;
+
+  const toast = useToast();
+  const toastMessage = toast.data.message;
+  const toastStatus = toast.status;
   const showToastVisible = toastStatus === 'visible';
+  const { showToast } = toast.actions;
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDest, setNewDest] = useState('');
@@ -107,7 +118,7 @@ export default function MyTripsPage(): React.JSX.Element {
         ) : trips.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {trips.map((trip) => (
-              <TripCard key={trip._id} trip={trip} href={`/schedule-reference/${trip._id}`} />
+              <TripCard key={trip._id} trip={trip} href={`${ROUTES.scheduleReference}/${trip._id}`} />
             ))}
           </div>
         ) : (

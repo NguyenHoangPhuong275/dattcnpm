@@ -7,6 +7,7 @@ import BrandLogo from '@/components/BrandLogo';
 import UserDropdown from '@/components/UserDropdown';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import type { AuthMode } from '@/hooks/useAuthModal';
+import { ROUTES } from '@/lib/constants';
 
 interface AppHeaderProps {
   active?: 'local' | 'destinations' | 'news' | 'profile';
@@ -19,9 +20,9 @@ interface AppHeaderProps {
 }
 
 const NAV_ITEMS = [
-  { key: 'local', label: 'Địa phương', href: '/local' },
-  { key: 'destinations', label: 'Điểm đến', href: '/#planner' },
-  { key: 'news', label: 'Tin tức du lịch', href: '/#travel-news' },
+  { key: 'local', label: 'Địa phương', href: ROUTES.local },
+  { key: 'destinations', label: 'Điểm đến', href: `${ROUTES.home}#planner` },
+  { key: 'news', label: 'Tin tức du lịch', href: `${ROUTES.home}#travel-news` },
 ] as const;
 
 export default function AppHeader({
@@ -37,7 +38,7 @@ export default function AppHeader({
   const pathname = usePathname();
   const [localSearch, setLocalSearch] = useState('');
   const currentSearch = searchValue ?? localSearch;
-  const isLocalDetailPage = pathname.startsWith('/local/');
+  const isLocalDetailPage = pathname.startsWith(`${ROUTES.local}/`);
 
   const setSearch = (value: string): void => {
     if (onSearchChange) {
@@ -54,7 +55,7 @@ export default function AppHeader({
     }
     const query = currentSearch.trim();
     if (query) {
-      window.location.href = `/?q=${encodeURIComponent(query)}`;
+      window.location.href = `${ROUTES.home}?q=${encodeURIComponent(query)}`;
     }
   };
 
@@ -63,7 +64,7 @@ export default function AppHeader({
       onAuthClick(mode);
       return;
     }
-    window.location.href = `/?auth=${mode}`;
+    window.location.href = `${ROUTES.home}?auth=${mode}`;
   };
 
   return (

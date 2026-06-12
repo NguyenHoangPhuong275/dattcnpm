@@ -24,12 +24,12 @@ export interface UseMyTripsReturn {
   data: TripSummary[];
   status: MyTripsStatus;
   error: string | null;
+  creating: boolean;
   actions: {
     loadTrips: (uid?: string) => Promise<void>;
     createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string }>;
     deleteTrip: (id: string) => Promise<void>;
     setTrips: React.Dispatch<React.SetStateAction<TripSummary[]>>;
-    creating: boolean;
   };
 }
 
@@ -137,12 +137,12 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     data: trips,
     status,
     error,
+    creating,
     actions: {
       loadTrips,
       createTrip,
       deleteTrip,
       setTrips,
-      creating,
     },
   };
 }

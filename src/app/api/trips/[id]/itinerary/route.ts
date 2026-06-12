@@ -24,17 +24,17 @@ function toNumber(value: unknown, fallback: number): number {
 
 function toItemResponse(item: ItineraryItem): Record<string, unknown> {
   return {
-    _id: String(item._id || ''),
-    tripId: String(item.tripId || ''),
-    placeId: String(item.placeId || ''),
-    day: Number(item.day || 1),
-    orderIndex: Number(item.orderIndex || 0),
-    note: item.note ? String(item.note) : '',
-    startTime: item.startTime ? new Date(String(item.startTime)).toISOString() : null,
-    endTime: item.endTime ? new Date(String(item.endTime)).toISOString() : null,
+    _id: item._id,
+    tripId: item.tripId,
+    placeId: item.placeId,
+    day: item.day,
+    orderIndex: item.orderIndex,
+    note: item.note ?? '',
+    startTime: item.startTime ? item.startTime.toISOString() : null,
+    endTime: item.endTime ? item.endTime.toISOString() : null,
     cost: item.cost ?? null,
-    currency: item.currency ? String(item.currency) : null,
-    createdAt: item.createdAt ? new Date(String(item.createdAt)).toISOString() : '',
+    currency: item.currency ?? null,
+    createdAt: item.createdAt ? item.createdAt.toISOString() : '',
   };
 }
 

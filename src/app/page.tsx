@@ -16,6 +16,7 @@ import { useAuthModal } from '@/hooks/useAuthModal';
 import { useHomepageTripActions } from '@/hooks/useHomepageTripActions';
 import AddToTripModal from '@/components/trips/AddToTripModal';
 import type { SearchResult } from '@/hooks/usePlaceSearch';
+import { ROUTES } from '@/lib/constants';
 
 export default function HomePage(): React.JSX.Element {
   return (
@@ -27,8 +28,9 @@ export default function HomePage(): React.JSX.Element {
 
 function HomePageContent(): React.JSX.Element {
   const searchParams = useSearchParams();
-  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: false });
-  const userLoading = userStatus === 'loading';
+  const userHook = useCurrentUser({ redirectIfNone: false });
+  const user = userHook.data;
+  const userLoading = userHook.status === 'loading';
   const search = usePlaceSearch();
   const details = usePlaceDetails(search.selectedPlace);
 
