@@ -32,14 +32,14 @@ export default function AppHeader({
   onSearchChange,
   onSearchSubmit,
   onAuthClick,
-}: AppHeaderProps) {
+}: AppHeaderProps): React.JSX.Element {
   const { user } = useCurrentUser({ redirectIfNone: false });
   const pathname = usePathname();
   const [localSearch, setLocalSearch] = useState('');
   const currentSearch = searchValue ?? localSearch;
   const isLocalDetailPage = pathname.startsWith('/local/');
 
-  const setSearch = (value: string) => {
+  const setSearch = (value: string): void => {
     if (onSearchChange) {
       onSearchChange(value);
       return;
@@ -47,7 +47,7 @@ export default function AppHeader({
     setLocalSearch(value);
   };
 
-  const submitSearch = () => {
+  const submitSearch = (): void => {
     if (onSearchSubmit) {
       onSearchSubmit();
       return;
@@ -58,7 +58,7 @@ export default function AppHeader({
     }
   };
 
-  const openAuth = (mode: Exclude<AuthMode, null>) => {
+  const openAuth = (mode: Exclude<AuthMode, null>): void => {
     if (onAuthClick) {
       onAuthClick(mode);
       return;
@@ -90,6 +90,7 @@ export default function AppHeader({
         <div className="app-header-actions">
           {showSearch && (
             <form
+              id="header-search-form"
               className="app-header-search"
               onSubmit={(event) => {
                 event.preventDefault();
@@ -97,6 +98,7 @@ export default function AppHeader({
               }}
             >
               <input
+                id="header-search-input"
                 type="search"
                 value={currentSearch}
                 onChange={(event) => setSearch(event.target.value)}
@@ -110,10 +112,10 @@ export default function AppHeader({
             <UserDropdown user={user} />
           ) : (
             <>
-              <button type="button" onClick={() => openAuth('login')} className="app-auth-link">
+              <button id="header-auth-login-button" type="button" onClick={() => openAuth('login')} className="app-auth-link">
                 Đăng nhập
               </button>
-              <button type="button" onClick={() => openAuth('register')} className="app-auth-primary">
+              <button id="header-auth-register-button" type="button" onClick={() => openAuth('register')} className="app-auth-primary">
                 Đăng ký
               </button>
             </>

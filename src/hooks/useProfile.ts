@@ -31,7 +31,7 @@ type ProfileApiData = {
   twoFactorEnabled?: boolean | null;
 };
 
-function toBirthdayInput(value?: string | null) {
+function toBirthdayInput(value?: string | null): string {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -74,20 +74,29 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
   const [memberSince, setMemberSince] = useState('');
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [savingPersonal, setSavingPersonal] = useState(false);
-  const [savingPreferences, setSavingPreferences] = useState(false);
+  const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('loading');
+  const [savePersonalStatus, setSavePersonalStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [savePreferencesStatus, setSavePreferencesStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const loading = fetchStatus === 'loading';
+  const savingPersonal = savePersonalStatus === 'loading';
+  const savingPreferences = savePreferencesStatus === 'loading';
 
   useEffect(() => {
     if (!userId) {
-      setLoading(false);
+      setFetchStatus('idle');
       return;
     }
 
-    const load = async () => {
-      setLoading(true);
+    const controller = new AbortController();
+
+    const load = async (): Promise<void> => {
+      setFetchStatus('loading');
       try {
-        const { response, data } = await apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', { userId });
+        const { response, data } = await apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', {
+          userId,
+          signal: controller.signal,
+        });
 
         if (response.ok && data.success && data.profile) {
           const profile = data.profile;
@@ -116,25 +125,33 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
           });
           setMemberSince(profile.createdAt || '');
           setIs2FAEnabled(!!profile.twoFactorEnabled);
+          setFetchStatus('success');
+        } else {
+          setFetchStatus('error');
         }
-      } catch {
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') return;
+        console.error('Lỗi khi tải thông tin hồ sơ:', error);
+        setFetchStatus('error');
       }
     };
 
     load();
+
+    return () => {
+      controller.abort();
+    };
   }, [userId]);
 
-  const updateAvatar = useCallback((url: string) => {
+  const updateAvatar = useCallback((url: string): void => {
     setPersonal((prev) => ({ ...prev, avatarUrl: url }));
   }, []);
 
-  const savePersonal = useCallback(async (e: React.FormEvent) => {
+  const savePersonal = useCallback(async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!userId) throw new Error('No user');
 
-    setSavingPersonal(true);
+    setSavePersonalStatus('loading');
     const fullName = `${personal.firstName} ${personal.lastName}`.trim();
 
     updateStoredUser((current) => ({
@@ -166,18 +183,22 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       });
 
       if (!response.ok || !data.success) {
+        setSavePersonalStatus('error');
         throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
       }
-    } finally {
-      setSavingPersonal(false);
+      setSavePersonalStatus('success');
+    } catch (err) {
+      console.error('Lỗi khi lưu thông tin cá nhân:', err);
+      setSavePersonalStatus('error');
+      throw err;
     }
   }, [userId, personal]);
 
-  const savePreferences = useCallback(async (e: React.FormEvent) => {
+  const savePreferences = useCallback(async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!userId) throw new Error('No user');
 
-    setSavingPreferences(true);
+    setSavePreferencesStatus('loading');
 
     try {
       const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
@@ -193,14 +214,18 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       });
 
       if (!response.ok || !data.success) {
+        setSavePreferencesStatus('error');
         throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
       }
-    } finally {
-      setSavingPreferences(false);
+      setSavePreferencesStatus('success');
+    } catch (err) {
+      console.error('Lỗi khi lưu tùy chọn du lịch:', err);
+      setSavePreferencesStatus('error');
+      throw err;
     }
   }, [userId, preferences]);
 
-  const toggle2FA = useCallback(async () => {
+  const toggle2FA = useCallback(async (): Promise<void> => {
     if (!userId) return;
 
     const nextValue = !is2FAEnabled;
@@ -219,6 +244,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         throw new Error(getApiErrorMessage(data, 'Cập nhật 2FA thất bại'));
       }
     } catch (error) {
+      console.error('Lỗi khi cập nhật cấu hình 2FA:', error);
       setIs2FAEnabled(!nextValue);
       throw error;
     }

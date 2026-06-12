@@ -13,10 +13,11 @@ interface MyTripsSectionProps {
   loading?: boolean;
 }
 
-const MyTripsSection = memo(({ trips, onCreateNew, onViewDetail, onDelete, loading }: MyTripsSectionProps) => (
+const MyTripsSection = memo(({ trips, onCreateNew, onViewDetail, onDelete, loading }: MyTripsSectionProps): React.JSX.Element => (
   <div className="space-y-5">
     <div className="flex items-center justify-end">
       <button
+        id="profile-create-trip-button"
         onClick={onCreateNew}
         className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary-dark)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-darker)] disabled:opacity-60"
         disabled={loading}

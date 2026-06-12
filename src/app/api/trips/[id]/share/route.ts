@@ -26,7 +26,6 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
     const { id: tripId } = await ctx.params;
     const db = await getDb();
 
-    // Verify ownership
     const trip = await db.trips.findById(tripId);
     if (!trip || trip.userId !== userId) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền chia sẻ chuyến đi này', 403);
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
 
     const shareCode = generateShareCode();
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     await db.tripShares.insertOne({
       tripId,
@@ -62,13 +61,11 @@ export async function DELETE(request: NextRequest, ctx: RouteContext) {
     const { id: tripId } = await ctx.params;
     const db = await getDb();
 
-    // Verify ownership
     const trip = await db.trips.findById(tripId);
     if (!trip || trip.userId !== userId) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền thu hồi chia sẻ', 403);
     }
 
-    // Find active share and deactivate
     const shares = await db.tripShares.find({ tripId, isActive: true });
     if (shares.length > 0) {
       await db.tripShares.updateOne(shares[0]._id, { isActive: false });

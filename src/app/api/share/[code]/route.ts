@@ -30,7 +30,6 @@ export async function GET(request: NextRequest, ctx: RouteContext) {
 
     const items = await db.itineraryItems.find({ tripId: share.tripId });
 
-    // Read-only data, no userId exposed
     const publicTrip = {
       _id: trip._id,
       title: trip.title,

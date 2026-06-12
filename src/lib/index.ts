@@ -1,7 +1,3 @@
-
-
-
-
 export {
   authCookieName,
   getAuthUserId,

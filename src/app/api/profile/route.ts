@@ -4,6 +4,7 @@ import { storeAvatar, getAvatar } from '@/lib/redis';
 import { getAuthUserId } from '@/lib/auth';
 import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 function toSafeDateString(value: unknown): string {
   if (!value) return '';
@@ -11,12 +12,13 @@ function toSafeDateString(value: unknown): string {
     const d = value instanceof Date ? value : new Date(String(value));
     if (isNaN(d.getTime())) return '';
     return d.toISOString().split('T')[0];
-  } catch {
+  } catch (error) {
+    console.error('Lỗi khi định dạng ngày sinh:', error);
     return '';
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
@@ -35,7 +37,8 @@ export async function GET(request: NextRequest) {
         await storeAvatar(userId, user.avatarUrl);
         avatarUrl = user.avatarUrl;
       }
-    } catch {
+    } catch (error) {
+      console.error('Lỗi khi lấy/lưu avatar từ Redis:', error);
       avatarUrl = user.avatarUrl || null; 
     }
     const profile = {
@@ -64,11 +67,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(request: NextRequest): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:update-profile:${userId}`,
+      limit: 30,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang cập nhật hồ sơ quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const body = await request.json().catch(() => ({}));
@@ -97,7 +109,8 @@ export async function PATCH(request: NextRequest) {
         try {
           await storeAvatar(userId, parsed.avatarUrl);
           updates.avatarUrl = `redis:avatar:${userId}`;
-        } catch {
+        } catch (error) {
+          console.error('Lỗi khi lưu avatar vào Redis:', error);
           updates.avatarUrl = parsed.avatarUrl; 
         }
       } else {
@@ -126,7 +139,8 @@ export async function PATCH(request: NextRequest) {
       try {
         const fromRedis = await getAvatar(userId);
         if (fromRedis) resolvedAvatar = fromRedis;
-      } catch {
+      } catch (error) {
+        console.error('Lỗi khi lấy avatar cập nhật từ Redis:', error);
       }
     }
 

@@ -15,7 +15,7 @@ function getRedisClient(): Redis {
   return redisClient;
 }
 
-export function getRedis() {
+export function getRedis(): Redis {
   return getRedisClient();
 }
 
@@ -74,9 +74,7 @@ export async function isTokenBlacklisted(jti: string): Promise<boolean> {
 
 const ONE_DAY_SECONDS = 86400;
 
-
-
-export async function storeOTP(email: string, otpData: { otp: string; attempts: number }) {
+export async function storeOTP(email: string, otpData: { otp: string; attempts: number }): Promise<void> {
   const client = getRedisClient();
   const key = `otp:${email.toLowerCase()}`;
   await client.set(key, JSON.stringify(otpData), 'EX', ONE_DAY_SECONDS);
@@ -89,18 +87,19 @@ export async function getOTP(email: string): Promise<{ otp: string; attempts: nu
   if (!raw) return null;
   try {
     return JSON.parse(raw);
-  } catch {
+  } catch (error) {
+    console.error('Lỗi phân tích cú pháp OTP từ Redis:', error);
     return null;
   }
 }
 
-export async function deleteOTP(email: string) {
+export async function deleteOTP(email: string): Promise<void> {
   const client = getRedisClient();
   const key = `otp:${email.toLowerCase()}`;
   await client.del(key);
 }
 
-export async function incrementOTPAttempts(email: string, currentData: { otp: string; attempts: number }) {
+export async function incrementOTPAttempts(email: string, currentData: { otp: string; attempts: number }): Promise<{ otp: string; attempts: number }> {
   const client = getRedisClient();
   const key = `otp:${email.toLowerCase()}`;
   currentData.attempts += 1;
@@ -120,7 +119,7 @@ export async function getAvatar(userId: string): Promise<string | null> {
   return client.get(`avatar:${userId}`);
 }
 
-export async function deleteAvatar(userId: string) {
+export async function deleteAvatar(userId: string): Promise<void> {
   const client = getRedisClient();
   await client.del(`avatar:${userId}`);
 }

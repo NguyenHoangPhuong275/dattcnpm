@@ -10,10 +10,14 @@ type AuthUser = {
   role: 'USER' | 'ADMIN';
 };
 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('Biến môi trường JWT_SECRET là bắt buộc');
+}
+const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
+
 function getSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('Biến môi trường JWT_SECRET là bắt buộc');
-  return new TextEncoder().encode(secret);
+  return ENCODED_SECRET;
 }
 
 export async function signAuthToken(user: AuthUser): Promise<string> {
@@ -46,17 +50,14 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
 }
 
 export async function getAuthUserId(request: NextRequest): Promise<string | null> {
-  // Primary: cookie (works in real Next.js requests)
   let token = request.cookies?.get(AUTH_COOKIE)?.value ?? null;
 
-  // Fallback: parse Cookie header manually (works in Vitest/test environments)
   if (!token) {
     const cookieHeader = request.headers.get('cookie') ?? '';
     const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE}=([^;]+)`));
     token = match ? decodeURIComponent(match[1]) : null;
   }
 
-  // Fallback: Authorization Bearer header (for API client / Postman / E2E tests)
   if (!token) {
     const authHeader = request.headers.get('authorization') ?? '';
     if (authHeader.startsWith('Bearer ')) {
@@ -64,7 +65,6 @@ export async function getAuthUserId(request: NextRequest): Promise<string | null
     }
   }
 
-  // Fallback: x-user-id header (compatibility / testing)
   if (!token) {
     const xUserId = request.headers.get('x-user-id');
     if (xUserId) return xUserId;

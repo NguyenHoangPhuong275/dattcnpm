@@ -6,7 +6,7 @@ import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-resp
 
 const WEATHER_CACHE_TTL = 900;
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
     const parsed = weatherSchema.parse({
@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
           weather: parsedCached,
           cached: true,
         });
-      } catch {
+      } catch (error) {
+        console.error('Lỗi phân tích cú pháp thời tiết từ cache:', error);
       }
     }
 

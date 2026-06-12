@@ -3,8 +3,7 @@
 import Image from 'next/image';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
-
-export type AuthMode = 'login' | 'register' | null;
+import type { AuthMode } from '@/hooks/useAuthModal';
 
 interface AuthModalProps {
   authMode: AuthMode;
@@ -13,12 +12,13 @@ interface AuthModalProps {
   onModeChange: (mode: 'login' | 'register') => void;
 }
 
-export default function AuthModal({ authMode, isClosing, onClose, onModeChange }: AuthModalProps) {
+export default function AuthModal({ authMode, isClosing, onClose, onModeChange }: AuthModalProps): React.JSX.Element | null {
   if (!authMode) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <button
+        id="auth-modal-bg-close-button"
         type="button"
         aria-label="Đóng"
         className={`absolute inset-0 bg-black/60 transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
@@ -40,6 +40,7 @@ export default function AuthModal({ authMode, isClosing, onClose, onModeChange }
 
         <div className="relative flex h-full flex-1 flex-col justify-between bg-white p-6 sm:p-8 md:p-10">
           <button
+            id="auth-modal-close-button"
             type="button"
             onClick={onClose}
             className="absolute right-4 top-4 z-10 rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
@@ -66,6 +67,7 @@ export default function AuthModal({ authMode, isClosing, onClose, onModeChange }
                 <>
                   Chưa có tài khoản?{' '}
                   <button
+                    id="auth-modal-switch-to-register"
                     type="button"
                     onClick={() => onModeChange('register')}
                     className="font-bold text-[var(--color-primary-darker)] hover:underline"
@@ -77,6 +79,7 @@ export default function AuthModal({ authMode, isClosing, onClose, onModeChange }
                 <>
                   Đã có tài khoản?{' '}
                   <button
+                    id="auth-modal-switch-to-login"
                     type="button"
                     onClick={() => onModeChange('login')}
                     className="font-bold text-[var(--color-primary-darker)] hover:underline"

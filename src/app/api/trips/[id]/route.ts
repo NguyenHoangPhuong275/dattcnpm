@@ -4,19 +4,21 @@ import { getAuthUserId } from '@/lib/auth';
 import { updateTripSchema } from '@/lib/validations/trip';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
+import type { Trip } from '@/types/trip';
 
 type RouteCtx = {
   params: Promise<{ id: string }>;
 };
 
-function toDateOnly(value: unknown) {
+function toDateOnly(value: unknown): string {
   if (!value) return '';
   const date = value instanceof Date ? value : new Date(String(value));
   if (Number.isNaN(date.getTime())) return '';
   return date.toISOString().split('T')[0];
 }
 
-function toTripResponse(trip: Record<string, unknown>) {
+function toTripResponse(trip: Trip): Record<string, unknown> {
   return {
     _id: String(trip._id || ''),
     title: String(trip.title || ''),
@@ -31,14 +33,14 @@ function toTripResponse(trip: Record<string, unknown>) {
   };
 }
 
-async function findOwnedTrip(id: string, userId: string) {
+async function findOwnedTrip(id: string, userId: string): Promise<Trip | null> {
   const db = await getDb();
-  const trip = await db.trips.findById(id);
+  const trip = (await db.trips.findById(id)) as Trip | null;
   if (!trip || String(trip.userId) !== userId) return null;
   return trip;
 }
 
-export async function GET(request: NextRequest, ctx: RouteCtx) {
+export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
@@ -53,17 +55,26 @@ export async function GET(request: NextRequest, ctx: RouteCtx) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
 
-    return sendSuccess(toTripResponse(trip as unknown as Record<string, unknown>));
+    return sendSuccess(toTripResponse(trip));
   } catch (error) {
     return handleApiError(error);
   }
 }
 
-export async function PATCH(request: NextRequest, ctx: RouteCtx) {
+export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:update-trip:${userId}`,
+      limit: 30,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang cập nhật lịch trình quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const { id } = await ctx.params;
@@ -100,26 +111,37 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     updates.updatedAt = new Date();
 
     const db = await getDb();
-    const updated = await db.trips.updateOne(id, { $set: updates });
+    const updated = (await db.trips.updateOne(id, { $set: updates })) as Trip | null;
     if (!updated) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
 
     try {
       await createAuditLog(userId, 'UPDATE_TRIP', 'TRIP', id, { fields: Object.keys(updates) });
-    } catch {}
+    } catch (err) {
+      console.error('Lỗi khi ghi audit log UPDATE_TRIP:', err);
+    }
 
-    return sendSuccess(toTripResponse(updated as unknown as Record<string, unknown>));
+    return sendSuccess(toTripResponse(updated));
   } catch (error) {
     return handleApiError(error);
   }
 }
 
-export async function DELETE(request: NextRequest, ctx: RouteCtx) {
+export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:delete-trip:${userId}`,
+      limit: 15,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang xóa lịch trình quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const { id } = await ctx.params;
@@ -138,7 +160,9 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
 
     try {
       await createAuditLog(userId, 'DELETE_TRIP', 'TRIP', id, { title: existing.title });
-    } catch {}
+    } catch (err) {
+      console.error('Lỗi khi ghi audit log DELETE_TRIP:', err);
+    }
 
     return sendSuccess({ message: 'Trip deleted' });
   } catch (error) {

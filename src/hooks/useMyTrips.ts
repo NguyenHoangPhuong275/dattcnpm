@@ -33,29 +33,35 @@ export interface UseMyTripsReturn {
 
 export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   const [trips, setTrips] = useState<TripSummary[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [createStatus, setCreateStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  const loadTrips = useCallback(async (uid?: string) => {
+  const loading = fetchStatus === 'loading';
+  const creating = createStatus === 'loading';
+
+  const loadTrips = useCallback(async (uid?: string): Promise<void> => {
     const id = uid || userId;
     if (!id) return;
 
-    setLoading(true);
+    setFetchStatus('loading');
     setError(null);
     try {
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary[] }>('/api/trips', { userId: id });
       if (response.ok && data.success && Array.isArray(data.data)) {
         setTrips(data.data);
+        setFetchStatus('success');
+      } else {
+        setFetchStatus('error');
       }
-    } catch {
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách chuyến đi:', err);
       setError('Không thể tải danh sách chuyến đi');
-    } finally {
-      setLoading(false);
+      setFetchStatus('error');
     }
   }, [userId]);
 
-  const createTrip = useCallback(async (payload: CreateTripPayload) => {
+  const createTrip = useCallback(async (payload: CreateTripPayload): Promise<{ success: boolean; message?: string }> => {
     if (!userId) return { success: false, message: 'No user' };
 
     const trimmedTitle = payload.title.trim();
@@ -65,7 +71,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       return { success: false, message: 'Vui lòng nhập tiêu đề và điểm đến' };
     }
 
-    setCreating(true);
+    setCreateStatus('loading');
 
     try {
       const start = payload.startDate || getDefaultStartDate();
@@ -93,18 +99,20 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
           }
           return [createdTrip, ...prev];
         });
+        setCreateStatus('success');
         return { success: true };
       } else {
+        setCreateStatus('error');
         return { success: false, message: getApiErrorMessage(data, 'Tạo chuyến đi thất bại') };
       }
-    } catch {
+    } catch (err) {
+      console.error('Lỗi khi tạo chuyến đi:', err);
+      setCreateStatus('error');
       return { success: false, message: 'Không thể tạo chuyến đi lúc này' };
-    } finally {
-      setCreating(false);
     }
   }, [userId]);
 
-  const deleteTrip = useCallback(async (id: string) => {
+  const deleteTrip = useCallback(async (id: string): Promise<void> => {
     if (!userId) return;
 
     let snapshot: TripSummary[] = [];
@@ -117,7 +125,8 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       const { response } = await apiRequest(`/api/trips/${id}`, { method: 'DELETE', userId });
 
       if (!response.ok) throw new Error();
-    } catch {
+    } catch (err) {
+      console.error('Lỗi khi xóa chuyến đi:', err);
       setTrips(snapshot);
       throw new Error('Delete trip failed');
     }

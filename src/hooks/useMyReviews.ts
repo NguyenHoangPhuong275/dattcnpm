@@ -19,21 +19,26 @@ export interface UseMyReviewsReturn {
 
 export function useMyReviews({ userId }: UseMyReviewsOptions): UseMyReviewsReturn {
   const [reviews, setReviews] = useState<MyReview[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const loadReviews = useCallback(async (uid?: string) => {
+  const loading = status === 'loading';
+
+  const loadReviews = useCallback(async (uid?: string): Promise<void> => {
     const id = uid || userId;
     if (!id) return;
 
-    setLoading(true);
+    setStatus('loading');
     try {
       const { response, data } = await apiRequest<{ success?: boolean; data?: MyReview[] }>('/api/reviews/my', { userId: id });
       if (response.ok && data.success && Array.isArray(data.data)) {
         setReviews(data.data);
+        setStatus('success');
+      } else {
+        setStatus('error');
       }
-    } catch {
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách đánh giá:', err);
+      setStatus('error');
     }
   }, [userId]);
 

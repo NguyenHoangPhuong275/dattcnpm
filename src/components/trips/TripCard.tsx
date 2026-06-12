@@ -40,7 +40,7 @@ interface TripImageProps {
 
 const cardClassName = 'group overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--color-primary-dark)] hover:shadow-md';
 
-function CityChips({ destination }: CityChipsProps) {
+function CityChips({ destination }: CityChipsProps): React.JSX.Element {
   const cities = getTripCities(destination);
   const labels = cities.length > 0 ? cities : [destination];
 
@@ -55,7 +55,7 @@ function CityChips({ destination }: CityChipsProps) {
   );
 }
 
-function TripMeta({ trip }: TripMetaProps) {
+function TripMeta({ trip }: TripMetaProps): React.JSX.Element {
   return (
     <div className="space-y-2 text-sm text-slate-600">
       <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ function TripMeta({ trip }: TripMetaProps) {
   );
 }
 
-function TripStatus({ isPublic }: TripStatusProps) {
+function TripStatus({ isPublic }: TripStatusProps): React.JSX.Element {
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-bold ${isPublic ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
       {isPublic ? 'Công khai' : 'Riêng tư'}
@@ -82,7 +82,7 @@ function TripStatus({ isPublic }: TripStatusProps) {
   );
 }
 
-function TripImage({ trip, variant }: TripImageProps) {
+function TripImage({ trip, variant }: TripImageProps): React.JSX.Element {
   const sizes = variant === 'horizontal'
     ? '180px'
     : '(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw';
@@ -98,7 +98,7 @@ function TripImage({ trip, variant }: TripImageProps) {
   );
 }
 
-function TripCardContent({ trip, variant, onDelete }: TripCardContentProps) {
+function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): React.JSX.Element {
   const handleDelete = (event: MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation();
     onDelete?.(trip._id);
@@ -124,6 +124,7 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps) {
             <TripStatus isPublic={trip.isPublic} />
             {onDelete && (
               <button
+                id={`trip-card-delete-button-${trip._id}`}
                 type="button"
                 onClick={handleDelete}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50"
@@ -157,7 +158,7 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps) {
   );
 }
 
-export default function TripCard({ trip, variant = 'vertical', href, onClick, onDelete }: TripCardProps) {
+export default function TripCard({ trip, variant = 'vertical', href, onClick, onDelete }: TripCardProps): React.JSX.Element {
   const handleClick = (): void => {
     onClick?.(trip);
   };

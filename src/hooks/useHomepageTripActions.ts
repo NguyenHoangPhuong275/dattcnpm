@@ -149,12 +149,10 @@ export function useHomepageTripActions({
   }, [resetTripActionMessage, router, selectedPlace, userId]);
 
   const createTripFromSelectedPlace = useCallback(async (): Promise<void> => {
-    if (!selectedPlace) {
+    if (!selectedPlace || !userId) {
       onMissingPlace?.();
       return;
     }
-
-    if (!userId) return;
 
     setTripActionStatus('loading');
     resetTripActionMessage();

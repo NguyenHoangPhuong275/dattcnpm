@@ -11,7 +11,7 @@ import { LOCALITIES } from '@/lib/localities';
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
-const USER_AGENT = 'LOTUS-TRAVEL/1.0 (https://lotus-travel.example.com; contact@lotus-travel.example.com)';
+const USER_AGENT = 'LotusTravel/1.0 (contact@lotus-travel.example.com)';
 const CACHE_TTL = 86400;
 
 const LOCAL_SEARCH_FALLBACKS = [
@@ -246,7 +246,7 @@ function buildCacheKey(query: string): string {
   return `geo:search:${encodeURIComponent(normalizeQuery(query))}`;
 }
 
-async function recordSearchHistory(userId: string | null, query: string, resultCount: number, lat?: number | null, lng?: number | null) {
+async function recordSearchHistory(userId: string | null, query: string, resultCount: number, lat?: number | null, lng?: number | null): Promise<void> {
   if (!userId) return;
   try {
     const db = await getDb();
@@ -264,9 +264,13 @@ async function recordSearchHistory(userId: string | null, query: string, resultC
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(50)
       .forEach((item) => {
-        db.searchHistories.deleteOne(item._id).catch(() => null);
+        db.searchHistories.deleteOne(item._id).catch((err) => {
+          console.error('Lỗi khi xóa lịch sử tìm kiếm thừa:', err);
+          return null;
+        });
       });
-  } catch {
+  } catch (error) {
+    console.error('Lỗi khi ghi lại lịch sử tìm kiếm:', error);
     return;
   }
 }
@@ -522,7 +526,7 @@ function sortTourismResults(results: PlaceDraft[], query: string, normalized: st
   });
 }
 
-async function savePlaces(places: PlaceDraft[]) {
+async function savePlaces(places: PlaceDraft[]): Promise<any[]> {
   const db = await getDb();
   return Promise.all(places.map(async (item) => {
     const existing = await db.places.findOne({ osmId: item.osmId });
@@ -551,7 +555,7 @@ async function savePlaces(places: PlaceDraft[]) {
   }));
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const query = request.nextUrl.searchParams.get('q');
 
@@ -637,7 +641,8 @@ export async function GET(request: NextRequest) {
             cached: true
           });
         }
-      } catch {
+      } catch (error) {
+        console.error('Lỗi phân tích cú pháp cache tìm kiếm địa điểm:', error);
         await cacheSet(cacheKey, JSON.stringify([]), 1);
       }
     }
@@ -658,7 +663,8 @@ export async function GET(request: NextRequest) {
       if (cachedPois) {
         try {
           rawPois = JSON.parse(cachedPois);
-        } catch {
+        } catch (error) {
+          console.error('Lỗi phân tích cú pháp POI từ cache:', error);
           rawPois = [];
         }
       } else {
@@ -677,7 +683,8 @@ export async function GET(request: NextRequest) {
               .filter((poi): poi is RawPoi => poi !== null);
             await cacheSet(poiCacheKey, JSON.stringify(rawPois), 43200);
           }
-        } catch {
+        } catch (error) {
+          console.error('Lỗi khi fetch địa điểm từ Overpass:', error);
         }
       }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface UseToastReturn {
   message: string;
@@ -12,18 +12,33 @@ export interface UseToastReturn {
 export function useToast(): UseToastReturn {
   const [message, setMessage] = useState('');
   const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showToast = useCallback((msg: string, duration = 2400) => {
+  const clearTimer = useCallback((): void => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const showToast = useCallback((msg: string, duration = 2400): void => {
+    clearTimer();
     setMessage(msg);
     setVisible(true);
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       setVisible(false);
+      timerRef.current = null;
     }, duration);
-  }, []);
+  }, [clearTimer]);
 
-  const hideToast = useCallback(() => {
+  const hideToast = useCallback((): void => {
+    clearTimer();
     setVisible(false);
-  }, []);
+  }, [clearTimer]);
+
+  useEffect(() => {
+    return () => clearTimer();
+  }, [clearTimer]);
 
   return {
     message,

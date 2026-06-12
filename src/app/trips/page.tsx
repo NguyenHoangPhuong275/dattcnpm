@@ -11,7 +11,7 @@ import { useMyTrips } from '@/hooks/useMyTrips';
 import { useToast } from '@/hooks/useToast';
 import { getDefaultTripDates } from '@/lib/date';
 
-export default function MyTripsPage() {
+export default function MyTripsPage(): React.JSX.Element {
   const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: true });
   const { trips, loading, createTrip, loadTrips } = useMyTrips({ userId: user?.id ?? null });
   const { message: toastMessage, visible: showToastVisible, showToast } = useToast();
@@ -31,19 +31,19 @@ export default function MyTripsPage() {
     }
   }, [user?.id, loadTrips]);
 
-  const resetCreateForm = () => {
+  const resetCreateForm = (): void => {
     setNewTitle('');
     setNewDest('');
     setDescription('');
     setIsPublic(false);
   };
 
-  const closeCreateModal = () => {
+  const closeCreateModal = (): void => {
     setShowCreateModal(false);
     resetCreateForm();
   };
 
-  const handleCreate = async () => {
+  const handleCreate = async (): Promise<void> => {
     if (!newTitle.trim() || !newDest.trim()) {
       showToast('Vui lòng nhập tiêu đề và điểm đến');
       return;
@@ -89,6 +89,7 @@ export default function MyTripsPage() {
             <p className="mt-1 text-sm text-slate-500">Quản lý các lịch trình đã tạo và tiếp tục chỉnh sửa khi cần.</p>
           </div>
           <button
+            id="trips-create-schedule-button"
             type="button"
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-dark)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-darker)]"
@@ -110,6 +111,7 @@ export default function MyTripsPage() {
           <div className="rounded-lg border border-dashed border-slate-300 py-16 text-center">
             <p className="mb-4 text-sm font-semibold text-slate-500">Bạn chưa có chuyến đi nào.</p>
             <button
+              id="trips-create-first-schedule-button"
               type="button"
               onClick={() => setShowCreateModal(true)}
               className="rounded-lg bg-[var(--color-primary-dark)] px-6 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-darker)]"

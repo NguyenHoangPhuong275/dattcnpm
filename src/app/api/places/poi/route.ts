@@ -66,7 +66,7 @@ async function fetchOverpassElements(query: string): Promise<OverpassElement[]> 
   try {
     const response = await fetch(`${OVERPASS_URL}?data=${encodeURIComponent(query)}`, {
       headers: {
-        'User-Agent': 'LOTUS-TRAVEL/1.0 (https://lotus-travel.example.com; contact@lotus-travel.example.com)',
+        'User-Agent': 'LotusTravel/1.0 (contact@lotus-travel.example.com)',
         Accept: 'application/json',
       },
       signal: AbortSignal.timeout(15000),
@@ -76,7 +76,8 @@ async function fetchOverpassElements(query: string): Promise<OverpassElement[]> 
 
     const data = await response.json();
     return Array.isArray(data.elements) ? data.elements : [];
-  } catch {
+  } catch (err) {
+    console.error('Lỗi khi fetch POIs từ Overpass:', err);
     return [];
   }
 }
@@ -122,7 +123,7 @@ function mapOverpassElements(elements: OverpassElement[]): PoiResult[] {
     .filter((item): item is PoiResult => item !== null);
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const searchParams = request.nextUrl.searchParams;
     const parsed = placesPoiSchema.parse({
@@ -153,7 +154,8 @@ export async function GET(request: NextRequest) {
           results: JSON.parse(cached),
           cached: true,
         });
-      } catch {
+      } catch (error) {
+        console.error('Lỗi phân tích cú pháp POI từ cache:', error);
       }
     }
 

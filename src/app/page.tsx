@@ -17,7 +17,7 @@ import { useHomepageTripActions } from '@/hooks/useHomepageTripActions';
 import AddToTripModal from '@/components/trips/AddToTripModal';
 import type { SearchResult } from '@/hooks/usePlaceSearch';
 
-export default function HomePage() {
+export default function HomePage(): React.JSX.Element {
   return (
     <Suspense fallback={null}>
       <HomePageContent />
@@ -25,7 +25,7 @@ export default function HomePage() {
   );
 }
 
-function HomePageContent() {
+function HomePageContent(): React.JSX.Element {
   const searchParams = useSearchParams();
   const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: false });
   const search = usePlaceSearch();
@@ -52,7 +52,7 @@ function HomePageContent() {
   const [addToTripOpen, setAddToTripOpen] = useState(false);
   const [addToTripPlace, setAddToTripPlace] = useState<SearchResult | null>(null);
 
-  const handleOpenAddToTripModal = (place?: SearchResult) => {
+  const handleOpenAddToTripModal = (place?: SearchResult): void => {
     const p = place || search.selectedPlace;
     if (p) {
       setAddToTripPlace(p);
@@ -90,12 +90,12 @@ function HomePageContent() {
     }
   }, [searchParams, searchFor]);
 
-  const submitHeaderSearch = () => {
+  const submitHeaderSearch = (): void => {
     handleSearch();
     document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  const handleQuickSelect = (title: string) => {
+  const handleQuickSelect = (title: string): void => {
     searchFor(title);
     document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };

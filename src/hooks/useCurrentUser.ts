@@ -21,21 +21,24 @@ export function useCurrentUser(
   const { redirectIfNone = true } = options ?? {};
 
   useEffect(() => {
-    let cancelled = false;
-    apiRequest<BasicUser>('/api/profile/me')
+    const controller = new AbortController();
+
+    apiRequest<BasicUser>('/api/profile/me', { signal: controller.signal })
       .then(({ data }) => {
-        if (!cancelled) {
-          setUserState(data);
-          setStoredUser(data);
-        }
+        setUserState(data);
+        setStoredUser(data);
       })
-      .catch(() => {
-        if (!cancelled) setUserState(null);
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setUserState(null);
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       });
-    return () => { cancelled = true; };
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -44,7 +47,7 @@ export function useCurrentUser(
     }
   }, [isLoading, user, router, redirectIfNone]);
 
-  const setUser = useCallback((newUser: BasicUser | null) => {
+  const setUser = useCallback((newUser: BasicUser | null): void => {
     setUserState(newUser);
     setStoredUser(newUser);
   }, []);

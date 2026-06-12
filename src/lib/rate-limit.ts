@@ -14,13 +14,13 @@ type MemoryEntry = {
 
 const memoryLimits = new Map<string, MemoryEntry>();
 
-export function getClientIp(request: NextRequest) {
+export function getClientIp(request: NextRequest): string {
   return request.headers.get('x-forwarded-for')?.split(',')[0].trim()
     || request.headers.get('x-real-ip')
     || 'unknown';
 }
 
-export async function checkRateLimit(options: RateLimitOptions) {
+export async function checkRateLimit(options: RateLimitOptions): Promise<{ limited: boolean; count: number; limit: number; fallback: boolean }> {
   const { key, limit, windowSeconds } = options;
 
   try {
@@ -31,7 +31,8 @@ export async function checkRateLimit(options: RateLimitOptions) {
       limit,
       fallback: false,
     };
-  } catch {
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra rate limit từ Redis, chuyển sang bộ nhớ đệm dự phòng:', error);
     const now = Date.now();
     const current = memoryLimits.get(key);
 

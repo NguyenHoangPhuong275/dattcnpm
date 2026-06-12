@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { HOME_NEWS } from '@/lib/home';
 
-export default function TravelNewsSection() {
+export default function TravelNewsSection(): React.JSX.Element {
   return (
     <section id="travel-news" className="border-t border-[var(--color-border)] bg-slate-50 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 xl:px-12">
       <div className="mx-auto max-w-7xl">

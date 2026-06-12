@@ -3,23 +3,25 @@ import { getDb, createAuditLog } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
 import { createTripSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
+import type { Trip } from '@/types/trip';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
     }
     const db = await getDb();
-    const trips = await db.trips.find({ userId });
+    const trips = (await db.trips.find({ userId })) as Trip[];
 
-    trips.sort((a: any, b: any) => {
+    trips.sort((a: Trip, b: Trip) => {
       const da = new Date(a.updatedAt ?? a.createdAt ?? 0).getTime();
       const dbt = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
       return dbt - da;
     });
 
-    const data = trips.map((t: any) => ({
+    const data = trips.map((t: Trip) => ({
       _id: t._id,
       title: t.title,
       destination: t.destination,
@@ -37,11 +39,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    }
+
+    const rate = await checkRateLimit({
+      key: `rl:create-trip:${userId}`,
+      limit: 15,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang tạo chuyến đi quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const body = await request.json().catch(() => ({}));
@@ -72,7 +83,9 @@ export async function POST(request: NextRequest) {
         title: parsed.title,
         destination: parsed.destination,
       });
-    } catch {}
+    } catch (err) {
+      console.error('Lỗi khi ghi audit log CREATE_TRIP:', err);
+    }
 
     const trip = {
       _id: created._id,

@@ -7,7 +7,7 @@ interface FeaturedDestinationsProps {
   onSelect: (title: string) => void;
 }
 
-export default function FeaturedDestinations({ onSelect }: FeaturedDestinationsProps) {
+export default function FeaturedDestinations({ onSelect }: FeaturedDestinationsProps): React.JSX.Element {
   return (
     <section className="border-t border-[var(--color-border)] bg-white px-4 py-12 sm:px-6 sm:py-16 lg:px-8 xl:px-12">
       <div className="mx-auto max-w-7xl">
@@ -19,6 +19,7 @@ export default function FeaturedDestinations({ onSelect }: FeaturedDestinationsP
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURED_DESTINATIONS.map((item) => (
             <button
+              id={`featured-destination-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
               type="button"
               key={item.title}
               onClick={() => onSelect(item.title)}

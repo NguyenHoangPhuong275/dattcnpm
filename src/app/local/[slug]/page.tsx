@@ -34,7 +34,7 @@ interface StoryGridProps {
   items: StoryCard[];
 }
 
-export function generateStaticParams() {
+export function generateStaticParams(): Array<{ slug: string }> {
   return LOCALITIES.map((locality) => ({ slug: locality.slug }));
 }
 
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: LocalityDetailPageProps): Pro
   };
 }
 
-function RegionBanner({ locality }: RegionBannerProps) {
+function RegionBanner({ locality }: RegionBannerProps): React.JSX.Element {
   return (
     <section className="relative h-[320px] overflow-hidden bg-slate-900 sm:h-[420px] lg:h-[500px]">
       <Image
@@ -78,7 +78,7 @@ function RegionBanner({ locality }: RegionBannerProps) {
   );
 }
 
-function RegionOverview({ locality }: RegionOverviewProps) {
+function RegionOverview({ locality }: RegionOverviewProps): React.JSX.Element {
   const sections = getLocalityGuideSections(locality);
 
   return (
@@ -111,7 +111,7 @@ function RegionOverview({ locality }: RegionOverviewProps) {
 function SectionTitle({
   title,
   href,
-}: SectionTitleProps) {
+}: SectionTitleProps): React.JSX.Element {
   return (
     <div className="flex items-center justify-between gap-4">
       <h2 className="font-display text-3xl font-bold text-[var(--color-text)]">{title}</h2>
@@ -120,14 +120,14 @@ function SectionTitle({
           href={href}
           className="whitespace-nowrap text-sm font-semibold text-[var(--color-primary-darker)] transition-colors hover:text-[var(--color-primary-dark)]"
         >
-          See more
+          Xem thêm
         </Link>
       )}
     </div>
   );
 }
 
-function StoryGrid({ items }: StoryGridProps) {
+function StoryGrid({ items }: StoryGridProps): React.JSX.Element {
   return (
     <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
@@ -158,7 +158,7 @@ function StoryGrid({ items }: StoryGridProps) {
   );
 }
 
-function RegionNews() {
+function RegionNews(): React.JSX.Element {
   return (
     <section id="travel-news" className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
@@ -169,7 +169,7 @@ function RegionNews() {
   );
 }
 
-function RegionDiscover() {
+function RegionDiscover(): React.JSX.Element {
   return (
     <section className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
@@ -203,7 +203,7 @@ function RegionDiscover() {
   );
 }
 
-export default async function LocalityDetailPage({ params }: LocalityDetailPageProps) {
+export default async function LocalityDetailPage({ params }: LocalityDetailPageProps): Promise<React.JSX.Element> {
   const { slug } = await params;
   const locality = getLocalityBySlug(slug);
 

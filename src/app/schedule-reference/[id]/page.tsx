@@ -48,14 +48,14 @@ interface DisplayPlace {
   mapQuery: string;
 }
 
-function formatTime(value?: string | null, fallback = '07:00') {
+function formatTime(value?: string | null, fallback = '07:00'): string {
   if (!value) return fallback;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return fallback;
   return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 }
 
-function displayName(item: ItineraryItem, index: number) {
+function displayName(item: ItineraryItem, index: number): string {
   const note = item.note?.trim();
   if (note) return note.split('\n')[0].split(' - ')[0].trim();
   return `Địa điểm ${index + 1}`;
@@ -80,7 +80,7 @@ function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlac
   };
 }
 
-export default function ItineraryDetailPage() {
+export default function ItineraryDetailPage(): React.JSX.Element {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: true });
@@ -93,7 +93,7 @@ export default function ItineraryDetailPage() {
   const [error, setError] = useState('');
   const tripId = params?.id;
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (): Promise<void> => {
     if (!tripId || !user?.id) return;
     setLoading(true);
     setError('');
@@ -146,7 +146,7 @@ export default function ItineraryDetailPage() {
   const duration = getDuration(trip?.startDate, trip?.endDate);
   const totalCost = items.reduce((total, item) => total + (Number(item.cost) || 0), 0);
 
-  const handleDeleteTrip = async () => {
+  const handleDeleteTrip = async (): Promise<void> => {
     if (!tripId || !user?.id || !confirm('Xóa chuyến đi này?')) return;
 
     try {
@@ -159,7 +159,7 @@ export default function ItineraryDetailPage() {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (): Promise<void> => {
     try {
       if (navigator.share) {
         await navigator.share({ title: trip?.title, url: window.location.href });
@@ -210,16 +210,16 @@ export default function ItineraryDetailPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button onClick={() => window.print()} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="In lịch trình">
+                <button id="action-print-trip" onClick={() => window.print()} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="In lịch trình">
                   <ListIcon className="h-4 w-4" />
                 </button>
-                <button onClick={handleShare} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="Chia sẻ">
+                <button id="action-share-trip" onClick={handleShare} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="Chia sẻ">
                   <MapIcon className="h-4 w-4" />
                 </button>
-                <button onClick={() => router.push('/profile')} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="Chỉnh sửa thông tin chuyến đi">
+                <button id="action-edit-trip" onClick={() => router.push('/profile')} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50" title="Chỉnh sửa thông tin chuyến đi">
                   <CalendarIcon className="h-4 w-4" />
                 </button>
-                <button onClick={handleDeleteTrip} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50" title="Xóa chuyến đi">
+                <button id="action-delete-trip" onClick={handleDeleteTrip} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50" title="Xóa chuyến đi">
                   <TrashIcon className="h-4 w-4" />
                 </button>
               </div>
@@ -227,12 +227,14 @@ export default function ItineraryDetailPage() {
 
             <div className="mt-5 flex rounded-lg bg-slate-100 p-1">
               <button
+                id="tab-button-itinerary"
                 onClick={() => setActiveTab('itinerary')}
                 className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'itinerary' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
                 Chi tiết lịch trình
               </button>
               <button
+                id="tab-button-budget"
                 onClick={() => setActiveTab('budget')}
                 className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'budget' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
