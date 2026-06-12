@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
-import { TripSummary } from './MyTripsSection';
+import { TripSummary } from '@/types/profile';
 
 interface TripDetailModalProps {
   trip: TripSummary | null;
   onClose: () => void;
+  onTripUpdated?: () => void;
   userId: string | null;
 }
 
@@ -29,6 +30,15 @@ type ItineraryDraft = {
   currency: string;
 };
 
+type TripEditDraft = {
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  isPublic: boolean;
+  description: string;
+};
+
 type ApiListResponse<T> = {
   success?: boolean;
   data?: T;
@@ -44,13 +54,24 @@ const emptyDraft: ItineraryDraft = {
   currency: 'VND',
 };
 
-export default function TripDetailModal({ trip, onClose, userId }: TripDetailModalProps) {
+function toDateInput(value?: string) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toISOString().split('T')[0];
+}
+
+export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }: TripDetailModalProps) {
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [draft, setDraft] = useState<ItineraryDraft>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [isEditingTrip, setIsEditingTrip] = useState(false);
+  const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false, description: '' });
+  const [savingTrip, setSavingTrip] = useState(false);
 
   const groupedItems = useMemo(() => {
     const groups = new Map<number, ItineraryItem[]>();
@@ -92,6 +113,7 @@ export default function TripDetailModal({ trip, onClose, userId }: TripDetailMod
       setDraft(emptyDraft);
       setEditingId(null);
       setError('');
+      setIsEditingTrip(false);
     } else {
       setItems([]);
     }
@@ -172,6 +194,55 @@ export default function TripDetailModal({ trip, onClose, userId }: TripDetailMod
     }
   };
 
+  const startEditTrip = () => {
+    if (!trip) return;
+    setTripDraft({
+      title: trip.title,
+      destination: trip.destination,
+      startDate: toDateInput(trip.startDate),
+      endDate: toDateInput(trip.endDate),
+      isPublic: trip.isPublic,
+      description: '',
+    });
+    setIsEditingTrip(true);
+  };
+
+  const cancelEditTrip = () => {
+    setIsEditingTrip(false);
+  };
+
+  const saveTrip = async () => {
+    if (!trip || !userId) return;
+    setSavingTrip(true);
+    setError('');
+
+    try {
+      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}`, {
+        method: 'PATCH',
+        userId,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: tripDraft.title.trim(),
+          destination: tripDraft.destination.trim(),
+          startDate: tripDraft.startDate,
+          endDate: tripDraft.endDate,
+          isPublic: tripDraft.isPublic,
+        }),
+      });
+
+      if (!response.ok || !data.success) {
+        setError(getApiErrorMessage(data, 'Không thể cập nhật chuyến đi'));
+        return;
+      }
+      setIsEditingTrip(false);
+      onTripUpdated?.();
+    } catch {
+      setError('Không thể cập nhật chuyến đi');
+    } finally {
+      setSavingTrip(false);
+    }
+  };
+
   if (!trip) return null;
 
   return (
@@ -185,27 +256,104 @@ export default function TripDetailModal({ trip, onClose, userId }: TripDetailMod
             <h3 className="font-semibold text-lg text-slate-900">Chi tiết chuyến đi</h3>
             <p className="text-xs text-slate-500">{trip.destination}</p>
           </div>
-          <button onClick={onClose} className="text-sm text-slate-500 hover:text-slate-700">Đóng</button>
+          <div className="flex items-center gap-2">
+            {!isEditingTrip && (
+              <button onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
+                Sửa thông tin
+              </button>
+            )}
+            <button onClick={onClose} className="text-sm text-slate-500 hover:text-slate-700">Đóng</button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-6">
-          <div className="rounded-xl border border-slate-200 px-3 py-2">
-            <div className="text-xs text-slate-500">Tiêu đề</div>
-            <div className="font-medium text-slate-800">{trip.title}</div>
+        {isEditingTrip ? (
+          <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-4 mb-6">
+            <div className="text-sm font-semibold text-slate-800 mb-3">Chỉnh sửa thông tin chuyến đi</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Tiêu đề</label>
+                <input
+                  type="text"
+                  value={tripDraft.title}
+                  onChange={e => setTripDraft(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Điểm đến</label>
+                <input
+                  type="text"
+                  value={tripDraft.destination}
+                  onChange={e => setTripDraft(prev => ({ ...prev, destination: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Ngày đi</label>
+                <input
+                  type="date"
+                  value={tripDraft.startDate}
+                  onChange={e => setTripDraft(prev => ({ ...prev, startDate: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Ngày về</label>
+                <input
+                  type="date"
+                  value={tripDraft.endDate}
+                  onChange={e => setTripDraft(prev => ({ ...prev, endDate: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={tripDraft.isPublic}
+                  onChange={e => setTripDraft(prev => ({ ...prev, isPublic: e.target.checked }))}
+                  className="rounded"
+                />
+                Công khai
+              </label>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={saveTrip}
+                disabled={savingTrip || !tripDraft.title.trim() || !tripDraft.destination.trim()}
+                className="text-sm px-4 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-50"
+              >
+                {savingTrip ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+              <button
+                onClick={cancelEditTrip}
+                className="text-sm px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+            </div>
           </div>
-          <div className="rounded-xl border border-slate-200 px-3 py-2">
-            <div className="text-xs text-slate-500">Thời gian</div>
-            <div className="font-medium text-slate-800">{trip.startDate} đến {trip.endDate}</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-6">
+            <div className="rounded-xl border border-slate-200 px-3 py-2">
+              <div className="text-xs text-slate-500">Tiêu đề</div>
+              <div className="font-medium text-slate-800">{trip.title}</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 px-3 py-2">
+              <div className="text-xs text-slate-500">Thời gian</div>
+              <div className="font-medium text-slate-800">{trip.startDate} đến {trip.endDate}</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 px-3 py-2">
+              <div className="text-xs text-slate-500">Trạng thái</div>
+              <div className="font-medium text-slate-800">{trip.isPublic ? 'Công khai' : 'Riêng tư'}</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 px-3 py-2">
+              <div className="text-xs text-slate-500">Số điểm dừng</div>
+              <div className="font-medium text-slate-800">{items.length}</div>
+            </div>
           </div>
-          <div className="rounded-xl border border-slate-200 px-3 py-2">
-            <div className="text-xs text-slate-500">Trạng thái</div>
-            <div className="font-medium text-slate-800">{trip.isPublic ? 'Công khai' : 'Riêng tư'}</div>
-          </div>
-          <div className="rounded-xl border border-slate-200 px-3 py-2">
-            <div className="text-xs text-slate-500">Số điểm dừng</div>
-            <div className="font-medium text-slate-800">{items.length}</div>
-          </div>
-        </div>
+        )}
 
         <div className="border-t border-slate-200 pt-4">
           <div className="flex items-center justify-between mb-3">

@@ -335,15 +335,12 @@ export function getLocalitiesByRegion(region: RegionName) {
 
 export function searchLocalities(region: RegionName, query: string) {
   const normalizedQuery = normalizeLocalityQuery(query);
-  const regionalLocalities = getLocalitiesByRegion(region);
-
-  if (!normalizedQuery) {
-    return regionalLocalities;
+  if (normalizedQuery) {
+    return LOCALITIES.filter((locality) =>
+      normalizeLocalityQuery(locality.name).includes(normalizedQuery)
+    );
   }
-
-  return regionalLocalities.filter((locality) => {
-    return normalizeLocalityQuery(locality.name).includes(normalizedQuery);
-  });
+  return getLocalitiesByRegion(region);
 }
 
 export function getLocalityGuideSections(locality: Locality): GuideSection[] {
@@ -435,5 +432,9 @@ export const LOCALITY_DISCOVERY: StoryCard[] = [
 ];
 
 function normalizeLocalityQuery(value: string) {
-  return value.trim().toLocaleLowerCase('vi-VN');
+  return value
+    .trim()
+    .toLocaleLowerCase('vi-VN')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 }

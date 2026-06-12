@@ -1,8 +1,3 @@
-export type HomeDestination = {
-  slug: string;
-  tags: Array<'Traveling' | 'Staying' | 'Eating' | 'Amusing'>;
-};
-
 export type HomeNewsCard = {
   category: string;
   title: string;
@@ -10,33 +5,6 @@ export type HomeNewsCard = {
   views: string;
   image: string;
 };
-
-export type HomeExperienceCard = {
-  localitySlug: string;
-  title: string;
-  address: string;
-  score: string;
-  status: string;
-};
-
-export type HomeVideoCard = {
-  category: string;
-  title: string;
-  date: string;
-  views: string;
-  image: string;
-};
-
-export const HERO_IMAGE = '/images/halongbay.png';
-
-export const TOP_DESTINATIONS: HomeDestination[] = [
-  { slug: 'an-giang', tags: ['Traveling', 'Staying', 'Eating', 'Amusing'] },
-  { slug: 'bac-ninh', tags: ['Traveling', 'Staying', 'Eating', 'Amusing'] },
-  { slug: 'cao-bang', tags: ['Traveling', 'Staying', 'Eating', 'Amusing'] },
-  { slug: 'ca-mau', tags: ['Traveling', 'Staying', 'Eating', 'Amusing'] },
-  { slug: 'can-tho', tags: ['Traveling', 'Staying', 'Eating', 'Amusing'] },
-  { slug: 'gia-lai', tags: ['Traveling', 'Staying', 'Eating', 'Amusing'] },
-];
 
 export const HOME_NEWS: HomeNewsCard[] = [
   {
@@ -83,64 +51,9 @@ export const HOME_NEWS: HomeNewsCard[] = [
   },
 ];
 
-export const HOME_EXPERIENCES: HomeExperienceCard[] = [
-  {
-    localitySlug: 'hung-yen',
-    title: 'Bảo tàng Thái Bình',
-    address: 'Đường Lý Thường Kiệt, thành phố Thái Bình, tỉnh Thái Bình',
-    score: '6.5',
-    status: 'Hài lòng (4)',
-  },
-  {
-    localitySlug: 'nghe-an',
-    title: 'Đình Hoành Sơn',
-    address: 'Xã Khánh Sơn, huyện Nam Đàn, tỉnh Nghệ An',
-    score: '10',
-    status: 'Tuyệt vời',
-  },
-  {
-    localitySlug: 'ha-noi',
-    title: 'Lăng Chủ tịch Hồ Chí Minh',
-    address: 'Số 2, Hùng Vương, Điện Biên, quận Ba Đình, thành phố Hà Nội',
-    score: '10',
-    status: 'Tuyệt vời (1)',
-  },
-  {
-    localitySlug: 'ha-noi',
-    title: 'Chùa Một Cột',
-    address: 'Phố Đội Cấn, quận Ba Đình, thành phố Hà Nội',
-    score: '10',
-    status: 'Tuyệt vời (1)',
-  },
-];
-
-export const HOME_VIDEOS: HomeVideoCard[] = [
-  {
-    category: 'Chơi gì',
-    title: 'Khám phá địa điểm chill cuối tuần tại Sóc Sơn',
-    date: '10/10/2025',
-    views: '117',
-    image: '/images/hanoi.png',
-  },
-  {
-    category: 'Ăn gì',
-    title: '24H Ăn Chill ở Cửa Lò thì có gì?',
-    date: '10/10/2025',
-    views: '50',
-    image: '/images/nghean_cualo.jpg',
-  },
-  {
-    category: 'Ăn gì',
-    title: 'Tiệm ốc ngon - bổ - rẻ giữa lòng Sài Gòn',
-    date: '10/10/2025',
-    views: '48',
-    image: '/images/tphcm.png',
-  },
-  {
-    category: 'Ở đâu',
-    title: 'Lịch trình Ninh Bình 2n1đ mùa đẹp nhất trong năm',
-    date: '10/10/2025',
-    views: '139',
-    image: '/images/ninhbinh.png',
-  },
-];
+export const FEATURED_DESTINATIONS = [
+  { title: 'Hội An', image: '/images/hoian.png', description: 'Phố cổ, ẩm thực và nhịp sống chậm ven sông.' },
+  { title: 'Hạ Long', image: '/images/halongbay.png', description: 'Vịnh biển, hang động và lịch trình nghỉ dưỡng.' },
+  { title: 'Huế', image: '/images/hue.jpg', description: 'Di sản cố đô, sông Hương và văn hóa miền Trung.' },
+  { title: 'Hà Giang', image: '/images/hagiang.png', description: 'Cung đường núi, bản làng và cảnh quan rộng mở.' },
+] as const;

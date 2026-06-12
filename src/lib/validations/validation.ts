@@ -56,6 +56,7 @@ export const PlacesPoiSchema = z.object({
   lng: z.coerce.number().finite(),
   radius: z.coerce.number().int().min(100).max(100000).optional(),
   type: z.string().optional(),
+  region: z.string().trim().max(100).optional(),
 });
 
 export const WeatherSchema = z.object({
@@ -100,3 +101,18 @@ export const SearchHistoryCreateSchema = z.object({
   resultCount: z.number().int().min(0).optional().nullable(),
   metadata: z.record(z.string(), z.unknown()).optional().nullable(),
 });
+
+export type ObjectIdInput = z.infer<typeof ObjectIdSchema>;
+export type SendOtpInput = z.infer<typeof SendOtpSchema>;
+export type VerifyOtpInput = z.infer<typeof VerifyOtpSchema>;
+export type LoginInput = z.infer<typeof LoginSchema>;
+export type PasswordChangeInput = z.infer<typeof PasswordChangeSchema>;
+export type ProfileUpdateInput = z.infer<typeof ProfileUpdateSchema>;
+export type PlacesSearchInput = z.infer<typeof PlacesSearchSchema>;
+export type PlacesPoiInput = z.infer<typeof PlacesPoiSchema>;
+export type WeatherInput = z.infer<typeof WeatherSchema>;
+export type TripCreateInput = z.infer<typeof TripCreateSchema>;
+export type TripUpdateInput = z.infer<typeof TripUpdateSchema>;
+export type ItineraryItemInput = z.infer<typeof ItineraryItemSchema>;
+export type FavoriteInput = z.infer<typeof FavoriteSchema>;
+export type SearchHistoryCreateInput = z.infer<typeof SearchHistoryCreateSchema>;

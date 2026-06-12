@@ -10,12 +10,12 @@ type AuthUser = {
   role: 'USER' | 'ADMIN';
 };
 
-function getSecret() {
+function getSecret(): Uint8Array {
   const secret = process.env.JWT_SECRET || 'dev-only-smart-travel-guide-secret-change-me';
   return new TextEncoder().encode(secret);
 }
 
-export async function signAuthToken(user: AuthUser) {
+export async function signAuthToken(user: AuthUser): Promise<string> {
   return new SignJWT({
     email: user.email,
     fullName: user.fullName,
@@ -28,7 +28,7 @@ export async function signAuthToken(user: AuthUser) {
     .sign(getSecret());
 }
 
-export async function verifyAuthToken(token: string) {
+export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
   const { payload } = await jwtVerify(token, getSecret());
   const userId = payload.sub;
   if (!userId) return null;
@@ -40,19 +40,19 @@ export async function verifyAuthToken(token: string) {
   };
 }
 
-export async function getAuthUserId(request: NextRequest) {
+export async function getAuthUserId(request: NextRequest): Promise<string | null> {
+  const token = request.cookies?.get(AUTH_COOKIE)?.value;
+  if (token) {
+    try {
+      const user = await verifyAuthToken(token);
+      if (user?.id) return user.id;
+    } catch {}
+  }
+
   const headerUserId = request.headers.get('x-user-id');
   if (headerUserId) return headerUserId;
 
-  const token = request.cookies.get(AUTH_COOKIE)?.value;
-  if (!token) return null;
-
-  try {
-    const user = await verifyAuthToken(token);
-    return user?.id || null;
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 export const authCookieName = AUTH_COOKIE;

@@ -3,8 +3,6 @@
 import React, { memo } from 'react';
 import { FavoritePlaceSummary } from '@/types/profile';
 
-export type { FavoritePlaceSummary }; 
-
 interface FavoritesSectionProps {
   places: FavoritePlaceSummary[];
   onRemove: (id: string) => void;

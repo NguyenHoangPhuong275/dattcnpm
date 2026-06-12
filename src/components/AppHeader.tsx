@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import BrandLogo from '@/components/BrandLogo';
 import UserDropdown from '@/components/UserDropdown';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -9,7 +10,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 type AuthMode = 'login' | 'register';
 
 interface AppHeaderProps {
-  active?: 'local' | 'destinations' | 'hotels' | 'flights' | 'news' | 'profile';
+  active?: 'local' | 'destinations' | 'news' | 'profile';
   searchValue?: string;
   searchPlaceholder?: string;
   showSearch?: boolean;
@@ -21,8 +22,6 @@ interface AppHeaderProps {
 const NAV_ITEMS = [
   { key: 'local', label: 'Địa phương', href: '/local' },
   { key: 'destinations', label: 'Điểm đến', href: '/#planner' },
-  { key: 'hotels', label: 'Khách sạn', href: '/#hotels' },
-  { key: 'flights', label: 'Vé máy bay', href: '/#flights' },
   { key: 'news', label: 'Tin tức du lịch', href: '/#travel-news' },
 ] as const;
 
@@ -36,14 +35,27 @@ export default function AppHeader({
   onAuthClick,
 }: AppHeaderProps) {
   const { user } = useCurrentUser({ redirectIfNone: false });
+  const pathname = usePathname();
   const [localSearch, setLocalSearch] = useState('');
   const currentSearch = searchValue ?? localSearch;
+  const isLocalDetailPage = pathname.startsWith('/local/');
 
   const setSearch = (value: string) => {
     if (onSearchChange) {
       onSearchChange(value);
-    } else {
-      setLocalSearch(value);
+      return;
+    }
+    setLocalSearch(value);
+  };
+
+  const submitSearch = () => {
+    if (onSearchSubmit) {
+      onSearchSubmit();
+      return;
+    }
+    const query = currentSearch.trim();
+    if (query) {
+      window.location.href = `/?q=${encodeURIComponent(query)}`;
     }
   };
 
@@ -52,7 +64,6 @@ export default function AppHeader({
       onAuthClick(mode);
       return;
     }
-
     window.location.href = `/?auth=${mode}`;
   };
 
@@ -66,7 +77,7 @@ export default function AppHeader({
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
-                href={item.href}
+                href={isLocalDetailPage && item.key === 'news' ? '#travel-news' : item.href}
                 className={`app-nav-link ${active === item.key ? 'app-nav-link-active' : ''}`}
               >
                 {item.label}
@@ -83,7 +94,7 @@ export default function AppHeader({
               className="app-header-search"
               onSubmit={(event) => {
                 event.preventDefault();
-                onSearchSubmit?.();
+                submitSearch();
               }}
             >
               <input

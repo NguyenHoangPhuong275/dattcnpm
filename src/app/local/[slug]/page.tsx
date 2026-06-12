@@ -17,6 +17,23 @@ type LocalityDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+interface RegionBannerProps {
+  locality: Locality;
+}
+
+interface RegionOverviewProps {
+  locality: Locality;
+}
+
+interface SectionTitleProps {
+  title: string;
+  href?: string;
+}
+
+interface StoryGridProps {
+  items: StoryCard[];
+}
+
 export function generateStaticParams() {
   return LOCALITIES.map((locality) => ({ slug: locality.slug }));
 }
@@ -37,7 +54,7 @@ export async function generateMetadata({ params }: LocalityDetailPageProps): Pro
   };
 }
 
-function RegionBanner({ locality }: { locality: Locality }) {
+function RegionBanner({ locality }: RegionBannerProps) {
   return (
     <section className="relative h-[320px] overflow-hidden bg-slate-900 sm:h-[420px] lg:h-[500px]">
       <Image
@@ -61,7 +78,7 @@ function RegionBanner({ locality }: { locality: Locality }) {
   );
 }
 
-function RegionOverview({ locality }: { locality: Locality }) {
+function RegionOverview({ locality }: RegionOverviewProps) {
   const sections = getLocalityGuideSections(locality);
 
   return (
@@ -94,10 +111,7 @@ function RegionOverview({ locality }: { locality: Locality }) {
 function SectionTitle({
   title,
   href,
-}: {
-  title: string;
-  href?: string;
-}) {
+}: SectionTitleProps) {
   return (
     <div className="flex items-center justify-between gap-4">
       <h2 className="font-display text-3xl font-bold text-[var(--color-text)]">{title}</h2>
@@ -113,13 +127,13 @@ function SectionTitle({
   );
 }
 
-function StoryGrid({ items }: { items: StoryCard[] }) {
+function StoryGrid({ items }: StoryGridProps) {
   return (
     <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
         <article
           key={item.title}
-          className="overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white"
+          className="group overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white"
         >
           <div className="relative aspect-[1.45/1] bg-slate-100">
             <Image
@@ -127,11 +141,11 @@ function StoryGrid({ items }: { items: StoryCard[] }) {
               alt={item.title}
               fill
               sizes="(max-width: 1024px) 50vw, 280px"
-              className="object-cover"
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
           </div>
           <div className="p-4">
-            <h3 className="line-clamp-2 text-base font-semibold text-[var(--color-text)]">
+            <h3 className="line-clamp-2 text-base font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary-darker)]">
               {item.title}
             </h3>
             <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-text-secondary)]">
@@ -146,25 +160,24 @@ function StoryGrid({ items }: { items: StoryCard[] }) {
 
 function RegionNews() {
   return (
-    <section className="bg-white py-10 lg:py-14">
+    <section id="travel-news" className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <SectionTitle title="Tin tức du lịch" href="/#travel-news" />
+        <SectionTitle title="Tin tức du lịch" />
         <StoryGrid items={LOCALITY_NEWS} />
       </div>
     </section>
   );
 }
 
-function RegionDiscover({ locality }: { locality: Locality }) {
+function RegionDiscover() {
   return (
     <section className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <SectionTitle title="Khám phá thêm" />
         <div className="mt-6 grid gap-5 md:grid-cols-3">
           {LOCALITY_DISCOVERY.map((item) => (
-            <Link
+            <article
               key={item.title}
-              href={`/?q=${encodeURIComponent(locality.name)}#planner`}
               className="group overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white"
             >
               <div className="relative aspect-[1.25/1] bg-slate-100">
@@ -173,16 +186,16 @@ function RegionDiscover({ locality }: { locality: Locality }) {
                   alt={item.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 360px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
               <div className="p-4">
-                <h3 className="text-base font-semibold text-[var(--color-text)]">{item.title}</h3>
+                <h3 className="text-base font-semibold text-[var(--color-text)] group-hover:text-[var(--color-primary-darker)]">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
                   {item.description}
                 </p>
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       </div>
@@ -206,7 +219,7 @@ export default async function LocalityDetailPage({ params }: LocalityDetailPageP
         <RegionBanner locality={locality} />
         <RegionOverview locality={locality} />
         <RegionNews />
-        <RegionDiscover locality={locality} />
+        <RegionDiscover />
       </main>
     </div>
   );

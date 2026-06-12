@@ -1,0 +1,3799 @@
+[
+  {
+    "id": "khanh-hoa-bai-dai-cam-ranh",
+    "name": "Bãi Dài Cam Ranh",
+    "province": "Khánh Hòa",
+    "description": "Bãi biển hoang sơ với vẻ đẹp tự nhiên, lý tưởng để thư giãn và tắm biển",
+    "rating": "4.8/5",
+    "image": "https://www.uncovervietnam.com/wp-content/uploads/2021/06/bai-dai-beach-cam-ranh-vietnam.jpg",
+    "keywords": [
+      "biển",
+      "vui chơi",
+      "chụp ảnh",
+      "nghĩ dưỡng"
+    ]
+  },
+  {
+    "id": "khanh-hoa-thap-ba-ponagar",
+    "name": "Tháp Bà Ponagar",
+    "province": "Khánh Hòa",
+    "description": "Công trình kiến trúc Chăm cổ, nơi du khách có thể tìm hiểu về lịch sử và văn hóa Chăm",
+    "rating": "4.5/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.OHY4mpZ7m_uKpGiC1e9D8wHaF7&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "tháp",
+      "chụp ảnh",
+      "di tích",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "khanh-hoa-thanh-co-dien-khanh",
+    "name": "Thành cổ Diên Khánh",
+    "province": "Khánh Hòa",
+    "description": "Di tích lịch sử với kiến trúc thành cổ độc đáo, được xây dựng từ thời Nguyễn.",
+    "rating": "4.5/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.BzA87w8zdYgM0o41HtKQCQHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "di tích",
+      "lịch sử",
+      "chụp ảnh",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "khanh-hoa-vinwonders-nha-trang",
+    "name": "VinWonders Nha Trang",
+    "province": "Khánh Hòa",
+    "description": "Công viên giải trí trên đảo Hòn Tre, nổi bật với nhiều trò chơi và hoạt động hấp dẫn.",
+    "rating": "4.6/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.5z6-9r5crvDbj01RkeQO2gHaDv&pid=Api&P=0&h=220",
+    "keywords": [
+      "công viên",
+      "vui chơi",
+      "giải trí",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "khanh-hoa-suoi-ba-ho",
+    "name": "Suối Ba Hồ",
+    "province": "Khánh Hòa",
+    "description": "Gồm ba hồ nước trong xanh nằm trên núi, thích hợp cho trekking và tắm suối",
+    "rating": "4.3/5",
+    "image": "https://cdn1.nhatrangtoday.vn/images/photos/kdl-ba-ho-nha-trang-2.jpg",
+    "keywords": [
+      "suối",
+      "chụp ảnh",
+      "vui chơi"
+    ]
+  },
+  {
+    "id": "kien-giang-ao-phu-quoc",
+    "name": "Đảo Phú Quốc",
+    "province": "Kiên Giang",
+    "description": "Là điểm du lịch nổi tiếng nhất Kiên Giang, được mệnh danh là \"Đảo Ngọc\" với nhiều bãi biển đẹp và dịch vụ cao cấp",
+    "rating": "4.8/5",
+    "image": "https://vietnam.travel/sites/default/files/inline-images/du-lich-phu-quoc-thang-10-.jpeg",
+    "keywords": [
+      "đảo",
+      "biển",
+      "chụp ảnh",
+      "nghĩ dưỡng",
+      "vui chơi",
+      "ăn uống"
+    ]
+  },
+  {
+    "id": "kien-giang-bien-mui-nai",
+    "name": "Biển Mũi Nai",
+    "province": "Kiên Giang",
+    "description": "Bãi biển hiền hòa, nơi lý tưởng để thư giãn và ngắm cảnh hoàng hôn",
+    "rating": "4.7/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.Ya_axd_TszOeEk3QppjKMwHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "biển",
+      "vui chơi",
+      "chụp ảnh",
+      "nghĩ dưỡng"
+    ]
+  },
+  {
+    "id": "kien-giang-chua-lang-cat",
+    "name": "Chùa Láng Cát",
+    "province": "Kiên Giang",
+    "description": "Ngôi chùa cổ kính mang đậm dấu ấn Phật giáo.",
+    "rating": "4.4/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.8FZLE40kihfcd4nTAkjEZQHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "chùa",
+      "tham quan",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "kien-giang-vuon-quoc-gia-u-minh-thuong",
+    "name": "Vườn quốc gia U Minh Thượng",
+    "province": "Kiên Giang",
+    "description": "Rừng ngập mặn với hệ sinh thái phong phú, là nơi lý tưởng để khám phá thiên nhiên hoang dã và tham quan bằng thuyền",
+    "rating": "4.6/5",
+    "image": "https://nucuoimekong.com/wp-content/uploads/vuon-quoc-gia-u-minh-thuong-toan-canh.jpg",
+    "keywords": [
+      "rừng",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "kien-giang-mo-chi-su",
+    "name": "Mộ chị Sứ",
+    "province": "Kiên Giang",
+    "description": "Khu di tích lịch sử nổi tiếng, gắn liền với cuộc kháng chiến chống Pháp.",
+    "rating": "4.4/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.TzRGCJsnEfeGXnPqQQFTLgHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "di tích",
+      "lịch sử"
+    ]
+  },
+  {
+    "id": "kon-tum-nha-tho-go-kon-tum",
+    "name": "Nhà Thờ Gỗ Kon Tum",
+    "province": "Kon Tum",
+    "description": "Một biểu tượng của Kon Tum mang kiến trúc độc đáo pha trộn giữa phong cách Roman và nét văn hóa Tây Nguyên",
+    "rating": "4.4/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.RzH7A5ksQ9692U5WrfW10gHaFu&pid=Api&P=0&h=220",
+    "keywords": [
+      "tôn giáo",
+      "tham quan",
+      "chụp ảnh",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "kon-tum-cau-treo-kon-klor",
+    "name": "Cầu Treo Kon Klor",
+    "province": "Kon Tum",
+    "description": "Cây cầu treo lớn và đẹp nhất ở Kon Tum, bắc qua sông Đăk Bla, được bao quanh bởi những cánh đồng lúa và núi rừng xanh mát",
+    "rating": "4.6/5",
+    "image": "https://kontumtrip.com/wp-content/uploads/2021/03/cau-treo-kon-klor-%E2%80%98dai-lua-mau-cam-ben-dong-dak-bla-1615296514-600x600.jpg",
+    "keywords": [
+      "cầu treo",
+      "chụp ảnh",
+      "tham quan"
+    ]
+  },
+  {
+    "id": "kon-tum-vuon-quoc-gia-chu-mom-ray",
+    "name": "Vườn Quốc Gia Chư Mom Ray",
+    "province": "Kon Tum",
+    "description": "Là khu bảo tồn thiên nhiên lớn nhất Việt Nam, nổi bật với hệ sinh thái phong phú, những cánh rừng nguyên sinh và động vật quý hiếm",
+    "rating": "4.5/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.QOcHIfacwNqsrxuaNNlZ4gHaEr&pid=Api&P=0&h=220",
+    "keywords": [
+      "rừng",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "kon-tum-inh-ngoc-linh",
+    "name": "Đỉnh Ngọc Linh",
+    "province": "Kon Tum",
+    "description": "Ngọn núi cao nhất ở Tây Nguyên, thuộc dãy Trường Sơn, là nơi sinh sống của nhiều loài động thực vật quý hiếm.",
+    "rating": "4.4/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.yYzLVlMeUpU6vk_7d0gLjAHaE8&pid=Api&P=0&h=220",
+    "keywords": [
+      "núi",
+      "thám hiểm",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "kon-tum-thac-ak-to",
+    "name": "Thác Đắk Tô",
+    "province": "Kon Tum",
+    "description": "Nằm gần thị trấn Đắk Tô, thác nước này hoang sơ và yên bình, là địa điểm lý tưởng để thư giãn giữa thiên nhiên",
+    "rating": "4.3/5",
+    "image": "https://cdn.tgdd.vn/Files/2023/09/11/1546829/du-lich-dak-to-kon-tum-di-dau-5-dia-diem-duoc-yeu-thich-202309112252096063.jpg",
+    "keywords": [
+      "thác",
+      "suối",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lai-chau-eo-o-quy-ho",
+    "name": "Đèo Ô Quy Hồ",
+    "province": "Lai Châu",
+    "description": "Một trong \"Tứ đại đỉnh đèo\" của Tây Bắc, Đèo Ô Quy Hồ nối liền Lào Cai và Lai Châu, nổi tiếng với cảnh sắc tuyệt đẹp và độ cao hùng vĩ",
+    "rating": "4.5/5",
+    "image": "https://www.kynghidongduong.vn/userfiles/images/Vietnam/Sapa/deo-o-quy-ho-sapa-kynghidongduong.vn%20(02).jpg",
+    "keywords": [
+      "đèo",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lai-chau-inh-pu-ta-leng",
+    "name": "Đỉnh Pu Ta Leng",
+    "province": "Lai Châu",
+    "description": "Đỉnh núi cao thứ hai Việt Nam (3.049m), thuộc dãy Hoàng Liên Sơn, được mệnh danh là \"nóc nhà thứ hai\" của Đông Dương.",
+    "rating": "4.6/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.BiJgl7PpikStQvCnsbFBnQHaEc&pid=Api&P=0&h=220",
+    "keywords": [
+      "núi",
+      "thám hiểm",
+      "chụp ảnh",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "lai-chau-canh-ong-muong-than",
+    "name": "Cánh đồng Mường Than",
+    "province": "Lai Châu",
+    "description": "Vào mùa lúa chín, cánh đồng Mường Than rực rỡ sắc vàng, tạo nên một bức tranh thiên nhiên thơ mộng",
+    "rating": "4.7/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.9LboGnBOwneYQW4KMBKl9gHaEK&pid=Api&P=0&h=220",
+    "keywords": [
+      "cánh đồng",
+      "chụp ảnh",
+      "tham quan"
+    ]
+  },
+  {
+    "id": "lai-chau-ho-thuy-ien-lai-chau",
+    "name": "Hồ Thủy Điện Lai Châu",
+    "province": "Lai Châu",
+    "description": "Hồ nước nhân tạo khổng lồ được tạo nên từ công trình Thủy điện Lai Châu, nằm giữa khung cảnh núi non thơ mộng.",
+    "rating": "4.5/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.l_QHXHqnrJUG2mNIawZdzAHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "hồ thủy điện",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lai-chau-cho-phien-sin-ho",
+    "name": "Chợ phiên Sìn Hồ",
+    "province": "Lai Châu",
+    "description": "Nơi diễn ra các hoạt động mua bán nhộn nhịp của các dân tộc Thái, H’Mông, Dao, Lự...",
+    "rating": "4.3/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.DttHClSeqyAUJH2yDY5JVAHaE7&pid=Api&P=0&h=220",
+    "keywords": [
+      "chợ",
+      "ăn uống",
+      "tham quan",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "lam-ong-ho-xuan-huong",
+    "name": "Hồ Xuân Hương",
+    "province": "Lâm Đồng",
+    "description": "Biểu tượng của Đà Lạt, hồ nằm ngay trung tâm thành phố, bao quanh bởi rừng thông và những vườn hoa.",
+    "rating": "4.7/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.chmIO_bl-TWTEivpGFWdCAHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "Hồ",
+      "chụp ảnh",
+      "tham quan",
+      "vui chơi"
+    ]
+  },
+  {
+    "id": "lam-ong-thien-vien-truc-lam",
+    "name": "Thiền Viện Trúc Lâm",
+    "province": "Lâm Đồng",
+    "description": "Một thiền viện nổi tiếng tọa lạc gần Hồ Tuyền Lâm, mang kiến trúc thanh tịnh và không gian yên bình.",
+    "rating": "4.6/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.0pUp5Fpj3xerMHL6wzKj_QHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "chùa",
+      "tham quan",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "lam-ong-cho-em-a-lat",
+    "name": "Chợ Đêm Đà Lạt",
+    "province": "Lâm Đồng",
+    "description": "Chợ đêm Đà Lạt là nơi bạn có thể thưởng thức đặc sản như bánh tráng nướng, sữa đậu nành và mua quà lưu niệm.",
+    "rating": "4.8/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.nBiR1UiYs6NlbrXhm_FL5wHaE6&pid=Api&P=0&h=220",
+    "keywords": [
+      "chợ",
+      "ăn uống",
+      "tham quan",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "lam-ong-dinh-bao-ai",
+    "name": "Dinh Bảo Đại",
+    "province": "Lâm Đồng",
+    "description": "Một trong ba dinh thự của vua Bảo Đại tại Đà Lạt, mang phong cách kiến trúc Pháp tinh tế.",
+    "rating": "4.5/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.FGJV3cBpn9MxjuFGoEEKZAHaE8&pid=Api&P=0&h=220",
+    "keywords": [
+      "di tích",
+      "lịch sử",
+      "văn hóa",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lam-ong-thac-voi",
+    "name": "Thác Voi",
+    "province": "Lâm Đồng",
+    "description": "Tọa lạc ở Nam Ban, thác Voi hùng vĩ và hoang sơ, là nơi lý tưởng cho những ai yêu thích khám phá thiên nhiên.",
+    "rating": "4.5/5",
+    "image": "https://agotourist.com/wp-content/uploads/2022/05/thac-voi-duoc-chung-nhan-la-thang-canh-quoc-gia.jpg",
+    "keywords": [
+      "thác",
+      "suối",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lang-son-ong-tam-thanh",
+    "name": "Động Tam Thanh",
+    "province": "Lạng Sơn",
+    "description": "Được mệnh danh là \"Đệ nhất bát cảnh Xứ Lạng\"các nhũ đá kỳ thú và nhiều di tích cổ như tượng Phật A Di Đà cao 2m được tạc từ thế kỷ 15.",
+    "rating": "4.2/5",
+    "image": "https://cdn.vntrip.vn/cam-nang/wp-content/uploads/2017/03/Tam-Thanh.jpg",
+    "keywords": [
+      "động",
+      "tham quan",
+      "thám hiểm",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lang-son-cho-ong-kinh",
+    "name": "Chợ Đông Kinh",
+    "province": "Lạng Sơn",
+    "description": "Là trung tâm thương mại lớn nhất ở Lạng Sơn, nổi tiếng với các mặt hàng phong phú",
+    "rating": "4.5/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.jIAxzffR49430SWWKToE6wHaEx&pid=Api&P=0&h=220",
+    "keywords": [
+      "chợ",
+      "ăn uống",
+      "tham quan",
+      "văn hóa",
+      "mua sắm"
+    ]
+  },
+  {
+    "id": "lang-son-cua-khau-huu-nghi",
+    "name": "Cửa khẩu Hữu Nghị",
+    "province": "Lạng Sơn",
+    "description": "Đây là cửa khẩu quốc tế lớn giữa Việt Nam và Trung Quốc, nằm trên tuyến quốc lộ 1A.",
+    "rating": "4.7/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.Wf6JQTisUsMbq6-2euQeKQHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "mua sắm",
+      "văn hóa",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lang-son-eo-bong-lau",
+    "name": "Đèo Bông Lau",
+    "province": "Lạng Sơn",
+    "description": "Là một cung đèo đẹp với những khúc cua uốn lượn và khung cảnh thiên nhiên ngoạn mục.",
+    "rating": "4.2/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.bjd29nTPNt90j6mM3SC0qAHaEX&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lang-son-chua-tien",
+    "name": "Chùa Tiên",
+    "province": "Lạng Sơn",
+    "description": "Chùa Tiên nằm trên núi Đại Tượng, gắn liền với nhiều câu chuyện huyền thoại và mang đậm dấu ấn Phật giáo.",
+    "rating": "4.3/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.FxWdyg8edX5JSQPZPlZ8dwHaE7&pid=Api&P=0&h=220",
+    "keywords": [
+      "chùa",
+      "tham quan",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "lao-cai-inh-nui-fansipan",
+    "name": "Đỉnh Núi Fansipan",
+    "province": "Lào Cai",
+    "description": "Fansipan được mệnh danh là “Nóc nhà Đông Dương” với độ cao 3.147m.",
+    "rating": "4.8/5",
+    "image": "https://limtravel.vn/wp-content/uploads/2020/10/tour-leo-nui-fansipan-3-1.jpg",
+    "keywords": [
+      "núi",
+      "tham quan",
+      "thám hiểm",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lao-cai-cong-troi-o-quy-ho",
+    "name": "Cổng Trời Ô Quy Hồ",
+    "province": "Lào Cai",
+    "description": "Đèo Ô Quy Hồ là một trong \"Tứ đại đỉnh đèo\" của Tây Bắc, nối liền Lào Cai và Lai Châu.",
+    "rating": "4.5/5",
+    "image": "https://media.techcity.cloud/vietnam.vn/2023/09/cong-troi-o-quy-ho-sapa_26-09-2022_175234433.jpg",
+    "keywords": [
+      "đèo",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lao-cai-cho-phien-bac-ha",
+    "name": "Chợ phiên Bắc Hà",
+    "province": "Lào Cai",
+    "description": "Chợ phiên Bắc Hà nổi tiếng với các mặt hàng thổ cẩm, nông sản và các món ăn đặc trưng của người dân tộc H’Mông, Dao.",
+    "rating": "4.3/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.4K8zaZgInJkSkftXRLz_-wHaFA&pid=Api&P=0&h=220",
+    "keywords": [
+      "chợ",
+      "tham quan",
+      "ăn uống",
+      "mua sắm"
+    ]
+  },
+  {
+    "id": "lao-cai-thac-tinh-yeu",
+    "name": "Thác Tình Yêu",
+    "province": "Lào Cai",
+    "description": "Là một điểm đến lãng mạn với dòng nước trong xanh chảy qua rừng nguyên sinh.",
+    "rating": "4.5/5",
+    "image": "https://docmiendatnuoc.com/wp-content/uploads/2019/07/thac-tinh-yeu-sapa-1.jpg",
+    "keywords": [
+      "thác",
+      "suối",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "lao-cai-en-thuong",
+    "name": "Đền Thượng",
+    "province": "Lào Cai",
+    "description": "Là nơi thờ Trần Hưng Đạo, vị tướng tài ba trong lịch sử Việt Nam.",
+    "rating": "4.3/5",
+    "image": "https://52hz.vn/wp-content/uploads/2023/01/31-den-thuong-lao-cai-chinh-dien.jpg",
+    "keywords": [
+      "đền",
+      "tham quan",
+      "chụp ảnh",
+      "lịch sử"
+    ]
+  },
+  {
+    "id": "long-an-lang-noi-tan-lap",
+    "name": "Làng nổi Tân Lập",
+    "province": "Long An",
+    "description": "Là khu rừng tràm ngập nước rộng lớn, nổi tiếng với con đường xuyên rừng dài gần 5km.",
+    "rating": "4.4/5",
+    "image": "https://disantrangan.vn/wp-content/uploads/2021/05/lang_noi_tan_lap_18-1600x1066.jpg",
+    "keywords": [
+      "rừng",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "long-an-nha-co-tram-cot",
+    "name": "Nhà cổ Trăm Cột",
+    "province": "Long An",
+    "description": "Là một ngôi nhà cổ độc đáo với 120 cột gỗ quý được chạm khắc tinh xảo.",
+    "rating": "4.5/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.E5QmqrexARskIuVpHN_f3wHaFR&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "chụp ảnh",
+      "văn hóa",
+      "di tích"
+    ]
+  },
+  {
+    "id": "long-an-chua-ton-thanh",
+    "name": "Chùa Tôn Thạnh",
+    "province": "Long An",
+    "description": "Ngôi chùa này là nơi cụ Nguyễn Đình Chiểu từng ở và sáng tác bài văn tế \"Văn tế nghĩa sĩ Cần Giuộc\".",
+    "rating": "4.6/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.4g4eE5ZOp5g9_9DlwrJZrwHaEw&pid=Api&P=0&h=220",
+    "keywords": [
+      "chùa",
+      "tham quan",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "long-an-song-vam-co",
+    "name": "Sông Vàm Cỏ",
+    "province": "Long An",
+    "description": "Hai dòng sông lớn chảy qua Long An tạo nên vẻ đẹp sông nước đặc trưng.",
+    "rating": "4.2/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.ZorRqKgh2xWA02dJByJFpQHaEK&pid=Api&P=0&h=220",
+    "keywords": [
+      "sông",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "long-an-cho-em-tan-an",
+    "name": "Chợ đêm Tân An",
+    "province": "Long An",
+    "description": "Là nơi lý tưởng để thưởng thức ẩm thực địa phương và mua sắm các đặc sản Long An",
+    "rating": "4.7/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.pqR8Xckg_RDQQn2YZLpmegHaEK&pid=Api&P=0&h=220",
+    "keywords": [
+      "chợ",
+      "tham quan",
+      "ăn uống",
+      "mua sắm"
+    ]
+  },
+  {
+    "id": "nam-inh-nha-tho-phu-nhai",
+    "name": "Nhà thờ Phú Nhai",
+    "province": "Nam Đinh",
+    "description": "Là một trong những nhà thờ lớn và cổ kính nhất Việt Nam, mang phong cách kiến trúc Gothic đặc sắc.",
+    "rating": "4.5/5",
+    "image": "https://photo-cms-vovworld.zadn.vn/w500/Uploaded/vovworld/yzfsm/2020_01_10/kpvn014_AXJU.jpg",
+    "keywords": [
+      "nhà thờ",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "nam-inh-en-tran",
+    "name": "Đền Trần",
+    "province": "Nam Đinh",
+    "description": "Nằm tại phường Lộc Vượng, thành phố Nam Định, đền Trần thờ các vua nhà Trần, gắn liền với lịch sử hào hùng của triều đại này.",
+    "rating": "4.3/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.CNccGQUyOTTpBixYdfCL5wHaE7&pid=Api&P=0&h=220",
+    "keywords": [
+      "đền",
+      "tham quan",
+      "chụp ảnh",
+      "lịch sử"
+    ]
+  },
+  {
+    "id": "nam-inh-vuon-quoc-gia-xuan-thuy",
+    "name": "Vườn quốc gia Xuân Thủy",
+    "province": "Nam Đinh",
+    "description": "Đây là khu bảo tồn thiên nhiên nằm ở huyện Giao Thủy, thuộc vùng hạ lưu sông Hồng.",
+    "rating": "4.6/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.DfkyYRBhnuiU-rR43dUeJAHaFS&pid=Api&P=0&h=220",
+    "keywords": [
+      "rừng",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "nam-inh-cho-vieng",
+    "name": "Chợ Viềng",
+    "province": "Nam Đinh",
+    "description": "Là phiên chợ đặc biệt chỉ diễn ra một lần trong năm vào đêm mùng 7, rạng sáng mùng 8 tháng Giêng âm lịch.",
+    "rating": "4.6/5",
+    "image": "https://phuday.com/wp-content/uploads/2020/01/cho-vieng-phu-day-nam-dinh-768x432.jpg",
+    "keywords": [
+      "chợ",
+      "tham quan",
+      "ăn uống",
+      "mua sắm"
+    ]
+  },
+  {
+    "id": "nam-inh-ho-vi-xuyen",
+    "name": "Hồ Vị Xuyên",
+    "province": "Nam Đinh",
+    "description": "Hồ nằm trong thành phố Nam Định, là một địa điểm lý tưởng để thư giãn, đi dạo, thưởng thức không gian xanh và yên bình.",
+    "rating": "4.5/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.mrQZh6uVh3jWDHuvlXNjHwHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "hồ",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "nghe-an-lang-sen",
+    "name": "Làng Sen",
+    "province": "Nghệ An",
+    "description": "Là một ngôi nhà tranh đơn sơ, giếng Cốc, và những kỷ vật gắn liền với thời thơ ấu của Bác.",
+    "rating": "4.7/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.3gHvKfVcK1kovpdqLo2OtwAAAA&pid=Api&P=0&h=220",
+    "keywords": [
+      "lịch sử",
+      "tham quan",
+      "di tích",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "nghe-an-bai-bien-cua-lo",
+    "name": "Bãi biển Cửa Lò",
+    "province": "Nghệ An",
+    "description": "Một trong những bãi biển đẹp nhất miền Trung, Cửa Lò thu hút du khách với cát trắng mịn, nước biển trong xanh và hải sản tươi ngon.",
+    "rating": "4.6/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.hzSUzcdB1G9w2e52jf6HHAHaD-&pid=Api&P=0&h=220",
+    "keywords": [
+      "biển",
+      "vui chơi",
+      "chụp ảnh",
+      "nghĩ dưỡng"
+    ]
+  },
+  {
+    "id": "nghe-an-khu-di-tich-truong-bon",
+    "name": "Khu di tích Truông Bồn",
+    "province": "Nghệ An",
+    "description": "Là một di tích lịch sử quan trọng, nơi tưởng nhớ các anh hùng liệt sĩ đã hy sinh trong cuộc kháng chiến chống Mỹ.",
+    "rating": "4.5/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.XdhDVeaTTt6NYVOiOOHpSAHaEK&pid=Api&P=0&h=220",
+    "keywords": [
+      "lịch sử",
+      "tham quan",
+      "di tích",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "nghe-an-oi-che-thanh-chuong",
+    "name": "Đồi chè Thanh Chương",
+    "province": "Nghệ An",
+    "description": "Được mệnh danh là \"đảo chè\", đồi chè Thanh Chương là địa điểm lý tưởng để chụp ảnh và tận hưởng không khí trong lành.",
+    "rating": "4.5/5",
+    "image": "https://cdn.vntrip.vn/cam-nang/wp-content/uploads/2017/08/doi-che-thanh-chuong.jpg",
+    "keywords": [
+      "đồi",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "nghe-an-hang-tham-om",
+    "name": "Hang Thẩm Ồm",
+    "province": "Nghệ An",
+    "description": "Là một hang động lớn, với nhiều thạch nhũ kỳ ảo, hình thù độc đáo.",
+    "rating": "4.3/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.dqYi6NCHovDo0Srdp6NMwQHaE8&pid=Api&P=0&h=220",
+    "keywords": [
+      "hang động",
+      "thám hiểm",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "ninh-binh-trang-an",
+    "name": "Tràng An",
+    "province": "Ninh Bình",
+    "description": "Là Di sản Văn hóa và Thiên nhiên thế giới, Tràng An nổi bật với cảnh núi non hùng vĩ và hệ thống hang động độc đáo.",
+    "rating": "4.6/5",
+    "image": "https://dulichninhbinh.com.vn/mypicture/images/2020/10/Trang-An-2.jpg",
+    "keywords": [
+      "tham quan",
+      "chụp ảnh",
+      "văn hóa",
+      "di tích"
+    ]
+  },
+  {
+    "id": "ninh-binh-tam-coc",
+    "name": "Tam Cốc",
+    "province": "Ninh Bình",
+    "description": "Được mệnh danh là \"vịnh Hạ Long trên cạn\", với cảnh sắc thiên nhiên tuyệt đẹp của núi đá vôi, cánh đồng lúa, và dòng sông Ngô Đồng.",
+    "rating": "4.7/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.e1wQWQ7OBNItnMauRi6uwgHaEo&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "chụp ảnh",
+      "văn hóa",
+      "di tích"
+    ]
+  },
+  {
+    "id": "ninh-binh-co-o-hoa-lu",
+    "name": "Cố đô Hoa Lư",
+    "province": "Ninh Bình",
+    "description": "Là kinh đô của nước Đại Cồ Việt dưới triều Đinh và Tiền Lê, Hoa Lư lưu giữ nhiều di tích lịch sử quan trọng",
+    "rating": "4.5/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.HKYPnw54Dsgh0XZTqKPKyQHaE7&pid=Api&P=0&h=220",
+    "keywords": [
+      "lịch sử",
+      "tham quan",
+      "di tích",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "ninh-binh-vuon-quoc-gia-cuc-phuong",
+    "name": "Vườn quốc gia Cúc Phương",
+    "province": "Ninh Bình",
+    "description": "Là vườn quốc gia đầu tiên của Việt Nam với hệ động thực vật phong phú, những cây cổ thụ nghìn năm tuổi và các hang động tiền sử.",
+    "rating": "4.8/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.V7YRaVEqqQndhpDcL0tNSQHaD8&pid=Api&P=0&h=220",
+    "keywords": [
+      "rừng",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "ninh-binh-ho-ong-chuong",
+    "name": "Hồ Đồng Chương",
+    "province": "Ninh Bình",
+    "description": "Hồ Đồng Chương là một hồ nước tự nhiên nằm giữa rừng thông, rất yên bình và thơ mộng.",
+    "rating": "4.3/5",
+    "image": "https://dulichdiaphuong.com/imgs/tinh-ninh-binh/ho-dong-chuong.jpg",
+    "keywords": [
+      "Hồ",
+      "chụp ảnh",
+      "tham quan",
+      "vui chơi"
+    ]
+  },
+  {
+    "id": "ninh-thuan-vinh-vinh-hy",
+    "name": "Vịnh Vĩnh Hy",
+    "province": "Ninh Thuận",
+    "description": "Một trong bốn vịnh đẹp nhất Việt Nam, Vĩnh Hy gây ấn tượng bởi nước biển trong xanh, bãi cát trắng mịn, và các rạn san hô rực rỡ.",
+    "rating": "4.6/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.1gJ08quIQVapIDmYLV1GRgHaE7&pid=Api&P=0&h=220",
+    "keywords": [
+      "vịnh",
+      "tham quan",
+      "chụp ảnh",
+      "nghĩ dưỡng",
+      "vui chơi"
+    ]
+  },
+  {
+    "id": "ninh-thuan-vuon-quoc-gia-nui-chua",
+    "name": "Vườn quốc gia Núi Chúa",
+    "province": "Ninh Thuận",
+    "description": "Là khu bảo tồn thiên nhiên với hệ sinh thái rừng khô hạn độc đáo, được UNESCO công nhận là Khu dự trữ sinh quyển thế giới.",
+    "rating": "4.7/5",
+    "image": "https://media.mia.vn/uploads/blog-du-lich/vuon-quoc-gia-nui-chua-khu-du-tru-sinh-quyen-moi-cua-the-gioi-1-1658800083.jpg",
+    "keywords": [
+      "rừng",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "ninh-thuan-thap-po-klong-garai",
+    "name": "Tháp Po Klong Garai",
+    "province": "Ninh Thuận",
+    "description": "Đây là nơi thờ vua Po Klong Garai, thể hiện kiến trúc và nghệ thuật điêu khắc tinh xảo của người Chăm.",
+    "rating": "4.5/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.LO2tIYILI_ngw7Kxfq0L7AHaE5&pid=Api&P=0&h=220",
+    "keywords": [
+      "tháp",
+      "tham quan",
+      "chụp ảnh",
+      "di tích"
+    ]
+  },
+  {
+    "id": "ninh-thuan-vuon-nho-ninh-thuan",
+    "name": "Vườn nho Ninh Thuận",
+    "province": "Ninh Thuận",
+    "description": "Là các vườn nho nổi tiếng với nhiều sản phầm nho được sản xuất tại đây",
+    "rating": "4.2/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.6FjDfpDUcJ0jZrJAVJKVGQHaEK&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "ăn uống",
+      "mua sắm",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "ninh-thuan-ho-ba-be",
+    "name": "Hồ Ba Bể",
+    "province": "Ninh Thuận",
+    "description": "Là hồ nước mặn lớn ở Ninh Thuận, nơi sinh sống của nhiều loài thủy sản quý hiếm",
+    "rating": "4.5/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.tZEynIwFJnKOPgKiAntpigHaEK&pid=Api&P=0&h=220",
+    "keywords": [
+      "Hồ",
+      "chụp ảnh",
+      "tham quan",
+      "vui chơi"
+    ]
+  },
+  {
+    "id": "phu-tho-en-hung",
+    "name": "Đền Hùng",
+    "province": "Phú Thọ",
+    "description": "Là khu di tích lịch sử quốc gia đặc biệt, nơi thờ các vua Hùng – những người dựng nước đầu tiên của dân tộc Việt Nam.",
+    "rating": "4.7/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.14_huh2INyBfjWTu11d8hAHaDX&pid=Api&P=0&h=220",
+    "keywords": [
+      "đền",
+      "tham quan",
+      "chụp ảnh",
+      "lịch sử"
+    ]
+  },
+  {
+    "id": "phu-tho-lang-co-hung-lo",
+    "name": "Làng cổ Hùng Lô",
+    "province": "Phú Thọ",
+    "description": "Nổi tiếng với các ngôi nhà cổ hàng trăm năm tuổi, cùng các nghề truyền thống như làm bánh chưng, bánh giầy.",
+    "rating": "4.5/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.PuN6PGPDxH26j32lV3PDNwHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "làng cổ",
+      "tham quan",
+      "lịch sử",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "phu-tho-ao-ngoc-xanh",
+    "name": "Đảo Ngọc Xanh",
+    "province": "Phú Thọ",
+    "description": "Là khu du lịch sinh thái kết hợp nghỉ dưỡng, với cảnh quan thiên nhiên trong lành, công viên nước, trò chơi cảm giác mạnh và khu suối nước nóng",
+    "rating": "4.7/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.7efND2yzFvvpeKQnvS52ygHaEb&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "chụp ảnh",
+      "nghĩ dưỡng",
+      "vui chơi",
+      "ăn uống"
+    ]
+  },
+  {
+    "id": "phu-tho-vuon-quoc-gia-xuan-son",
+    "name": "Vườn quốc gia Xuân Sơn",
+    "province": "Phú Thọ",
+    "description": "Là một trong những khu bảo tồn thiên nhiên lớn nhất miền Bắc, nổi bật với hệ sinh thái rừng nhiệt đới và các loài động, thực vật phong phú",
+    "rating": "4.6/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.P0f3XiQklTZTeh11_svtbwHaFt&pid=Api&P=0&h=220",
+    "keywords": [
+      "rừng",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "phu-tho-suoi-nuoc-nong-thanh-thuy",
+    "name": "Suối nước nóng Thanh Thủy",
+    "province": "Phú Thọ",
+    "description": "Là khu vực có các dịch vụ nghỉ dưỡng và trị liệu hiện đại.",
+    "rating": "4.5/5",
+    "image": "https://tuongtaccongdong.s3.amazonaws.com/a4c1ca5a-cbd3-4f89-a276-0a70527ffa7a/79554a07-25ed-475e-b814-d62ae7bd06ea.jpg",
+    "keywords": [
+      "suối",
+      "chụp ảnh",
+      "vui chơi",
+      "nghĩ dưỡng"
+    ]
+  },
+  {
+    "id": "phu-yen-ganh-a-ia",
+    "name": "Gành Đá Đĩa",
+    "province": "Phú Yên",
+    "description": "Một kỳ quan thiên nhiên độc đáo, Gành Đá Đĩa nổi bật với những cột đá bazan xếp chồng lên nhau như những chiếc đĩa.",
+    "rating": "4.7/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.wBFmyTIu6USelBkHI5SOBQHaE7&pid=Api&P=0&h=220",
+    "keywords": [
+      "biển",
+      "vui chơi",
+      "chụp ảnh",
+      "tham quan"
+    ]
+  },
+  {
+    "id": "phu-yen-hon-yen",
+    "name": "Hòn Yến",
+    "province": "Phú Yên",
+    "description": "Là một hòn đảo nhỏ với cảnh quan hoang sơ, nổi bật với những rạn san hô tuyệt đẹp.",
+    "rating": "4.6/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.5r-1v-qQkq4A7RZF8ZALHgHaE7&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "chụp ảnh",
+      "vui chơi"
+    ]
+  },
+  {
+    "id": "phu-yen-hai-ang-ai-lanh",
+    "name": "Hải đăng Đại Lãnh",
+    "province": "Phú Yên",
+    "description": "Là điểm cực Đông của Việt Nam, nơi đón ánh bình minh đầu tiên trên đất liền",
+    "rating": "4.5/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.Q7kI4toZEEYCxS-pM3yRfgHaDX&pid=Api&P=0&h=220",
+    "keywords": [
+      "biển",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "phu-yen-suoi-nuoc-nong-triem-uc",
+    "name": "Suối nước nóng Triêm Đức",
+    "province": "Phú Yên",
+    "description": "Là một điểm đến thú vị để thư giãn và ngâm mình trong làn nước khoáng ấm áp.",
+    "rating": "4.6/5",
+    "image": "https://tripmap.vn/wp-content/uploads/2021/07/suoi-nuoc-khoang-triem-duc-1626245826513.jpg",
+    "keywords": [
+      "suối",
+      "tham quan",
+      "nghĩ dưỡng",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "phu-yen-thap-nhan",
+    "name": "Tháp Nhạn",
+    "province": "Phú Yên",
+    "description": "Tháp Nhạn nằm trên núi Nhạn ở thành phố Tuy Hòa, là một công trình kiến trúc Chăm cổ kính và linh thiêng.",
+    "rating": "4.4/5",
+    "image": "https://tse3.mm.bing.net/th?id=OIP.j7Y3zi_M9U91OkWt3Da8zQHaJQ&pid=Api&P=0&h=220",
+    "keywords": [
+      "tháp",
+      "tham quan",
+      "chụp ảnh",
+      "di tích"
+    ]
+  },
+  {
+    "id": "quang-binh-ong-phong-nha",
+    "name": "Động Phong Nha",
+    "province": "Quảng Bình",
+    "description": "Phong Nha - Kẻ Bàng, được UNESCO công nhận là Di sản Thiên nhiên Thế giới.",
+    "rating": "4.8/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.JdKfzuou2kznDok9wau7EQHaD8&pid=Api&P=0&h=220",
+    "keywords": [
+      "động",
+      "tham quan",
+      "thám hiểm",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "quang-binh-bai-a-nhay",
+    "name": "Bãi Đá Nhảy",
+    "province": "Quảng Bình",
+    "description": "Là nơi nổi bật với những khối đá có hình thù độc đáo bên bờ biển.",
+    "rating": "4.4/5",
+    "image": "https://cdn3.ivivu.com/2023/04/bai-da-nhay-ivivu-1.jpg",
+    "keywords": [
+      "biển",
+      "tham quan",
+      "chụp ảnh"
+    ]
+  },
+  {
+    "id": "quang-binh-en-thanh-mau-lieu-hanh",
+    "name": "Đền Thánh Mẫu Liễu Hạnh",
+    "province": "Quảng Bình",
+    "description": "Là nơi linh thiêng thờ vị thánh trong tín ngưỡng dân gian Việt Nam.",
+    "rating": "4.3/5",
+    "image": "https://tse2.mm.bing.net/th?id=OIP.lCVtkvtMPFPPCOoehvKPqgHaFj&pid=Api&P=0&h=220",
+    "keywords": [
+      "đền",
+      "tham quan",
+      "chụp ảnh",
+      "lịch sử"
+    ]
+  },
+  {
+    "id": "quang-binh-nha-luu-niem-ai-tuong-vo-nguyen-giap",
+    "name": "Nhà lưu niệm Đại tướng Võ Nguyên Giáp",
+    "province": "Quảng Bình",
+    "description": "Là nơi lưu giữ những kỷ vật gắn bó với tuổi thơ của Đại tướng Võ Nguyên Giáp.",
+    "rating": "4.5/5",
+    "image": "https://tse4.mm.bing.net/th?id=OIP.PCk93VVT5QVj78DW3MA54AHaE8&pid=Api&P=0&h=220",
+    "keywords": [
+      "lịch sử",
+      "tham quan",
+      "di tích",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "quang-binh-song-chay",
+    "name": "Sông Chày",
+    "province": "Quảng Bình",
+    "description": "Là điểm đến lý tưởng cho những người yêu thích phiêu lưu, Sông Chày kết hợp giữa vẻ đẹp sông nước và hang động.",
+    "rating": "4.4/5",
+    "image": "https://tse1.mm.bing.net/th?id=OIP.5-sP9bg-nnIa5GiTqFgWXQHaEK&pid=Api&P=0&h=220",
+    "keywords": [
+      "tham quan",
+      "chụp ảnh",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "quang-nam-pho-co-hoi-an",
+    "name": "Phố cổ Hội An",
+    "province": "Quảng Nam",
+    "description": "Những ngôi nhà cổ kính và có kiến trúc độc đáo như: những ngôi nhà lợp ngối đá, nhưng bức tường vàng mang lại vẻ đẹp\nyên bình. Đặt biệt bạn có thể thư dãn dạo bước với những đường nhỏ hẹp quanh sông Hoài",
+    "rating": "4.7/5",
+    "image": "http://surl.li/tocerf",
+    "keywords": [
+      "cổ kính",
+      "ngối đá",
+      "tường vàng",
+      "đường nhỏ hẹp",
+      "sông Hoài"
+    ]
+  },
+  {
+    "id": "quang-nam-bai-bien-an-bang",
+    "name": "Bãi biển An Bàng",
+    "province": "Quảng Nam",
+    "description": "Sở hữu vẻ đẹp yên bình, hoang sơ với những bãi các vàng, biển xanh, khí hậu vô cùng mát mẻ và trong lành.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/hdwlva",
+    "keywords": [
+      "biển",
+      "cát vàng",
+      "mát mẻ",
+      "yên bình",
+      "hoang sơ"
+    ]
+  },
+  {
+    "id": "quang-nam-thap-chien-an",
+    "name": "Tháp Chiên Đàn",
+    "province": "Quảng Nam",
+    "description": "Hiểu hơn về văn hóa Champa, sở hữu một nhà trưng bày nhưng tác phẩm điêu khắc tiêu biểu, vô vàn những món đồ quý hiếm",
+    "rating": "3.5/5",
+    "image": "http://surl.li/sdynak",
+    "keywords": [
+      "Champa",
+      "điêu khắc",
+      "quý hiếm"
+    ]
+  },
+  {
+    "id": "quang-nam-inh-que",
+    "name": "Đỉnh Quế",
+    "province": "Quảng Nam",
+    "description": "Với độ cao 1400km, được coi là ngọn núi đẹp nhất của Trường Sơn hùng vĩ, bạn có thể đắm chìm vào không gian cảnh sắt\nthiên nhiên tươi đẹp. Bạn như lạc vào chốn bồng lai tiên cảnh, yên bình và lãng mạn vô cùng. Đặt biệt dọc để lên được Đỉnh Quế, bạn sẽ lần lượt sở hữu những bức tranh đẹp tại cổng trời Azứt, thác Ra-ai hay cộng đồng Cơ Tu.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/ympldh",
+    "keywords": [
+      "núi",
+      "thiên nhiên",
+      "hùng vĩ",
+      "tiên cảnh",
+      "yên bình",
+      "Trường Sơn",
+      "Azứt",
+      "Ra-ai",
+      "Cơ Tu",
+      "lãng mạn"
+    ]
+  },
+  {
+    "id": "quang-nam-thanh-ia-my-son",
+    "name": "Thánh Địa Mỹ Sơn",
+    "province": "Quảng Nam",
+    "description": "Một thung lũng có đường kính 2km, Nơi đây bao quanh là núi đồi, vô cùng ẩn mình. Địa điểm này từng là nơi tổ chức cúng tế \nvương triều Champa. Khám quá nhiều di sản quý báu khi đến nới đây.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/qntmjh",
+    "keywords": [
+      "thung lũng",
+      "2km",
+      "núi đồi",
+      "ẩn mình",
+      "cúng tế",
+      "Champa",
+      "di sản"
+    ]
+  },
+  {
+    "id": "quang-ngai-nui-thien-an",
+    "name": "Núi Thiên Ấn",
+    "province": "Quảng Ngãi",
+    "description": "Là một ngọn núi từ lâu đã rất nổi tiếng với khung cảnh hùng vĩ và mang lại một giá trị lịch sử vô cùng lớn lao, với vẻ đẹp thơ\nmộng và dịu dàng mà nó mang lại là điểm đặc biệt hu hút khách du lịch hàng năm.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/xvbmjs",
+    "keywords": [
+      "núi",
+      "lâu đời",
+      "hùng vĩ",
+      "lịch sử",
+      "thơ mộng",
+      "diệu dàng."
+    ]
+  },
+  {
+    "id": "quang-ngai-bai-bien-my-khe",
+    "name": "Bãi biển Mỹ Khê",
+    "province": "Quảng Ngãi",
+    "description": "Một trong những bãi biển quyến rũ nhất hành tinh, nơi đây có nhiều khách sạn view biển đẹp mắt phù hợp để tận hưởng kì nghỉ",
+    "rating": "4.5/5",
+    "image": "http://surl.li/exhizd",
+    "keywords": [
+      "biển",
+      "quyến rũ",
+      "kì nghỉ",
+      "khách sạn",
+      "trắng phao"
+    ]
+  },
+  {
+    "id": "quang-ngai-ong-muoi-sa-huynh",
+    "name": "Đồng muối Sa Huỳnh",
+    "province": "Quảng Ngãi",
+    "description": "Vựa muối quan trọng nhất miền Trung thân yêu của chúng ta, những bãi muối trắng phao, đến nơi đây bạn sẽ được trãi nghiệm các hoạt động hằng ngày\ncủa bà con nơi đây, hứa hẹn sẽ mang lại cho bạn những trãi nghiệm rất khác so với các hoạt động du lịch như lên rừng hay xuống biển.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/coczhv",
+    "keywords": [
+      "muối",
+      "hoạt động",
+      "miền Trung",
+      "trãi nghiệm"
+    ]
+  },
+  {
+    "id": "quang-ngai-thac-trang",
+    "name": "Thác Trắng",
+    "province": "Quảng Ngãi",
+    "description": "Khùng cảnh ở đây ấn tượng với rừng núi hoang sơ, trong lành, dòng thác đổ xuống giữa khung cảnh bao quanh là biết bao cây cối sông suối tung bọt trắng xóa",
+    "rating": "4.0/5",
+    "image": "http://surl.li/vifezm",
+    "keywords": [
+      "rừng núi",
+      "hoang sơ",
+      "thác",
+      "cây cối",
+      "sông"
+    ]
+  },
+  {
+    "id": "quang-ngai-eo-vi-o-lac",
+    "name": "Đèo Vi O Lắc",
+    "province": "Quảng Ngãi",
+    "description": "Nằm cao hơn 1300m so với mực nước biển, sự quanh co uốn lượn của các cung đường cùng với không khí thơ mộng luôn mang đến nhưng vẻ đẹp tuyệt mỹ cùng hàng cỏ xanh tươi mọc hai bên đường khi du khách đi lên đèo là nhưng nét ấn tượng nhất, thú vị nhất",
+    "rating": "4.0/5",
+    "image": "http://surl.li/izldds",
+    "keywords": [
+      "đèo",
+      "thơ mộng",
+      "quanh co",
+      "uốn lượn",
+      "cung đường",
+      "1300m"
+    ]
+  },
+  {
+    "id": "quang-ninh-vinh-ha-long",
+    "name": "Vịnh Hạ Long",
+    "province": "Quảng Ninh",
+    "description": "Là một trong những di sản thiên nhiên thế giới được UNESCO công nhận. Với diện tích 1553km2, gần 2000 hòn đảo lớn nhỏ, \nvịnh Hạ Long được thiên nhiên ưu ái có hệ thống hang động và đảo đá vừa đa dạng lại tuyệt đẹp.",
+    "rating": "4.8/5",
+    "image": "http://surl.li/oadeki",
+    "keywords": [
+      "UNESCO",
+      "đảo",
+      "hang động",
+      "đảo đá"
+    ]
+  },
+  {
+    "id": "quang-ninh-bien-bai-chay",
+    "name": "Biển Bãi Cháy",
+    "province": "Quảng Ninh",
+    "description": "Bãi Cháy luôn thu hút rất nhiều du khách đến tham quan trải nghiệm và tắm biển. Bãi biển cùng đã có thêm những hoạt động thể thao trên biển như cano, dù bay hay nhà phao để du khách có thể tận hưởng những dịch vụ cao cấp hơn.",
+    "rating": "3.9/5",
+    "image": "http://surl.li/saniob",
+    "keywords": [
+      "Bãi biển",
+      "tắm biển",
+      "dù bay",
+      "nhà phao"
+    ]
+  },
+  {
+    "id": "quang-ninh-cong-vien-ha-long",
+    "name": "Công viên Hạ Long",
+    "province": "Quảng Ninh",
+    "description": "Du lịch Hạ Long thì chắc chắn không nên bỏ qua Sun World Halong Park - khu phức hợp giải trí nổi tiếng dành cho mọi lứa tuổi. Nếu bạn đã từng đến VinWonders thì công viên Hạ Long cũng là một thiên đường tương tự như vậy, nhưng sẽ náo nhiệt hơn nhiều nhé.",
+    "rating": "4.4/5",
+    "image": "http://surl.li/kdadyl",
+    "keywords": [
+      "công viên",
+      "náo nhiệt",
+      "giải trí"
+    ]
+  },
+  {
+    "id": "quang-ninh-lang-chai-cua-van",
+    "name": "Làng chài Cửa Vạn",
+    "province": "Quảng Ninh",
+    "description": "Không chỉ được tận hưởng không gian yên tĩnh, thanh bình nơi đây, du khách còn có thêm những hiểu biết về đời sống văn hóa, thường nhật của các ngư dân. Ngư dân ở đây hết sức thân thiện và mến khách. Hành khách có thể chèo thuyền thúng, cắt cá, câu mực… để hiểu hơn cuộc sống dân chài.",
+    "rating": "4.6/5",
+    "image": "http://surl.li/mxcags",
+    "keywords": [
+      "yên tĩnh",
+      "thanh bình",
+      "đời sống",
+      "văn hóa",
+      "ngư dân",
+      "thân thiện",
+      "mến khách",
+      "chèo thuyền",
+      "cắt cá",
+      "câu mực"
+    ]
+  },
+  {
+    "id": "quang-ninh-ong-thien-cung",
+    "name": "Động Thiên Cung",
+    "province": "Quang Ninh",
+    "description": "Với cấu trúc nhiều tầng, nhiều lớp phức tạp, các khối nhũ đá ở đây có nhiều hình dáng kỳ lạ. Hang động này đã được đầu tư\n hệ thống chiếu sáng đầy đủ. Hình ảnh chim muông, hoa lá, hình ảnh sinh hoạt đời thường của con người được chạm khắc bên trong động. Nhiều dấu tích khảo cổ đã được tìm thấy chứng minh cho những giá trị lịch sử quan trọng qua các thời kỳ.",
+    "rating": "4.4/5",
+    "image": "http://surl.li/pzwmqk",
+    "keywords": [
+      "nhũ đá",
+      "chạm khắc",
+      "dấu tích",
+      "khảo cỗ",
+      "lịch sử"
+    ]
+  },
+  {
+    "id": "quang-tri-nghia-trang-liet-si-quoc-gia-truong-son",
+    "name": "Nghĩa trang Liệt sĩ Quốc gia Trường Sơn",
+    "province": "Quảng Trị",
+    "description": "Địa điểm ghi dấu ấn về những mất mát, minh chứng cho những gì tàn bạo nhất của giặc ngoại xâm. Nơi này đã đi vào lịch sử, biểu tượng của sự bi tráng và lòng anh dũng của những con người yêu nước, đặt sự độc lập và vận mệnh dân tộc lên hàng đầu.",
+    "rating": "4.8/5",
+    "image": "http://surl.li/mebyuu",
+    "keywords": [
+      "ghi dấu",
+      "mất mác",
+      "minh chứng",
+      "tàn bạo",
+      "lịch sử",
+      "anh dũng",
+      "yêu nước",
+      "độc lập",
+      "vận mệnh."
+    ]
+  },
+  {
+    "id": "quang-tri-ia-ao-vinh-moc",
+    "name": "Địa đạo Vịnh Mốc",
+    "province": "Quảng Trị",
+    "description": "Công trình này ở sâu lòng đất, được người dân đào trong kháng chiến chống Mỹ. Địa đạo gồm có nhiều khu vực như trường học, kho hậu cần, bệnh viện, khu quân sự và khu gia đình.",
+    "rating": "4.6/5",
+    "image": "http://surl.li/ogxfcj",
+    "keywords": [
+      "sâu",
+      "lòng đất",
+      "kháng chiến"
+    ]
+  },
+  {
+    "id": "quang-tri-bai-bien-cua-tung",
+    "name": "Bãi biển Cửa Tùng",
+    "province": "Quảng Trị",
+    "description": "Mùa hè đến bãi biển này, bạn sẽ thấy được nét đẹp bình yên của biển xanh, cát trắng. Khung cảnh tĩnh lặng vào buổi chiều hoàng hôn khiến bao trái tim bị mê hoặc.",
+    "rating": "4.3/5",
+    "image": "http://surl.li/bxuyel",
+    "keywords": [
+      "Bãi biển",
+      "biển xanh",
+      "cát trắng",
+      "tĩnh lặng"
+    ]
+  },
+  {
+    "id": "quang-tri-oi-hoa-mien-vien-thao",
+    "name": "Đồi hoa Miền Viên Thảo",
+    "province": "Quảng Trị",
+    "description": "Nổi bật với cánh đồng hoa rực rỡ và nở rộ quanh năm. Thời tiết ở đây cực kỳ mát mẻ nên việc trồng hoa khá thuận lợi. Địa điểm du lịch Quảng Trị có đủ hoa hồng, cúc họa mi, hoa cải vàng. Đặc biệt, nếu bạn yêu thích hoa tam giác mạch thì không thể bỏ hoa Miền Viên Thảo.",
+    "rating": "4.3/5",
+    "image": "http://surl.li/cidfnv",
+    "keywords": [
+      "Cánh đồng hoa",
+      "thích hoa",
+      "mát mẻ"
+    ]
+  },
+  {
+    "id": "quang-tri-inh-cu-vo",
+    "name": "Đỉnh Cu Vơ",
+    "province": "Quảng Trị",
+    "description": "Rất thích hợp cho nhóm bạn đi phượt. Cực kì thu hút các bạn trẻ đến để săn mây. Vào buổi sáng sớm, đứng ở ngọn núi, mở ra trước mắt bạn là những tầng mây trắng. Khoảnh khắc ánh nắng mặt trời rọi xuống thực sự đẹp biết bao.",
+    "rating": "",
+    "image": "http://surl.li/yoyuch",
+    "keywords": [
+      "Đồi",
+      "săn mây",
+      "phượt",
+      "núi",
+      "mây trắng"
+    ]
+  },
+  {
+    "id": "soc-trang-cho-noi-nga-nam",
+    "name": "Chợ nổi Ngã Năm",
+    "province": "Sóc Trăng",
+    "description": "bày bán đủ các loại mặt hàng từ thực phẩm cho đến nhu yếu phầm. Đặc biệt hơn hết, không thể không nhắc đến các ghe/ xuồng đầy ắp các loại trái cây nhiệt \nđới đặc trưng tùy mùa.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/sgckjk",
+    "keywords": [
+      "thực phẩm",
+      "mặt hàng",
+      "ghe",
+      "xuồng",
+      "mùa"
+    ]
+  },
+  {
+    "id": "soc-trang-chua-doi",
+    "name": "Chùa Dơi",
+    "province": "Sóc Trăng",
+    "description": "Kiến trúc của ngôi chùa này được xem là tiêu biểu của Phật giáo Nam tông Khmer, chùa được xây dựng vào thế kỷ 16 nhưng cho đến nay toàn bộ công trình còn giữ được tình trạng tốt và vẫn là nơi sinh hoạt tôn giáo mang ý nghĩa quan trọng của người dân trong vùng. Điều Đặc biệt khi đi đây là du khách sẽ thấy hàng nghìn con dơi khá lớn treo mình trên cây trong khuôn viên chùa giống như chúng đã quen thuộc với nơi này vậy",
+    "rating": "4.5/5",
+    "image": "http://surl.li/tkcaxe",
+    "keywords": [
+      "chùa",
+      "Phật giáo",
+      "con dơi"
+    ]
+  },
+  {
+    "id": "soc-trang-vuon-co-tan-long",
+    "name": "Vườn cò Tân Long",
+    "province": "Sóc Trăng",
+    "description": "Với quang cảnh thiên nhiên hoang sơ và hệ sinh thái động thực vật đa dạng. Đặc biệt là các giống loài cò quý hiếm.",
+    "rating": "4.2/5",
+    "image": "http://surl.li/acmlvm",
+    "keywords": [
+      "hoang sơ",
+      "cò",
+      "quý hiếm"
+    ]
+  },
+  {
+    "id": "soc-trang-bien-ho-be",
+    "name": "Biển Hồ Bể",
+    "province": "Sóc Trăng",
+    "description": "Khu vực này được hình thành do sự bãi bồi và quá trình xâm lấn của nước biển, làm nên một vùng hồ trũng rộng lớn. Bãi biển\n hồ này còn được thiên nhiên ưu ái bằng một bờ cát trắng dài hàng cây số. Do chưa đưa vào khai thác du lịch mạnh, bãi biển vẫn giữ được nét hoang sơ, tự nhiên vốn có mang lại sự yên bình, tự do cho du khách",
+    "rating": "4.3/5",
+    "image": "http://surl.li/urzgei",
+    "keywords": [
+      "xâm lấn",
+      "hồ trũng",
+      "cát trắng",
+      "hoang sơ",
+      "bình yên"
+    ]
+  },
+  {
+    "id": "soc-trang-chua-som-rong",
+    "name": "Chùa Som Rong",
+    "province": "Sóc Trăng",
+    "description": "Là một nơi đặc biệt quan trọng không chỉ do tín ngưỡng tôn giáo, mà còn do ngôi chùa này có một thư viện lớn với hơn 1500 đầu sách, phục vụ cho các bạn thiếu nhi, bà con tại nơi này. Ngôi bảo tháp được phủ một màu xám huyền bí thay vì màu vàng thường gặp; Pho tượng phật nằm dài hơn 63 mét, cao hơn mặt đất khoảng 28 mét, cộng thêm chiều cao 22 mét khiến cho pho tượng vô cùng uy nghi; chùa Som Rong thường được nhiều khách du lịch lựa chọn ghé thăm",
+    "rating": "4.5/5",
+    "image": "http://surl.li/btdhtl",
+    "keywords": [
+      "tín ngưỡng",
+      "tôn giáo",
+      "bảo tháp",
+      "tượng"
+    ]
+  },
+  {
+    "id": "son-la-moc-chau",
+    "name": "Mộc Châu",
+    "province": "Sơn La",
+    "description": "với đặc sản là những mùa hoa ban, hoa anh đào, hoa mận, hoa cải vàng… tràn ngập hương sắc. Mộc Châu cũng là cái tên kinh điển nhất khi nhắc đến du lịch vùng Tây Bắc với cung đường phượt đẹp như tranh vẽ",
+    "rating": "4.5/5",
+    "image": "http://surl.li/dzxuss",
+    "keywords": [
+      "hoa đào",
+      "hoa mận",
+      "đường phượt"
+    ]
+  },
+  {
+    "id": "son-la-ngu-ong-ban-ong",
+    "name": "Ngũ động bản Ông",
+    "province": "Sơn La",
+    "description": "Đây là hệ thống gồm 5 hang động được người dân địa phương phát hiện lần đầu tiên vào năm 2006. Vì tại đây chưa có nhiều dịch vụ du lịch nên những hang động vẫn giữ được vẻ đẹp hoang sơ, huyền bí. Bên trong hang được điểm xuyến bởi những khối đá nhũ thạch khổng lồ với hình thù độc đáo.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/pdnwji",
+    "keywords": [
+      "động",
+      "hoang sơ",
+      "huyền bí",
+      "đá nhũ hạch"
+    ]
+  },
+  {
+    "id": "son-la-rung-thong-ban-ang",
+    "name": "Rừng thông bản Áng",
+    "province": "Sơn La",
+    "description": "Khu rừng có tổng diện tích lên đến 43ha với bầu không khí trong lành và khung cảnh thông xanh trập trùng trông rất mát mắt. \nBạn có thể trải nghiệm cắm trại qua đêm tại rừng thông bản Áng để thỏa sức hít thở khí trời se lạnh và đón mình bình.",
+    "rating": "4.3/5",
+    "image": "http://surl.li/piwwef",
+    "keywords": [
+      "rừng",
+      "thông",
+      "cắm trại",
+      "bản Áng"
+    ]
+  },
+  {
+    "id": "son-la-thac-dai-yem",
+    "name": "Thác Dải Yếm",
+    "province": "Sơn La",
+    "description": "Thác cao hơn 100m, chia thành 2 tầng chính. Trong đó tầng thứ nhất có tổng cộng 9 bậc, tầng thứ hai có 5 bậc. Vào độ từ tháng 4 đến tháng 10 hàng năm, khi lượng nước đổ về nhiều sẽ tạo nên những dòng chạy mạnh mẽ, tung bọt trắng xóa rất đẹp mắt",
+    "rating": "4.6/5",
+    "image": "http://surl.li/uvrsec",
+    "keywords": [
+      "dòng chảy",
+      "thác"
+    ]
+  },
+  {
+    "id": "son-la-inh-ta-xua",
+    "name": "Đỉnh Tà Xua",
+    "province": "Sơn La",
+    "description": "Từ trên đỉnh, bạn có thể phóng tầm mắt chiêm ngưỡng khung cảnh hùng vĩ xung quanh với những dải ruộng bậc thang xanh mướt, thấp thoáng xa xa là mái lá khói bếp, tay có thể chạm đến mây trời.",
+    "rating": "4.8/5",
+    "image": "http://surl.li/hpreeq",
+    "keywords": [
+      "đỉnh",
+      "ruộng bậc thang",
+      "mây trời."
+    ]
+  },
+  {
+    "id": "tay-ninh-nui-ba-en",
+    "name": "Núi Bà Đen",
+    "province": "Tây Ninh",
+    "description": "núi Bà Đen còn được biết đến như “nóc nhà” của Nam Bộ với đỉnh cao nhất là 986 m, diện tích 24 km², Nếu yêu thích vẻ đẹp bao la của đất trời, muốn chiêm ngưỡng cảnh đẹp từ trên cao thì có thể lựa chọn di chuyển bằng cáp treo từ chân núi lên đỉnh núi.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/zaoqyj",
+    "keywords": [
+      "nóc nhà",
+      "cáp treo",
+      "núi"
+    ]
+  },
+  {
+    "id": "tay-ninh-toa-thanh-tay-ninh",
+    "name": "Tòa thánh Tây Ninh",
+    "province": "Tây Ninh",
+    "description": "Tòa thánh chính là địa điểm du lịch Tây Ninh dành cho những dân phượt muốn tìm hiểu về nét văn hóa và nét kiến trúc tiêu biểu tại nơi đây, Phong cách thiết kế của công trình vô cùng độc đáo, các chi tiết được trạm trổ hoa văn kỳ công và mang nhiều nét biểu tượng cho văn hóa mảnh đất này.",
+    "rating": "4.7/5",
+    "image": "http://surl.li/wqpvnz",
+    "keywords": [
+      "tòa thánh",
+      "kiến trúc",
+      "trạm trổ",
+      "hoa văn"
+    ]
+  },
+  {
+    "id": "tay-ninh-ho-dau-tieng",
+    "name": "Hồ Dầu Tiếng",
+    "province": "Tây Ninh",
+    "description": "Hồ Dầu Tiếng được xây dựng với mục đích cung cấp nước cho sinh hoạt, ngoài ra nơi đây còn là điểm du lịch vô cùng hot với phong cảnh êm đềm, thơ mộng tựa như trong chuyện cổ tích. Bạn sẽ được thả hồn vào khung cảnh thiên nhiên tuyệt đẹp với non nước hữu tình, mây trời hiền hòa, sắc xanh bạt ngàn của màu nước và màu trời. Những ghềnh đá nhấp nhô quanh ốc đảo trên hồ chính là điểm dừng chân và cũng là background tuyệt đẹp cho bạn để sống ảo.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/lftayu",
+    "keywords": [
+      "thiên nhiên",
+      "cung cấp nước",
+      "ghềnh đá",
+      "ốc đảo"
+    ]
+  },
+  {
+    "id": "tay-ninh-thap-chop-mat",
+    "name": "Tháp Chóp Mạt",
+    "province": "Tây Ninh",
+    "description": "Tòa tháp này có kiến trúc rất đặc biệt đó chính là được xây dựng nhỏ dần lên phía trên nhưng lại không hề có đỉnh chóp. Người Óc Eo rất khéo léo và thông minh khi xây dựng công trình, họ không hề chút xi măng nào làm vật liệu kết dính. Khi đến đây tham quan, du khách có thể thoải mái check in tại một không gian vô cùng yên bình và mang nét hoài cổ của địa điểm du lịch Tây Ninh này.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/wnvrio",
+    "keywords": [
+      "tháp",
+      "nhỏ dần",
+      "hoài cổ"
+    ]
+  },
+  {
+    "id": "tay-ninh-vuon-quoc-gia-lo-go-xa-mat",
+    "name": "Vườn quốc gia Lò Gò -  Xa Mát",
+    "province": "Tây Ninh",
+    "description": "tới đây, du khách có thể ngắm nhìn các loài động, thực vật quý hiếm mà bạn khó có cơ hội được nhìn ngắm ngoài đời. Có rất nhiều những loài động vật quý hiếm được liệt kê vào sách đỏ. Ngoài ra, du khách cũng có thể trải nghiệm rất nhiều những hoạt động như đạp xe xuyên rừng, khám phá rừng bằng đường sông,…",
+    "rating": "4.0/5",
+    "image": "http://surl.li/mobftk",
+    "keywords": [
+      "dđộng vật",
+      "thực vật",
+      "quý hiếm",
+      "xuyên rừng"
+    ]
+  },
+  {
+    "id": "thai-binh-chua-keo",
+    "name": "Chùa Keo",
+    "province": "Thái Bình",
+    "description": "Chùa Keo ở Thái Bình được xếp hạng là ngôi chùa cổ đẹp nhất tại Việt Nam. Chùa được xây dựng theo kiến trúc cổ kín từ thời nhà Lê. Chính vì lẽ đó mà chùa Keo được xem là một trong những địa điểm check-in Thái Bình mà bạn nhất định phải đến tham quan.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/ivqjww",
+    "keywords": [
+      "chùa",
+      "cổ kín"
+    ]
+  },
+  {
+    "id": "thai-binh-bai-bien-ong-chau",
+    "name": "Bãi biển Đồng Châu",
+    "province": "Thái Bình",
+    "description": "Còn giữ nguyên vẻ đẹp hoang sơ thì hãy đến với bãi biển Đồng Châu. Với bờ cát trải dài 5km ôm lấy mặt biển mênh mông, xanh mướt đã vẻ nên một địa điểm du lịch độc đáo tại Bắc Trung Bộ. hững chiếc chòi canh nhấp nhô trên mặt nước tạo nên cảnh sắt thật là hữu tình.",
+    "rating": "3.5/5",
+    "image": "http://surl.li/sbizem",
+    "keywords": [
+      "hoang sơ",
+      "cò",
+      "quý hiếm"
+    ]
+  },
+  {
+    "id": "thai-binh-bai-bien-con-en",
+    "name": "Bãi biển Cồn Đen",
+    "province": "Thái Bình",
+    "description": "hình ảnh đẹp nhất của biển và sự hoang sơ của khu rừng nguyên sinh. Đặc biệt, vào thời điểm bình minh và hoàng hôn thì vẻ đẹp nơi đây lại trở nên quyến rũ đến kỳ lạ, lúc này cũng là khoảnh khắc được nhiều người săn đón nhất. Với vẻ đẹp trong lành từ không khí cho đến mặt nước biển trong xanh cùng bãi cát trắng thì đây đích thị là một background cực xịn",
+    "rating": "4.0/5",
+    "image": "http://surl.li/yjhohk",
+    "keywords": [
+      "biển",
+      "hoang sơ",
+      "cát trắng",
+      "quyến rũ"
+    ]
+  },
+  {
+    "id": "thai-binh-nha-tho-bac-trach",
+    "name": "Nhà thờ Bác Trạch",
+    "province": "Thái Bình",
+    "description": "Đây chính là một trong những nhà thờ lớn nhất Việt Nam hiện nay với hoa văn trang trí công phu theo lối kiến trúc Roman. \nVới vẻ đẹp này chắc chắn nhà thờ Bác Trạch là một địa điểm check-in Thái Bình độc đáo dành cho bạn.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/vgxrod",
+    "keywords": [
+      "nhà thờ",
+      "lớn nhất",
+      "Roman"
+    ]
+  },
+  {
+    "id": "thai-binh-lang-det-chieu-hoi",
+    "name": "Làng dệt chiếu Hới",
+    "province": "Thái Bình",
+    "description": "Nổi tiếng với những làng nghề truyền thống gần hàng trăm năm tuổi.  bạn còn được hiểu thêm về cuộc sống giản dị của người dân trong làng. Và bạn sẽ được người dân giới thiệu về quy trình để tạo ra được một một chiếc chiếu truyền thống, từ thu hoạch chế biến cói cho tới khâu thành phẩm. Những trải nghiệm này sẽ là một kỷ niệm khó quên cho chuyến đi của bạn.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/hglflh",
+    "keywords": [
+      "truyền thống",
+      "chiếu."
+    ]
+  },
+  {
+    "id": "thai-nguyen-ho-nui-coc",
+    "name": "Hồ Núi Cốc",
+    "province": "Thái Nguyên",
+    "description": "Du khách có thể trải nghiệm ngồi thuyền thúng, khám phá động Thế giới Cổ tích và Âm phủ, động Ba Cây Thông, tham quan quần thể Thuyết Nhân Quả - Chùa Thiêng Thác Vàng, ngôi chùa nằm trong lòng Phật lớn nhất miền Bắc được ghi nhận kỷ lục Guniess.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/uizspq",
+    "keywords": [
+      "thuyền thúng",
+      "Guniess",
+      "chùa",
+      "tham quan"
+    ]
+  },
+  {
+    "id": "thai-nguyen-oi-che-tan-cuong",
+    "name": "Đồi chè Tân Cương",
+    "province": "Thái Nguyên",
+    "description": "Một trong những địa điểm du lịch Thái Nguyên nổi tiếng chắc chắn không thể quên kể đến đó chính là đồi chè Tân Cương. Đây là một địa điểm thu hút sự quan tâm từ đông đảo khách du lịch nhờ vào cảnh quan thiên nhiên tuyệt đẹp, được bao phủ bởi một sắc xanh mát lạnh. Bất cứ ai đến đồi chè Tân Cương du lịch cũng đều có thể cảm nhận được sự tươi mới từ sâu trong tâm hồn, giúp bạn cảm thấy dễ chịu hơn bao giờ hết.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/hdpzzj",
+    "keywords": [
+      "trè",
+      "xanh",
+      "mát lạnh",
+      "dễ chịu"
+    ]
+  },
+  {
+    "id": "thai-nguyen-ho-mai-mieu",
+    "name": "Hồ Mai Miếu",
+    "province": "Thái Nguyên",
+    "description": "nơi đây vốn được ví như một bức tranh thủy mặc vô cùng ấn tượng với khung cảnh núi non hữu tình khiến lòng người say đắm. Hồ Văn Miếu nổi bật với mặt hồ rộng, nước hồ trong veo kết hợp với cảnh quan kì vĩ xung quanh đã tạo nên một khung cảnh thơ mộng hấp dẫn hơn bao giờ hết. Cũng chỉ vì chưa được tập trung khai thác du lịch mạnh mẽ mà hồ Vai Miếu đã giữ được vẹn nguyên nét đẹp hoang sơ và trữ tình khiến nhiều người say mê.",
+    "rating": "3.5/5",
+    "image": "http://surl.li/jnxjfw",
+    "keywords": [
+      "tranh",
+      "núi",
+      "ấn tượng"
+    ]
+  },
+  {
+    "id": "thai-nguyen-ong-linh-son",
+    "name": "Động Linh Sơn",
+    "province": "Thái Nguyên",
+    "description": "Động Linh Sơn tỉnh Thái Nguyên có diện tích rộng rãi, vào mùa hè rất mát mẻ và mùa đông sẽ ấm áp vô cùng. Động nằm tại khu vực lưng chừng núi đá rộng lớn nên đã được người dân nơi đây lựa chọn xây dựng chùa thờ Phật. Cứ vào các ngày rằm, mùng một, người dân từ Thái Nguyên và nhiều tỉnh thành lân cận khác đều sẽ đến đây dâng hương lễ Phật rất náo nhiệt.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/xogioj",
+    "keywords": [
+      "động",
+      "núi đã"
+    ]
+  },
+  {
+    "id": "thai-nguyen-thac-at-ang",
+    "name": "Thác Đát Đắng",
+    "province": "Thái Nguyên",
+    "description": "bạn sẽ có cảm giác hệt như đang lạc bước vào một không gian mới mẻ, được tránh xa hoàn toàn sự xô bồ và náo nhiệt nơi phố thị. Cảnh núi rừng hùng vĩ, dòng nước xanh trong mát lành chính là những thứ ấn tượng khiến bạn có cảm giác thật sự thư giãn và mong muốn được tận hưởng sự yên bình hiếm thấy này mãi không thôi.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/mxojry",
+    "keywords": [
+      "núi rừng",
+      "bình yên",
+      "thác"
+    ]
+  },
+  {
+    "id": "thanh-hoa-suoi-hieu",
+    "name": "Suối Hiêu",
+    "province": "Thanh Hóa",
+    "description": "Nằm giữa khu rừng xanh mướt và những cánh đồng lúa bình yên, suối Hiêu cứ như thế mà yên ả chảy ríu rít ngày ngày để mang đến một địa điểm check-in Thanh Hóa vô cùng thơ mộng. Như một đóa hồng có gai, suối mang vẻ đẹp quyến rũ đến nao lòng nhưng lại có khả năng hóa đá tạm thời những gì rơi xuống bởi hàm lượng vôi rất cao.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/fpkeqm",
+    "keywords": [
+      "ríu rít",
+      "thơ mộng",
+      "quyến rũ",
+      "đồng lúa"
+    ]
+  },
+  {
+    "id": "thanh-hoa-ruong-bac-thang-pu-luong",
+    "name": "Ruộng bậc thang Pù Luông",
+    "province": "Thanh Hóa",
+    "description": "Đến Thanh Hóa mà không đặt chân đến các đến các ruộng bậc thang Pù Luông để check-in thì thật là một thiếu sót to lớn. Ruộng bậc thang Pù Luông vừa là niềm tự hào của nhân dân ta, vừa là địa điểm check-in Thanh Hóa siêu hot",
+    "rating": "4.7/5",
+    "image": "http://surl.li/zkyyiq",
+    "keywords": [
+      "ruộng bậc thang"
+    ]
+  },
+  {
+    "id": "thanh-hoa-suoi-ca-than-cam-thuy",
+    "name": "Suối cá Thần Cẩm Thủy",
+    "province": "Thanh Hóa",
+    "description": "Suối cá Thần là địa điểm gắn liền với tín ngưỡng của người dân tộc Mường, bởi nơi đây có lượng sinh sống đặc biệt dày đặc. Hiện nay, suối cá cũng đã trở thành một trong những địa điểm check-in Thanh Hóa độc đáo và nổi tiếng mà bạn có thể thêm vào lịch trình của mình nhé.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/bvriuv",
+    "keywords": [
+      "tín ngưỡng",
+      "Mường",
+      "suối"
+    ]
+  },
+  {
+    "id": "thanh-hoa-vuong-quoc-gia-ben-en",
+    "name": "Vường quốc gia Bến En",
+    "province": "Thanh Hóa",
+    "description": "là nơi sinh sống của nhiều loài động thực vật quý hiếm có thể kể đến lim xanh, bù hương, chò chỉ… gấu ngựa, phượng hoàng đất…Vườn Quốc gia Bến En được ví như lá phổi xanh xanh của Thanh Hóa bởi những cánh rừng xanh bất tận. Và xen lẫn vào màu xanh ấy là những hang động, dải núi đá cao gập ghềnh đã tạo nên những địa điểm check-in Thanh Hóa độc đáo và đĩnh đạc nhất.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/jewolc",
+    "keywords": [
+      "lá phổi xanh",
+      "bất tấn",
+      "hang động",
+      "núi đá"
+    ]
+  },
+  {
+    "id": "thanh-hoa-ong-tu-thuc",
+    "name": "Động Từ Thức",
+    "province": "Thanh Hóa",
+    "description": "Đào và được tạo thành từ muôn vàn hình dạng nhũ đá. Sâu bên trong động còn có một hồ nước nhỏ tạo nên một bức tranh vô cùng thơ mộng.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/wbpxdd",
+    "keywords": [
+      "nhũ đá",
+      "hồ nước",
+      "thơ mộng"
+    ]
+  },
+  {
+    "id": "thua-thien-hue-ai-noi-hue",
+    "name": "Đại Nội Huế",
+    "province": "Thừa Thiên Huế",
+    "description": "Nằm ở bờ Bắc của dòng sông Hương thơ mộng trữ tình, Đại Nội Huế với kiến trúc nghệ thuật cung đình và vườn hào độc đáo. Cũng là trung tâm hành chính, chính trị của triều đình nhà Nguyễn và nơi sinh hoạt của nhà vua hoàng gia ngày xưa.",
+    "rating": "4.9/5",
+    "image": "http://surl.li/hwchra",
+    "keywords": [
+      "kiến trúc",
+      "nghệ thuật",
+      "hành chính",
+      "chính trị",
+      "vua"
+    ]
+  },
+  {
+    "id": "thua-thien-hue-chua-thien-mu",
+    "name": "Chùa Thiên Mụ",
+    "province": "Thừa Thiên Huế",
+    "description": "Ngôi chùa này là điểm tham quan Huế nổi tiếng và không thể thiếu trong mọi hành trình đến khám phá Huế của du khách.Cách trung tâm thành phố Huế khoảng 5km về phía Tây, với một tên gọi khác là chùa Linh Mụ, chùa nằm trên đồi Hà Khê, nhìn xuống dòng Hương thơ mộng. Ngôi chùa mang vẻ đẹp cổ kính lâu đời với những khuông viên rộng rãi,khung cảnh thanh tịnh và đặc biệt hình tháp Phước Duyên 7 tầng tại sân trước của chùa được xem là biểu tượng đặc trưng cho thành phố Huế",
+    "rating": "4.5/5",
+    "image": "http://surl.li/erxdid",
+    "keywords": [
+      "chùa",
+      "cổ kính",
+      "Linh Mụ",
+      "lâu đời",
+      "đặc trưng"
+    ]
+  },
+  {
+    "id": "thua-thien-hue-lang-khai-inh",
+    "name": "Lăng Khải Định",
+    "province": "Thừa Thiên Huế",
+    "description": "Nhắc đến Huế người ta không khỏi đề cập đến lăng tẩm thời Nguyễn. Tour du lịch của bạn sẽ thú vị hơn, nếu đừng chân ghé thăm điểm đến Lăng Khải Định. Du khách sẽ được chiêm ngưỡng đỉnh cao nghệ thuật tạo hình sành sứ và thủy tinh rất tinh xảo của bàn tay nghệ nhân thời xưa qua, bởi lẽ. Có thể nói lăng Khải Định là một công trình kết hợp độc đáo giữa kiến trúc Đông – Tây tinh xảo.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/wavyrq",
+    "keywords": [
+      "thời Nguyễn",
+      "tạo hình",
+      "sành sứ",
+      "thủy tinh."
+    ]
+  },
+  {
+    "id": "thua-thien-hue-lang-minh-mang",
+    "name": "Lăng Minh Mạng",
+    "province": "Thừa Thiên Huế",
+    "description": "Lăng Minh Mạng còn gọi là Hiếu Lăng, nằm trên núi Cẩm Khê, gần ngã ba Bằng Lãng là nơi hội lưu của hai dòng Hữu Trạch và Tả Trạch hợp thành sông Hương, cách cố đô Huế 12 km. Lăng Minh Mạng được xây dựng từ năm 1840 đến năm 1843 thì hoàn thành, huy động tới mười nghìn thợ và lính.",
+    "rating": "5.0/5",
+    "image": "http://surl.li/pkhszj",
+    "keywords": [
+      "Cẩm Khê",
+      "nghìn thợ"
+    ]
+  },
+  {
+    "id": "thua-thien-hue-cau-trang-tien",
+    "name": "Cầu Tràng Tiền",
+    "province": "Thừa Thiên Huế",
+    "description": "Một trong những chiếc cầu lâu đời tại Huế và trở thành biểu tượng du lịch của Huế không ai khác chính là cầu Tràng Tiền bắc qua sông Hương thơ mộng cũng là một “nàng thơ” kiều diễm của không ít văn nghệ sĩ trong nước.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/cduiat",
+    "keywords": [
+      "biểu tượng",
+      "lâu đời"
+    ]
+  },
+  {
+    "id": "tien-giang-bien-tan-thanh",
+    "name": "Biển Tân Thành",
+    "province": "Tiền Giang",
+    "description": "với làn nước trong xanh và bãi cát trắng, biển Tân Thành sở hữu vẻ đẹp rất riêng với bãi cát đen dài hơn 7km. Dọc theo bãi biển là cầu cảng màu xanh lam đặc trưng và các khu lưới người dân dựng lên để đánh bắt cá, nghêu…",
+    "rating": "3.5/5",
+    "image": "http://surl.li/rvmwpj",
+    "keywords": [
+      "bãi biển",
+      "xanh làm"
+    ]
+  },
+  {
+    "id": "tien-giang-cau-my-thuan",
+    "name": "Cầu Mỹ Thuận",
+    "province": "Tiền Giang",
+    "description": "Sau 03 năm thi công, cầu Mỹ Thuận được khánh thành vào năm 2000 và là cây cầu dây văng đầu tiên tại Việt Nam. Với kiến trúc đồ sộ, độc đáo, cây cầu đã trở thành địa điểm check-in của bao thế hệ. Dù bạn di chuyển bằng xe máy hay ô tô thì cũng đều có thể sắp xếp lịch trình đi ngang đây và chiêm ngưỡng vẻ đẹp của cây cầu. Đặc biệt, khi màn đêm buông xuống thì cầu sẽ trở nên nổi bật hơn với hệ thống đèn chiếu sáng và trang trí đấy!",
+    "rating": "4.5/5",
+    "image": "http://surl.li/dtzopp",
+    "keywords": [
+      "cầu",
+      "đèn chiếu",
+      "3 năm thi công"
+    ]
+  },
+  {
+    "id": "tien-giang-nha-tho-cai-be",
+    "name": "Nhà Thờ Cái Bè",
+    "province": "Tiền Giang",
+    "description": "Sở hữu nét kiến trúc Roman đặc trưng, nhà thờ Cái Bè không những đóng vai trò quan trọng trong đời sống tôn giáo của người dân nơi đây mà còn là địa điểm tham quan hấp dẫn ở Tiền Giang. Điểm nổi bật nhất của nhà thờ Cái Bè là tháp chuông được xem là cao nhất khu vực Đồng bằng Sông Cửu Long. Ngoài ra, chính diện nhà thờ hướng ra ngã ba sông Cái Bè tựa như đang ôm trọn đất trời. Khuôn viên được bố trí nhiều cây xanh, mang đến cảnh quan đẹp mắt",
+    "rating": "4.0/5",
+    "image": "http://surl.li/noizrb",
+    "keywords": [
+      "kiến trúc Roman",
+      "tôn giáo",
+      "tháo chuông"
+    ]
+  },
+  {
+    "id": "tien-giang-chua-linh-thuu",
+    "name": "Chùa Linh Thứu",
+    "province": "Tiền Giang",
+    "description": "Đây là một trong những ngôi chùa có lịch sử lâu đời nhất tại tỉnh Tiền Giang. Đặc biệt hơn, nơi này gắn liền với câu chuyện thoát chết của vua Gia Long được lưu truyền qua nhiều thế hệ. Đây là một trong những ngôi chùa có lịch sử lâu đời nhất tại tỉnh Tiền Giang. Đặc biệt hơn, nơi này gắn liền với câu chuyện thoát chết của vua Gia Long được lưu truyền qua nhiều thế hệ.",
+    "rating": "4.0/5",
+    "image": "http://surl.li/cdhewg",
+    "keywords": [
+      "lịch sử",
+      "Gia Long",
+      "chùa"
+    ]
+  },
+  {
+    "id": "tien-giang-nha-tho-thanh-toa",
+    "name": "Nhà thờ Thánh Tòa",
+    "province": "Tiền Giang",
+    "description": "Nhà thờ tọa lạc tại số 32 đường Hùng Vương, P.7, TP. Mỹ Tho. Có tuổi đời hơn 100 năm và trải qua nhiều lần trùng tu nhưng nhà thờ chánh tòa Tiền Giang vẫn giữ được nét đẹp cổ kính với những họa tiết tinh xảo và lối kiến trúc Hy Lạp phục hưng đặc trưng.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/migylg",
+    "keywords": [
+      "hơn 100 năm",
+      "trùng tu",
+      "tinh xảo",
+      "Hy lạp"
+    ]
+  },
+  {
+    "id": "tp-ho-chi-minh-cho-ben-thanh",
+    "name": "Chợ Bến Thành",
+    "province": "TP. Hồ Chí Minh",
+    "description": "Đây là một trong những địa điểm du lịch Thành phố Hồ Chí Minh nổi tiếng nhất nằm ngay trung tâm thành phố và luôn tấp nập người ra vào mua bán, du khách check in mỗi ngày. Chợ Bến Thành buôn bán tất tần tật những mặt hàng từ thực phẩm, vải vóc, quần áo, đồ gia dụng, đặc sản Sài Gòn,… và quan trọng là khu ẩm thực cực kỳ hấp dẫn ở chợ và những góc check in ấn tượng sẽ làm bạn luôn muốn lưu lại nơi đây thật lâu.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/xyzzzd",
+    "keywords": [
+      "trung tâm",
+      "mua bán",
+      "chợ"
+    ]
+  },
+  {
+    "id": "tp-ho-chi-minh-dinh-oc-lap",
+    "name": "Dinh Đọc Lập",
+    "province": "TP. Hồ Chí Minh",
+    "description": "Nơi đây đã được công nhận là 1 trong 10 di tích quốc gia đặc biệt của Việt Nam vào năm 2009. Dinh Độc Lập là nơi trưng bày và lưu giữ những hình ảnh, hiện vật giá trị từ những năm của thế kỷ 19 theo từng chủ đề khác nhau. Đặc biệt nơi đây vẫn còn giữ nguyên nội thất của những căn phòng quan trọng như phòng khánh tiết, phòng nội các,....",
+    "rating": "5.0/5",
+    "image": "http://surl.li/okcots",
+    "keywords": [
+      "di tích",
+      "trừng bày"
+    ]
+  },
+  {
+    "id": "tp-ho-chi-minh-nha-tho-uc-ba",
+    "name": "Nhà thờ Đức Bà",
+    "province": "TP. Hồ Chí Minh",
+    "description": "Cũng nằm ngay trung tâm quận 1, nhà thờ Đức Bà là địa điểm du lịch thành phố Hồ Chí Minh mà bạn nhất định phải ghé đến. Nhà thờ Đức Bà là một công trình kiến trúc độc đáo mang đậm phong cách Châu Âu, là nơi sinh hoạt và tổ chức các buổi Thánh lễ cho những người theo đạo Công giáo ở Sài Thành.",
+    "rating": "4.8/5",
+    "image": "http://surl.li/elnblm",
+    "keywords": [
+      "quận 1",
+      "độc đáo"
+    ]
+  },
+  {
+    "id": "tp-ho-chi-minh-bao-tang-lich-su-viet-nam",
+    "name": "Bảo tàng lịch sử Việt Nam",
+    "province": "TP. Hồ Chí Minh",
+    "description": "Bảo tàng lịch sử Việt Nam được xây dựng và hoạt động từ những năm đầu thế kỷ 20, là nơi lưu giữ và bảo tồn những hình ảnh, cổ vật từ thuở sơ khai đến nay. Bảo tàng lịch sử Việt Nam thu hút phần lớn những du khách yêu lịch sử và kiến trúc pha trộn giữa 2 phong cách Á – Âu độc đáo.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/tvoyhe",
+    "keywords": [
+      "lịch sử",
+      "bảo tồn",
+      "cổ vật",
+      "Á - Âu"
+    ]
+  },
+  {
+    "id": "tp-ho-chi-minh-ia-ao-cu-chi",
+    "name": "Địa đạo Củ Chi",
+    "province": "TP. Hồ Chí Minh",
+    "description": "Nơi đây là di tích quốc gia đặc biệt, gắn liền với lịch sử chiến tranh Việt Nam, từng là căn cứ địa quan trọng và cũng là nơi sinh hoạt chung bao gồm bệnh xá, nhà bếp, nơi làm việc,… của quân đội ta trong cuộc kháng chiến chống quân xâm lược, giành lại toàn vẹn lãnh thổ. Bên cạnh đó, bên trong địa đạo Củ Chi còn tái hiện tại cuộc sống của họ qua những qua những mô hình người và vật rất chân thật, ấn tượng. Nơi đây là một trong những điểm đến hấp dẫn của những tour Hồ Chí Minh mà bạn không nên bỏ qua trong chuyến đi của mình.",
+    "rating": "4.5/5",
+    "image": "http://surl.li/ebxvcg",
+    "keywords": [
+      "di tích",
+      "lịch sử",
+      "mô hình",
+      "ấn tượng."
+    ]
+  },
+  {
+    "id": "an-giang-rung-tram-tra-su",
+    "name": "Rừng Tràm Trà Sư",
+    "province": "An Giang",
+    "description": "Khu rừng tràm đẹp nhất và nổi tiếng nhất Việt Nam",
+    "rating": "4,4/5",
+    "image": "https://s.net.vn/PSFP",
+    "keywords": []
+  },
+  {
+    "id": "an-giang-ho-soai-so",
+    "name": "Hồ Soài So",
+    "province": "An Giang",
+    "description": "Hồ nước nhân tạo lớn nhất An Giang",
+    "rating": "4.3/5",
+    "image": "https://s.net.vn/zMn6",
+    "keywords": []
+  },
+  {
+    "id": "an-giang-chua-lau",
+    "name": "Chùa Lầu",
+    "province": "An Giang",
+    "description": "Là một ngôi chùa đã có lịch sử hơn 130 năm",
+    "rating": "4.7/5",
+    "image": "https://s.net.vn/pPll",
+    "keywords": []
+  },
+  {
+    "id": "an-giang-mieu-ba-chua-xu",
+    "name": "Miếu Bà Chúa Xứ",
+    "province": "An Giang",
+    "description": "Miếu Bà Chúa Xứ là một trong những địa điểm tâm linh nổi tiếng nhất An Giang",
+    "rating": "4.3/5",
+    "image": "https://s.net.vn/r9Yr",
+    "keywords": []
+  },
+  {
+    "id": "an-giang-thien-vien-truc-lam",
+    "name": "Thiền Viện Trúc Lâm",
+    "province": "An Giang",
+    "description": "Là một điểm đến tâm linh và du lịch vô cùng hấp dẫn ở miền Tây",
+    "rating": "4.7/5",
+    "image": "https://s.net.vn/0Cyg",
+    "keywords": []
+  },
+  {
+    "id": "ba-ria-vung-tau-nui-dinh-vung-tau",
+    "name": "Núi Dinh Vũng Tàu",
+    "province": "Bà Rịa - Vũng Tàu",
+    "description": "Núi Dinh nổi bật với những vách đá dựng đứng, tạo nên một bức tranh thiên nhiên hùng vĩ",
+    "rating": "4.5/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK5hQDfkci2z3IWc-qBxtVU6KPcIMwYRc7lQ&s",
+    "keywords": []
+  },
+  {
+    "id": "ba-ria-vung-tau-bai-sau",
+    "name": "Bãi Sau",
+    "province": "Bà Rịa - Vũng Tàu",
+    "description": "Bãi Sau được biết đến là một trong những bãi biển đẹp và lớn nhất Việt Nam",
+    "rating": "4.3/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7KnCQZ8kVAgofoujsywHu0xyF-NBMyfHidA&s",
+    "keywords": []
+  },
+  {
+    "id": "ba-ria-vung-tau-ho-tram",
+    "name": "Hồ Tràm",
+    "province": "Bà Rịa - Vũng Tàu",
+    "description": "Là một trong những bãi biển đẹp nhất khu vực miền Nam",
+    "rating": "4.3/5",
+    "image": "https://vcdn1-dulich.vnecdn.net/2024/09/19/cau-Ho-Tram-5872-1726743933.jpg?w=460&h=0&q=100&dpr=2&fit=crop&s=ga2oqi-VuSpZfMneC_YG6Q",
+    "keywords": []
+  },
+  {
+    "id": "ba-ria-vung-tau-suoi-o",
+    "name": "Suối Ồ",
+    "province": "Bà Rịa - Vũng Tàu",
+    "description": "Nơi đây nổi tiếng với vẻ đẹp hiếm có, vừa có suối nước ngọt, vừa có bãi biển nước mặn giao hòa trong cùng một khu vực.",
+    "rating": "3.5/5",
+    "image": "https://luhanhvietnam.com.vn/du-lich/vnt_upload/news/10_2022/suoi-o-an-giang.jpg",
+    "keywords": []
+  },
+  {
+    "id": "ba-ria-vung-tau-con-ao-vung-tau",
+    "name": "Côn Đảo Vũng Tàu",
+    "province": "Bà Rịa - Vũng Tàu",
+    "description": "Là một quần đảo nổi tiếng với vẻ đẹp thiên nhiên hoang sơ, mà còn mang đậm dấu ấn lịch sử với các di tích gắn liền thời kỳ chiến tranh.",
+    "rating": "4.6/5",
+    "image": "https://condao.com.vn/uploads/news/2023_03/toan-canh-thi-tran-con-dao_1.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-giang-chua-co-bo-a",
+    "name": "Chùa cổ Bồ Đà",
+    "province": "Bắc Giang",
+    "description": "Là một trong những ngôi chùa cổ nổi tiếng và đặc sắc nhất vùng Kinh Bắc",
+    "rating": "4.5/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRS1BhO9oORxURb02dkvJIwVfm1Fy4TQFzJdg&s",
+    "keywords": []
+  },
+  {
+    "id": "bac-giang-thac-thum-thum",
+    "name": "Thác Thùm Thùm",
+    "province": "Bắc Giang",
+    "description": "Là một điểm đến hoang sơ và tuyệt đẹp giữa lòng thiên nhiên",
+    "rating": "4.6/5",
+    "image": "https://nld.mediacdn.vn/S5KKUQrkCvT6Eb8lVn0QdkQXCW1U7p/Image/2012/11/thacThumthum_38879.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-giang-ho-cam-son",
+    "name": "Hồ Cấm Sơn",
+    "province": "Bắc Giang",
+    "description": "Là một trong những hồ nước ngọt lớn nhất miền Bắc Việt Nam",
+    "rating": "4.3/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2023/09/Ho-Cam-Son-2.png?tr=c-at_max?tr=c-at_max",
+    "keywords": []
+  },
+  {
+    "id": "bac-giang-en-trung",
+    "name": "Đền Trung",
+    "province": "Bắc Giang",
+    "description": "Đây là một trong ba ngôi đền chính thờ các vua Hùng và gắn liền với truyền thuyết dựng nước của dân tộc Việt Nam",
+    "rating": "4.2/5",
+    "image": "https://static.vinwonders.com/production/den-trung-ba-vi-6.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-giang-ho-khuon-than",
+    "name": "Hồ Khuôn Thần",
+    "province": "Bắc Giang",
+    "description": "Là một điểm đến lý tưởng với vẻ đẹp thiên nhiên thơ mộng và không khí trong lành",
+    "rating": "4.8/5",
+    "image": "https://media.mybacgiang.vn/resources/portal//Images/BGG/annn.bgg/%C4%90%E1%BB%8Ba%20%C4%91i%E1%BB%83m/H%E1%BB%93%20Khu%C3%B4n%20Th%E1%BA%A7n/136958118051a2267c8942b_636828172277177207.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-kan-ho-ba-be",
+    "name": "Hồ Ba Bể",
+    "province": "Bắc Kạn",
+    "description": "Hồ Ba Bể là hồ nước ngọt lớn nhất Việt Nam",
+    "rating": "4.7/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrQ6YAFJJdX2oBI1bRf6xLlQoBezJNbvWUyw&s",
+    "keywords": []
+  },
+  {
+    "id": "bac-kan-ong-puong",
+    "name": "Động Puông",
+    "province": "Bắc Kạn",
+    "description": "Là một hang động đẹp với những thạch nhũ kỳ vĩ",
+    "rating": "4.9/5",
+    "image": "https://backan.gov.vn/SiteCollectionDocuments/Dong-Puong--3B7-34c8aefd0a9f.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-kan-thac-au-ang",
+    "name": "Thác Đầu Đẳng",
+    "province": "Bắc Kạn",
+    "description": "Đây là địa điểm du lịch sinh thái lý tưởng.",
+    "rating": "4.3/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2022/10/thac-dau-dang-1.jpg?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "bac-kan-ban-pac-ngoi",
+    "name": "Bản Pác Ngòi",
+    "province": "Bắc Kạn",
+    "description": "Đây là một bản làng của người Tày, nổi bật với nét văn hóa truyền thống",
+    "rating": "4.6/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2023/11/ban-pac-ngoi-2.jpg?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "bac-kan-ong-nang-tien",
+    "name": "Động Nàng Tiên",
+    "province": "Bắc Kạn",
+    "description": "Đây là một hang động kỳ vĩ với thạch nhũ hình dạng đa dạng, gắn liền với truyền thuyết về nàng tiên xinh đẹp.",
+    "rating": "4.2/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2023/11/dong-nang-tien-4.png?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "bac-lieu-chua-quan-e",
+    "name": "Chùa Quan Đế",
+    "province": "Bạc Liêu",
+    "description": "Là một ngôi chùa cổ kính, thờ Quan Công – một vị tướng nổi tiếng trong lịch sử Trung Quốc",
+    "rating": "4.4/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3TOKOlNtvhExvWc2nlN8dZ6yeyH9KKd1kPw&s",
+    "keywords": []
+  },
+  {
+    "id": "bac-lieu-bien-bac-lieu",
+    "name": "Biển Bạc Liêu",
+    "province": "Bạc Liêu",
+    "description": "Biển Bạc Liêu có bờ biển dài, là một điểm đến du lịch nghỉ dưỡng tuyệt vời tại miền Tây Nam Bộ",
+    "rating": "3.3/5",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/bien-bac-lieu-dep-1699487868.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-lieu-cay-xoai-co-thu",
+    "name": "Cây Xoài Cổ Thụ",
+    "province": "Bạc Liêu",
+    "description": "Đây là cây xoài lớn tuổi, được xem là biểu tượng của sự trường thọ và thịnh vượng.",
+    "rating": "4.4/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdKmG6YklkV9Ez1d2Dl2jpE5oJ02SO6vT6gw&s",
+    "keywords": []
+  },
+  {
+    "id": "bac-lieu-nha-cong-tu-bac-lieu",
+    "name": "Nhà Công tử Bạc Liêu",
+    "province": "Bạc Liêu",
+    "description": "Ngôi nhà này từng là nơi sinh sống của công tử Bạc Liêu, một nhân vật nổi tiếng trong lịch sử.",
+    "rating": "4.3/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2023/03/nha-cong-tu-bac-lieu-1.jpg?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "bac-lieu-ong-ho-thai-duong",
+    "name": "Đồng Hồ Thái Dương",
+    "province": "Bạc Liêu",
+    "description": "Đồng Hồ Thái Dương là một công trình kiến trúc đặc biệt tại Hà Nội, mang ý nghĩa biểu tượng về thời gian và vũ trụ.",
+    "rating": "4.8/5",
+    "image": "https://filedltpbl.baclieu.gov.vn//Upload/NewsImage/R637964323666900687.png",
+    "keywords": []
+  },
+  {
+    "id": "bac-ninh-chua-phat-tich",
+    "name": "Chùa Phật Tích",
+    "province": "Bắc Ninh",
+    "description": "Đây là một trong những ngôi chùa cổ, gắn liền với lịch sử Phật giáo Việt Nam.",
+    "rating": "4.3/5",
+    "image": "https://owa.bestprice.vn/images/destinations/uploads/chua-phat-tich-600fc98393ec1.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-ninh-chua-but-thap",
+    "name": "Chùa Bút Tháp",
+    "province": "Bắc Ninh",
+    "description": "Chùa Bút Tháp nằm ở Bắc Ninh, là một ngôi chùa nổi tiếng với kiến trúc độc đáo và tượng Phật Bà Quan Âm.",
+    "rating": "4.6/5",
+    "image": "https://bacninh.gov.vn/documents/135051/27556595/Butthap1.jpg/715b96c9-a9ab-43b6-ae18-8f7424283cf0?t=1599724975786",
+    "keywords": []
+  },
+  {
+    "id": "bac-ninh-lang-tranh-ong-ho",
+    "name": "Làng tranh Đông Hồ",
+    "province": "Bắc Ninh",
+    "description": "Làng tranh Đông Hồ ở Bắc Ninh là nơi sản xuất tranh dân gian nổi tiếng, với những bức tranh phản ánh đời sống nông thôn Việt Nam.",
+    "rating": "4.9/5",
+    "image": "https://gaohouse.vn/wp-content/uploads/2024/07/lang-tranh-dong-ho.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-ninh-en-ba-chua-kho",
+    "name": "Đền bà Chúa Kho",
+    "province": "Bắc Ninh",
+    "description": "Đền Bà Chúa Kho ở Bắc Ninh là nơi thờ bà Chúa Kho, một trong những vị thần được thờ cúng linh thiêng nhất ở Việt Nam",
+    "rating": "4.1/5",
+    "image": "https://denbachuakho.com.vn/wp-content/uploads/2021/09/den-ba-chua-kho-tho-ai.jpg",
+    "keywords": []
+  },
+  {
+    "id": "bac-ninh-cho-ninh-hiep",
+    "name": "Chợ Ninh Hiệp",
+    "province": "Bắc Ninh",
+    "description": "Chợ Ninh Hiệp là một trong những khu chợ nổi tiếng nhất miền Bắc, chuyên buôn bán các mặt hàng vải vóc, quần áo.",
+    "rating": "4.4/5",
+    "image": "https://davitrans.com/images/2020/10/27/cho-ninh-hiep-hn.jpg",
+    "keywords": []
+  },
+  {
+    "id": "ben-tre-khu-du-lich-con-phung",
+    "name": "khu du lịch Cồn Phụng",
+    "province": "Bến Tre",
+    "description": "Cồn Phụng nằm ở Bến Tre, nổi bật với phong cảnh sông nước miệt vườn, vườn dừa và các hoạt động du lịch sinh thái.",
+    "rating": "4.9/5",
+    "image": "https://gaohouse.vn/wp-content/uploads/2023/07/khu_du_lich_con_phung_de3cc60e04844e7da58abea32a4ddecd_grande.jpg",
+    "keywords": []
+  },
+  {
+    "id": "ben-tre-khu-lang-mo-cu-nguyen-inh-chieu",
+    "name": "Khu lăng mộ cụ Nguyễn Đình Chiểu",
+    "province": "Bến Tre",
+    "description": "Khu lăng mộ Nguyễn Đình Chiểu ở Bến Tre là nơi yên nghỉ của nhà thơ, nhà văn nổi tiếng.",
+    "rating": "4.3/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRzKE0ChEgtsYxNyAIp89N1Cd1UxZjo_2-7w&s",
+    "keywords": []
+  },
+  {
+    "id": "ben-tre-chua-tuyen-linh",
+    "name": "Chùa Tuyên Linh",
+    "province": "Bến Tre",
+    "description": "Chùa Tuyên Linh ở Quảng Ninh là một ngôi chùa nổi tiếng với cảnh quan yên bình và kiến trúc đặc sắc.",
+    "rating": "4.6/5",
+    "image": "https://baocantho.com.vn/image/fckeditor/upload/2024/20240526/images/Anh%201%20(40).webp",
+    "keywords": []
+  },
+  {
+    "id": "ben-tre-nha-tho-la-ma",
+    "name": "Nhà thờ La Mã",
+    "province": "Bến Tre",
+    "description": "Nhà thờ La Mã ở Hà Nội là một công trình kiến trúc phương Tây, nổi bật với phong cách gothic đặc trưng.",
+    "rating": "4.7/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYWPE1YGk-lQofS0oFZKX9ycbGzCixlhMD7w&s",
+    "keywords": []
+  },
+  {
+    "id": "ben-tre-khu-du-lich-sinh-thai-vuon-ba-ngoi",
+    "name": "Khu du lịch sinh thái vườn Ba Ngói",
+    "province": "Bến Tre",
+    "description": "Là khu du lịch sinh thái nổi bật ở Bến Tre, thu hút du khách với không gian xanh mát, thiên nhiên hoang sơ và các hoạt động vui chơi giải trí hấp dẫn.",
+    "rating": "4.3/5",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/khu-du-lich-vuon-ba-ngoi-voi-khong-gian-song-nuoc-huu-tinh-3-1667357530.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-inh-bai-tam-quy-nhon",
+    "name": "Bãi tắm Quy Nhơn",
+    "province": "Bình Định",
+    "description": "Bãi tắm Quy Nhơn là một trong những bãi biển đẹp của miền Trung, nổi tiếng với cát trắng mịn và nước biển trong xanh.",
+    "rating": "4.1/5",
+    "image": "https://quynhontourist.com/wp-content/uploads/2019/01/kinh-nghiem-du-lich-quy-nhon-1-ngay-quy-nhon-tourist.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-inh-bien-ky-co",
+    "name": "Biển Kỳ Co",
+    "province": "Bình Định",
+    "description": "Biển Kỳ Co thuộc Quy Nhơn, nổi tiếng với bãi biển hoang sơ, nước trong xanh và các rạn san hô đẹp mắt",
+    "rating": "4.4/5",
+    "image": "https://cdnphoto.dantri.com.vn/75MTzLTi_7Ys_reS6Va31bGWBk4=/zoom/1200_630/2018/7/1/anh-1-1530460120717428571836.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-inh-cu-lao-xanh",
+    "name": "Cù Lao Xanh",
+    "province": "Bình Định",
+    "description": "Cù Lao Xanh là một hòn đảo đẹp và hoang sơ tại Bình Định, với làn nước trong xanh và thiên nhiên chưa bị khai thác nhiều.",
+    "rating": "4.3/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2022/09/cu-lao-xanh-1.jpg?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "binh-inh-am-thi-nai",
+    "name": "Đầm Thị Nại",
+    "province": "Bình Định",
+    "description": "Đầm Thị Nại ở Bình Định là một trong những đầm lớn của miền Trung, nổi bật với khung cảnh thiên nhiên tĩnh lặng",
+    "rating": "4.4/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUVFCT7Ph_xMd2qiDsSVKhK13rCp9sJ6YrNA&s",
+    "keywords": []
+  },
+  {
+    "id": "binh-inh-hon-kho",
+    "name": "Hòn Khô",
+    "province": "Bình Định",
+    "description": "Hòn Khô là một hòn đảo nhỏ nằm gần Quy Nhơn, nổi tiếng với các bãi biển đẹp và làn nước trong vắt, thu hút du khách đến tham quan và tắm biển.",
+    "rating": "4.4/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjXjzOeHXgs6ds_2TKhzmOJm-OJL7Ns6dAGw&s",
+    "keywords": []
+  },
+  {
+    "id": "binh-duong-chua-tay-tang",
+    "name": "Chùa Tây Tạng",
+    "province": "Bình Dương",
+    "description": "Chùa Tây Tạng là một ngôi chùa nổi tiếng ở Bình Dương, thu hút du khách bởi kiến trúc độc đáo và không gian thanh tịnh.",
+    "rating": "4.7/5",
+    "image": "https://bizweb.dktcdn.net/100/405/413/articles/ngoi-chua-tay-tang-thu-dau-mot-binh-duong.jpg?v=1695654021547",
+    "keywords": []
+  },
+  {
+    "id": "binh-duong-khu-du-lich-ai-nam",
+    "name": "Khu du lịch Đại Nam",
+    "province": "Bình Dương",
+    "description": "Khu du lịch Đại Nam là một khu phức hợp bao gồm công viên, khu vui chơi, và các điểm tham quan khác, nổi bật tại Bình Dương, thu hút nhiều du khách đến tham quan và giải trí.",
+    "rating": "4.5/5",
+    "image": "https://trainghiem.vn/blog/wp-content/uploads/2022/02/1-khu-vui-choi-giai-tri-dai-nam.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-duong-ho-dau-tieng",
+    "name": "Hồ Dầu Tiếng",
+    "province": "Bình Dương",
+    "description": "Hồ Dầu Tiếng là hồ nhân tạo lớn nhất tại Bình Dương, nổi tiếng với cảnh quan thiên nhiên hoang sơ và là nơi lý tưởng cho các hoạt động câu cá, du thuyền.",
+    "rating": "4.4/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQmlxvXKkBmtWajxFSubOP0Oc-8CbygwNiaA&s",
+    "keywords": []
+  },
+  {
+    "id": "binh-duong-cong-vien-thanh-pho-moi-binh-duong",
+    "name": "Công viên Thành Phố mới Bình Dương",
+    "province": "Bình Dương",
+    "description": "Công viên Thành Phố mới Bình Dương là một không gian xanh, là nơi lý tưởng cho các hoạt động thể thao, dạo bộ và thư giãn.",
+    "rating": "4.6/5",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/kham-pha-cong-vien-thanh-pho-moi-binh-duong-voi-nhung-trai-nghiem-sieu-thu-vi-1-1654574759.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-duong-chua-chau-thoi",
+    "name": "Chùa Châu Thới",
+    "province": "Bình Dương",
+    "description": "Chùa Châu Thới là một ngôi chùa nổi tiếng ở Bình Dương, mang đậm nét văn hóa Phật giáo và có khung cảnh thanh tịnh, phù hợp cho các hoạt động tham quan tâm linh.",
+    "rating": "4.6/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyIMViYEfkSXvBSYsuWWsypX6RMCzISdUN2Q&s",
+    "keywords": []
+  },
+  {
+    "id": "binh-phuoc-nui-ba-ra",
+    "name": "Núi Bà Rá",
+    "province": "Bình Phước",
+    "description": "Ngọn núi cao nhất Bình Phước, có cáp treo dẫn lên đỉnh",
+    "rating": "4.2/5",
+    "image": "https://media.baobinhphuoc.com.vn/upload/news/3_2021/b5_12320005032021.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-phuoc-trang-co-bu-lach",
+    "name": "Trảng cỏ Bù Lạch",
+    "province": "Bình Phước",
+    "description": "Một cánh đồng cỏ rộng lớn, xanh mướt, được bao quanh bởi những khu rừng nguyên sinh và hồ nước",
+    "rating": "4.4/5",
+    "image": "https://www.sgtiepthi.vn/wp-content/uploads/2023/06/trang-co-bu-lach-132113.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-phuoc-khu-di-tich-ta-thiet",
+    "name": "Khu di tích Tà Thiết",
+    "province": "Bình Phước",
+    "description": "Nơi lưu giữ nhiều dấu ấn lịch sử của chiến tranh Việt Nam, với các di tích như hầm chỉ huy và kho quân khí",
+    "rating": "4.3/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStyK1QxPdJT9j3sA8TKlv7bOSSKOkSNfsXXw&s",
+    "keywords": []
+  },
+  {
+    "id": "binh-phuoc-ho-thac-mo",
+    "name": "Hồ Thác Mơ",
+    "province": "Bình Phước",
+    "description": "Hồ nhân tạo lớn với cảnh quan thiên nhiên đẹp mắt",
+    "rating": "4.3/5",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/ho-thuy-dien-thac-mo-diem-du-lich-tu-tuc-cho-nhung-kham-pha-tuyet-voi-1656424836.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-phuoc-lang-nghe-ieu-binh-phuoc",
+    "name": "Làng nghề điều Bình Phước",
+    "province": "Bình Phước",
+    "description": "Bình Phước nổi tiếng là thủ phủ của điều, nơi du khách có thể tham quan các làng nghề chế biến hạt điều truyền thống và tìm hiểu quy trình sản xuất.",
+    "rating": "4.6/5",
+    "image": "https://danviet.mediacdn.vn/zoom/600_315/296231569849192448/2022/4/20/vuon-dieu-2-16504549834621494202370-137-67-625-1000-crop-1650455485523479128526.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-thuan-thap-cham-poshanu",
+    "name": "Tháp Chàm Poshanư",
+    "province": "Bình Thuận",
+    "description": "Công trình kiến trúc cổ của người Chăm, mang giá trị lịch sử và văn hóa đặc sắc",
+    "rating": "4.4/5",
+    "image": "q",
+    "keywords": []
+  },
+  {
+    "id": "binh-thuan-hai-ang-ke-ga",
+    "name": "Hải đăng Kê Gà",
+    "province": "Bình Thuận",
+    "description": "Một trong những ngọn hải đăng lâu đời nhất Việt Nam, nằm trên một hòn đảo nhỏ giữa biển",
+    "rating": "4.3/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxa7SzvqYuT8ZjhCcm7N3DyjfMyTL3BdJUuw&s",
+    "keywords": []
+  },
+  {
+    "id": "binh-thuan-bau-trang",
+    "name": "Bàu Trắng",
+    "province": "Bình Thuận",
+    "description": "Hồ nước ngọt lớn giữa vùng cát trắng, còn gọi là \"tiểu sa mạc Sahara\" của Việt Nam.",
+    "rating": "4.7/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2023/02/khu-du-lich-bao-trang-2.jpg?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "binh-thuan-lang-chai-mui-ne",
+    "name": "Làng Chài Mũi Né",
+    "province": "Bình Thuận",
+    "description": "Khu vực làng chài truyền thống ven biển, nơi bạn có thể ngắm cảnh thuyền ghe tấp nập và trải nghiệm mua hải sản tươi sống trực tiếp từ ngư dân.",
+    "rating": "4.9/5",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/ghe-tham-lang-chai-mui-ne-binh-yen-va-day-tho-mong-1657634723.jpg",
+    "keywords": []
+  },
+  {
+    "id": "binh-thuan-hon-rom",
+    "name": "Hòn Rơm",
+    "province": "Bình Thuận",
+    "description": "Bãi biển nổi tiếng với làn nước trong xanh, bờ cát dài mịn và không khí yên bình",
+    "rating": "4.5/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGLlkBsaPyFKARJzCxv_mll17BY3bsJcyS4w&s",
+    "keywords": []
+  },
+  {
+    "id": "ca-mau-mui-ca-mau",
+    "name": "Mũi Cà Mau",
+    "province": "Cà Mau",
+    "description": "Điểm cực Nam của Việt Nam, nơi có biểu tượng cột mốc quốc gia và hệ sinh thái rừng ngập mặn độc đáo",
+    "rating": "4.1/5",
+    "image": "https://diemdenantoan.sgtiepthi.vn/wp-content/uploads/2023/08/muicamau-9.jpg",
+    "keywords": []
+  },
+  {
+    "id": "ca-mau-vuon-quoc-gia-u-minh-ha",
+    "name": "Vườn Quốc Gia U Minh Hạ",
+    "province": "Cà Mau",
+    "description": "Khu rừng tràm ngập nước nổi tiếng với hệ sinh thái đa dạng. Đây là nơi sinh sống của nhiều loài động, thực vật quý hiếm",
+    "rating": "4.9/5",
+    "image": "https://hanoitourist.com.vn/uploaded/images/2020/02/kin-nghiem-du-lich-u-minh-ha-3.jpg",
+    "keywords": []
+  },
+  {
+    "id": "ca-mau-hon-a-bac",
+    "name": "Hòn Đá Bạc",
+    "province": "Cà Mau",
+    "description": "Cụm đảo nằm sát bờ biển, nổi bật với những phiến đá xếp chồng tự nhiên và hệ sinh thái biển phong phú",
+    "rating": "4.3/5",
+    "image": "https://luhanhvietnam.com.vn/du-lich/vnt_upload/news/07_2020/noi-day-duoc-menh-danh-la-bien-ho-giua-dong-bang.jpg",
+    "keywords": []
+  },
+  {
+    "id": "ca-mau-am-thi-tuong",
+    "name": "Đầm Thị Tường",
+    "province": "Cà Mau",
+    "description": "Được mệnh danh là “biển hồ giữa đồng bằng”, đây là đầm nước tự nhiên lớn nhất miền Tây",
+    "rating": "4.7/5",
+    "image": "https://dulichtravinh.com.vn/wp-content/uploads/2021/01/605a0a3db40c76522f1d.jpg",
+    "keywords": []
+  },
+  {
+    "id": "ca-mau-en-tho-bac-ho",
+    "name": "Đền Thờ Bác Hồ",
+    "province": "Cà Mau",
+    "description": "Địa điểm tâm linh quan trọng, nơi người dân Cà Mau bày tỏ lòng thành kính với Chủ tịch Hồ Chí Minh",
+    "rating": "4.8/5",
+    "image": "https://bizweb.dktcdn.net/100/366/377/files/hinh-anh-cho-noi-cai-rang.jpg?v=1681008363485",
+    "keywords": []
+  },
+  {
+    "id": "can-tho-cho-noi-cai-rang",
+    "name": "Chợ Nổi Cái Răng",
+    "province": "Cần Thơ",
+    "description": "Chợ nổi lớn và nổi tiếng nhất ở miền Tây Nam Bộ, nơi buôn bán nhộn nhịp trên sông. Du khách có thể trải nghiệm văn hóa sông nước, mua sắm đặc sản và thưởng thức ẩm thực trên thuyền.",
+    "rating": "4.2/5",
+    "image": "https://vemekong.com/wp-content/uploads/2021/04/can-tho-bridge-vietnam-7a-1024x576.jpg",
+    "keywords": []
+  },
+  {
+    "id": "can-tho-cau-can-tho",
+    "name": "Cầu Cần Thơ",
+    "province": "Cần Thơ",
+    "description": "Cây cầu dây văng lớn nhất Đông Nam Á, nối liền Cần Thơ và Vĩnh Long. Đây là điểm check-in nổi tiếng và mang tính biểu tượng của vùng đất Tây Nam Bộ.",
+    "rating": "4.3/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxyvBpY5_eaRCVeve7UNtEdal3b-tXmfIj6g&s",
+    "keywords": []
+  },
+  {
+    "id": "can-tho-lang-du-lich-sinh-thai-ong-e",
+    "name": "Làng Du Lịch Sinh Thái Ông Đề",
+    "province": "Cần Thơ",
+    "description": "Điểm đến hấp dẫn với cảnh quan xanh mát, các trò chơi dân gian, chèo thuyền, và thưởng thức các món ăn đặc sản miền Tây.",
+    "rating": "3.9/5",
+    "image": "https://thamhiemmekong.com/wp-content/uploads/2019/05/Ch%C3%B9a_%C3%94ng_C%E1%BA%A7n_Th%C6%A1.jpg",
+    "keywords": []
+  },
+  {
+    "id": "can-tho-chua-ong",
+    "name": "Chùa Ông",
+    "province": "Cần Thơ",
+    "description": "Ngôi chùa cổ mang kiến trúc Trung Hoa, nổi tiếng linh thiêng và là nơi thờ Quan Công. Đây là địa điểm tham quan văn hóa độc đáo và check-in đẹp.",
+    "rating": "4.6/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-X0nitGgMoDdl872gvoX7O36J24UYtatnQw&s",
+    "keywords": []
+  },
+  {
+    "id": "can-tho-con-son",
+    "name": "Cồn Sơn",
+    "province": "Cần Thơ",
+    "description": "Khu sinh thái sông nước nổi tiếng, nơi du khách có thể tham quan làng cá bè, học làm bánh dân gian và trải nghiệm lối sống miệt vườn.",
+    "rating": "4.3/5",
+    "image": "https://dulichviet.com.vn/images/bandidau/review-tron-bo-kinh-nghiem-du-lich-con-son-can-tho-cuc-chi-tiet.jpg",
+    "keywords": []
+  },
+  {
+    "id": "cao-bang-thac-ban-gioc",
+    "name": "Thác Bản Giốc",
+    "province": "Cao Bằng",
+    "description": "Một trong những thác nước đẹp nhất và lớn nhất Đông Nam Á, nằm trên biên giới Việt Nam - Trung Quốc. Thác được chia thành nhiều tầng với dòng nước trong xanh, tạo nên khung cảnh hùng vĩ.",
+    "rating": "4.6/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8q5L6WXqDFFhtORzBnJg_oAuNoZL_HOk12A&s",
+    "keywords": []
+  },
+  {
+    "id": "cao-bang-ong-nguom-ngao",
+    "name": "Động Ngườm Ngao",
+    "province": "Cao Bằng",
+    "description": "Hang động dài hơn 2.1km, nổi bật với hệ thống thạch nhũ độc đáo và cảnh quan kỳ ảo. Động nằm gần thác Bản Giốc, là điểm đến lý tưởng để khám phá.",
+    "rating": "4.6/5",
+    "image": "https://www.kynghidongduong.vn/userfiles/images/tour-trong-nuoc/ba-be-ban-gioc/dong-nguom-ngao-du-lich-thac-ban-gioc-kynghidongduong-003.jpg",
+    "keywords": []
+  },
+  {
+    "id": "cao-bang-nui-mat-than",
+    "name": "Núi Mắt Thần",
+    "province": "Cao Bằng",
+    "description": "Ngọn núi độc đáo với một lỗ lớn ở giữa, được gọi là \"Mắt Thần.\" Đây là điểm check-in nổi tiếng với cảnh quan núi non tuyệt đẹp.",
+    "rating": "4.7/5",
+    "image": "https://cdn.tuoitre.vn/zoom/700_700/2020/2/7/thu4-read-only-15810754865291338931220-crop-1581075584794374189472.jpg",
+    "keywords": []
+  },
+  {
+    "id": "cao-bang-di-tich-rung-tran-hung-ao",
+    "name": "Di tích rừng Trần Hưng Đạo",
+    "province": "Cao Bằng",
+    "description": "Nơi thành lập Đội Việt Nam Tuyên Truyền Giải Phóng Quân năm 1944, khởi nguồn của Quân đội Nhân dân Việt Nam. Khu di tích có giá trị lịch sử to lớn.",
+    "rating": "4.4/5",
+    "image": "https://images.vietnamtourism.gov.vn/vn//images/2019/Thang10/Rung-THD5.jpg",
+    "keywords": []
+  },
+  {
+    "id": "cao-bang-lang-ren-phuc-sen",
+    "name": "Làng rèn Phúc Sen",
+    "province": "Cao Bằng",
+    "description": "Làng nghề truyền thống nổi tiếng với sản phẩm dao kéo chất lượng cao. Du khách có thể tham quan quy trình rèn và mua sắm các sản phẩm thủ công.",
+    "rating": "4.2/5",
+    "image": "https://luhanhvietnam.com.vn/du-lich/vnt_upload/news/03_2023/lang-ren-phuc-sen-8.jpg",
+    "keywords": []
+  },
+  {
+    "id": "a-nang-ba-na-hills",
+    "name": "Bà Nà Hills",
+    "province": "Đà Nẵng",
+    "description": "Khu nghỉ dưỡng trên đỉnh núi với khí hậu mát mẻ, nổi tiếng với cây Cầu Vàng độc đáo, làng Pháp cổ điển và khu vui chơi trong nhà Fantasy Park.",
+    "rating": "4.6/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTM6kdP5kHtS7vvCKTyaUeiWlHxo7LRW9HAeg&s",
+    "keywords": []
+  },
+  {
+    "id": "a-nang-cau-rong",
+    "name": "Cầu Rồng",
+    "province": "Đà Nẵng",
+    "description": "Biểu tượng của thành phố Đà Nẵng, cây cầu có thiết kế hình rồng phun lửa và nước vào cuối tuần. Đây là điểm check-in và ngắm cảnh sông Hàn tuyệt đẹp.",
+    "rating": "4.3/5",
+    "image": "https://furamavietnam.com/wp-content/uploads/2024/11/Furama-Resort-Danang-Sightseeing-Dragon-Brigde-2-1024x576.jpg",
+    "keywords": []
+  },
+  {
+    "id": "a-nang-ngu-hanh-son",
+    "name": "Ngũ Hành Sơn",
+    "province": "Đà Nẵng",
+    "description": "Cụm núi đá vôi gồm 5 ngọn núi với hang động, chùa chiền, và khung cảnh thiên nhiên tuyệt đẹp. Nổi bật là động Huyền Không và chùa Tam Thai.",
+    "rating": "4.7/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdTi2qoTGuFODJZyhn7dgJ6Oh5zpv8qNKciQ&s",
+    "keywords": []
+  },
+  {
+    "id": "a-nang-bai-bien-my-khe",
+    "name": "Bãi Biển Mỹ Khê",
+    "province": "Đà Nẵng",
+    "description": "Một trong những bãi biển đẹp nhất hành tinh, nổi tiếng với bãi cát trắng mịn, nước biển trong xanh, là nơi lý tưởng để tắm biển và các hoạt động thể thao dưới nước.",
+    "rating": "4.8/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2023/09/bien-my-khe-16.jpg?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "a-nang-cau-tinh-yeu",
+    "name": "Cầu Tình Yêu",
+    "province": "Đà Nẵng",
+    "description": "Cây cầu nhỏ bên sông Hàn với thiết kế lãng mạn, nơi các cặp đôi thường treo móc khóa tình yêu. Từ đây, bạn có thể ngắm nhìn tượng Cá Chép Hóa Rồng.",
+    "rating": "4.2/5",
+    "image": "https://flane.vn/wp-content/uploads/2024/03/kham-pha-cau-tinh-yeu-da-nang.jpg",
+    "keywords": []
+  },
+  {
+    "id": "tra-vinh-ao-ba-om",
+    "name": "Ao bà om",
+    "province": "Trà Vinh",
+    "description": "Ao Bà Om là một hồ nước tự nhiên, được bao quanh bởi hàng cây cổ thụ hàng trăm năm tuổi với rễ cây nổi lên thành những hình thù kỳ thú. Đây là một địa điểm du lịch yên bình, gắn liền với truyền thuyết và văn hóa Khmer.",
+    "rating": "4.1/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDwAYvrczPEgIMA3BxZk7FuuDVdr_85Y0Sbg&s",
+    "keywords": []
+  },
+  {
+    "id": "tra-vinh-chua-hang",
+    "name": "Chùa Hang",
+    "province": "Trà Vinh",
+    "description": "Chùa Hang nổi tiếng không chỉ vì kiến trúc độc đáo mà còn vì những tác phẩm điêu khắc gỗ tinh xảo của các nghệ nhân Khmer. Ngôi chùa này là điểm dừng chân lý tưởng cho những ai muốn khám phá nghệ thuật và văn hóa Khmer.",
+    "rating": "4.9/5",
+    "image": "https://dulichnuisam.vn/wp-content/uploads/2023/01/CHUAHANG1-scaled.jpg",
+    "keywords": []
+  },
+  {
+    "id": "tra-vinh-bai-bien-ba-ong",
+    "name": "Bãi biển Ba Động",
+    "province": "Trà Vinh",
+    "description": "bãi biển hoang sơ với cát mịn và sóng nhẹ, Ba Động là nơi thích hợp để thư giãn và thưởng thức các món hải sản tươi ngon. Đây là một trong những bãi biển hiếm hoi ở miền Tây Nam Bộ.",
+    "rating": "4.3/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIGIWhgylUovF3TjKNq5WlTWXLBj_ZyCNKlQ&s",
+    "keywords": []
+  },
+  {
+    "id": "tra-vinh-bao-tang-van-hoa-khmer",
+    "name": "Bảo tàng Văn hóa Khmer",
+    "province": "Trà Vinh",
+    "description": "Bảo tàng trưng bày các hiện vật, tư liệu về đời sống, văn hóa, nghệ thuật và lịch sử của người Khmer Nam Bộ, giúp du khách hiểu thêm về cộng đồng dân tộc này.",
+    "rating": "4.1/5",
+    "image": "https://dulichthuduc.com.vn/vnt_upload/news/MIEN-TAY/tra-vinh/bao_tang_van_hoa_dan_toc_khmer_tra_vinh_du_lich_thu_duc_1.jpg",
+    "keywords": []
+  },
+  {
+    "id": "tra-vinh-chua-vam-ray",
+    "name": "Chùa Vàm Rây",
+    "province": "Trà Vinh",
+    "description": "Là ngôi chùa Khmer lớn nhất Việt Nam, chùa Vàm Rây gây ấn tượng bởi kiến trúc vàng rực rỡ, tượng Phật nằm khổng lồ và không gian tĩnh lặng.",
+    "rating": "4.2/5",
+    "image": "https://dulichtravinh.com.vn/wp-content/uploads/2021/08/3-Chua-Vam-Ray-XTDLTV-scaled.jpg",
+    "keywords": []
+  },
+  {
+    "id": "tuyen-quang-thac-ban-ba",
+    "name": "Thác Bản Ba",
+    "province": "Tuyên Quang",
+    "description": "Thác Bản Ba thuộc xã Trung Hà, huyện Chiêm Hóa, là một cụm thác với 3 tầng chính đổ xuống từ độ cao khoảng 40 m. Thác được bao quanh bởi rừng núi hoang sơ, nước trong xanh và khí hậu mát mẻ quanh năm. Đây là điểm đến lý tưởng để hòa mình vào thiên nhiên.",
+    "rating": "4.3/5",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/thac-ban-ba-04-1699834746.jpeg",
+    "keywords": []
+  },
+  {
+    "id": "tuyen-quang-ho-thuy-ien-tuyen-quang",
+    "name": "Hồ Thủy Điện Tuyên Quang",
+    "province": "Tuyên Quang",
+    "description": "Hồ Na Hang được ví như \"Hạ Long trên núi\", nổi bật với mặt hồ trong xanh, các đảo núi đá vôi trập trùng, và rừng nguyên sinh bao quanh. Du khách có thể khám phá các địa danh như thác Khuổi Nhi, đền Pác Tạ, và tham gia du thuyền ngắm cảnh.",
+    "rating": "4.6/5",
+    "image": "https://seho.vn/tintuc/wp-content/uploads/2022/04/thuy-dien-tuyen-quang1.jpg",
+    "keywords": []
+  },
+  {
+    "id": "tuyen-quang-en-ha-en-thuong-en-y-la",
+    "name": "Đền Hạ - Đền Thượng - Đền Ỷ La",
+    "province": "Tuyên Quang",
+    "description": "Đây là ba ngôi đền linh thiêng thuộc thành phố Tuyên Quang, gắn liền với tín ngưỡng thờ Mẫu của người Việt. Các ngôi đền nổi tiếng với kiến trúc cổ kính, không gian trang nghiêm, thu hút đông đảo khách hành hương.",
+    "rating": "4.3/5",
+    "image": "https://images.vietnamtourism.gov.vn/vn/images/2017/LHDenHa.jpg",
+    "keywords": []
+  },
+  {
+    "id": "tuyen-quang-suoi-khoang-my-lam",
+    "name": "Suối khoáng Mỹ Lâm",
+    "province": "Tuyên Quang",
+    "description": "Suối khoáng Mỹ Lâm nổi tiếng với nguồn nước khoáng nóng tự nhiên, có tác dụng chữa bệnh và thư giãn. Đây là khu du lịch nghỉ dưỡng hấp dẫn, kết hợp giữa trị liệu sức khỏe và cảnh sắc thiên nhiên tươi đẹp.",
+    "rating": "4.7/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwyfLa6v5N6x6Aok7aGaEoES0PzF30BSiv4g&s",
+    "keywords": []
+  },
+  {
+    "id": "tuyen-quang-thac-khuoi-nhi",
+    "name": "Thác Khuổi Nhi",
+    "province": "Tuyên Quang",
+    "description": "hác Khuổi Nhi thuộc khu vực Na Hang, là một trong những thác nước đẹp nhất ở Tuyên Quang. Nước thác trắng xóa đổ xuống từ độ cao lớn, hòa quyện với thiên nhiên hùng vĩ tạo nên cảnh sắc thơ mộng.",
+    "rating": "4.8/5",
+    "image": "https://top7vietnam.sgtiepthi.vn/wp-content/uploads/2022/08/288795147_3268773303400481_5232539090563656620_n.jpg",
+    "keywords": []
+  },
+  {
+    "id": "vinh-long-cu-lao-an-binh",
+    "name": "Cù Lao An Bình",
+    "province": "Vĩnh Long",
+    "description": "Cù Lao An Bình là một khu vực miệt vườn đặc trưng của miền Tây Nam Bộ, nổi tiếng với vườn cây ăn trái như chôm chôm, sầu riêng, măng cụt. Du khách có thể tham gia chèo xuồng, tham quan các làng nghề truyền thống và thưởng thức ẩm thực dân dã.",
+    "rating": "47/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSo8bVAfvIhdi7Rohc1LwF3awMwhDQ6U-yUKw&s",
+    "keywords": []
+  },
+  {
+    "id": "vinh-long-chua-tien-chau",
+    "name": "Chùa Tiên Châu",
+    "province": "Vĩnh Long",
+    "description": "Chùa Tiên Châu nằm trên cù lao An Bình, là một ngôi chùa cổ kính mang đậm nét kiến trúc Phật giáo. Ngôi chùa có không gian yên tĩnh, thanh bình, thu hút nhiều Phật tử và du khách đến chiêm bái.",
+    "rating": "4.3/5",
+    "image": "https://dulichvn.org.vn/nhaptin/uploads/images/ditichchuatienchau.jpg",
+    "keywords": []
+  },
+  {
+    "id": "vinh-long-cau-my-thuan",
+    "name": "Cầu Mỹ Thuận",
+    "province": "Vĩnh Long",
+    "description": "Cầu Mỹ Thuận là biểu tượng nổi bật của miền Tây, nối liền Vĩnh Long và Tiền Giang. Cây cầu dây văng hiện đại này là điểm check-in lý tưởng, đặc biệt khi về đêm với ánh đèn rực rỡ.",
+    "rating": "4.3/5",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/C%E1%BA%A7u_M%E1%BB%B9_Thu%E1%BA%ADn_1_v%C3%A0_2.jpg/800px-C%E1%BA%A7u_M%E1%BB%B9_Thu%E1%BA%ADn_1_v%C3%A0_2.jpg",
+    "keywords": []
+  },
+  {
+    "id": "vinh-long-khu-du-lich-vinh-sang",
+    "name": "Khu du lịch Vinh Sang",
+    "province": "Vĩnh Long",
+    "description": "Khu du lịch Vinh Sang nằm trên cù lao An Bình, là nơi lý tưởng để trải nghiệm các trò chơi dân gian, tham gia câu cá sấu, chèo xuồng, hoặc khám phá các vườn trái cây.",
+    "rating": "3.9/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAMYRHq7hfcxBWVme9fvXMBmb-FnXbEt40Cw&s",
+    "keywords": []
+  },
+  {
+    "id": "vinh-long-van-thanh-mieu",
+    "name": "Văn Thánh Miếu",
+    "province": "Vĩnh Long",
+    "description": "Văn Thánh Miếu là một công trình cổ kính, mang ý nghĩa tôn vinh Nho học và các bậc hiền tài. Khuôn viên miếu có nhiều cây xanh, tạo không gian yên tĩnh, thanh bình.",
+    "rating": "4.3/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6ZLRmHxKAL8nQ6GEnc1avbYj_bDxiFvBKPg&s",
+    "keywords": []
+  },
+  {
+    "id": "vinh-phuc-tam-ao",
+    "name": "Tam Đảo",
+    "province": "Vĩnh Phúc",
+    "description": "Tam Đảo là khu nghỉ dưỡng nổi tiếng với khí hậu mát mẻ quanh năm, tọa lạc trên dãy núi Tam Đảo. Nơi đây có nhiều điểm tham quan như Tháp Truyền Hình, Nhà Thờ Đá, và chợ đêm Tam Đảo. Du khách có thể tận hưởng cảnh đẹp núi non và ẩm thực địa phương.",
+    "rating": "4.4/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRprv_3BsUfM_Bu9DQrCo3VUSDatb5a73--PQ&s",
+    "keywords": []
+  },
+  {
+    "id": "vinh-phuc-ho-ai-lai",
+    "name": "Hồ Đại Lải",
+    "province": "Vĩnh Phúc",
+    "description": "Hồ Đại Lải là một hồ nước nhân tạo rộng lớn, được bao quanh bởi rừng thông và núi đồi. Đây là điểm đến lý tưởng để tham gia các hoạt động như chèo thuyền, cắm trại, câu cá hoặc nghỉ dưỡng tại các khu resort ven hồ.",
+    "rating": "4.3/5",
+    "image": "https://wyndham-thanhthuy.com/wp-content/uploads/2024/09/ho-dai-lai-10.jpg",
+    "keywords": []
+  },
+  {
+    "id": "vinh-phuc-lang-gom-huong-canh",
+    "name": "Làng gốm Hương Canh",
+    "province": "Vĩnh Phúc",
+    "description": "Làng gốm Hương Canh là một làng nghề truyền thống nổi tiếng với các sản phẩm gốm thủ công tinh xảo, đặc biệt là các sản phẩm gốm gia dụng và nghệ thuật. Du khách có thể tham quan và trải nghiệm làm gốm tại đây.",
+    "rating": "4.1/5",
+    "image": "https://i.ytimg.com/vi/3XC7fPzfKa8/maxresdefault.jpg",
+    "keywords": []
+  },
+  {
+    "id": "vinh-phuc-khu-du-lich-flc-vinh-thinh",
+    "name": "Khu du lịch FLC Vĩnh Thịnh",
+    "province": "Vĩnh Phúc",
+    "description": "FLC Vĩnh Thịnh là khu nghỉ dưỡng cao cấp với không gian sang trọng, tiện nghi. Nơi đây có các dịch vụ đa dạng như bể bơi, spa, sân golf, và nhà hàng, phù hợp cho những chuyến nghỉ dưỡng cùng gia đình.",
+    "rating": "4.1/5",
+    "image": "https://motogo.vn/wp-content/uploads/2020/04/flc-vinh-phuc-9-min.jpg",
+    "keywords": []
+  },
+  {
+    "id": "vinh-phuc-khu-du-lich-sinh-thai-am-vac",
+    "name": "Khu du lịch sinh thái Đầm Vạc",
+    "province": "Vĩnh Phúc",
+    "description": "Đầm Vạc là một trong những đầm tự nhiên lớn nhất tại Vĩnh Phúc, có hệ sinh thái đa dạng. Du khách có thể tham gia các hoạt động như chèo thuyền, ngắm cảnh, câu cá, hoặc nghỉ ngơi tại các resort ven đầm.",
+    "rating": "4.2/5",
+    "image": "https://postumtravel.vn/wp-content/uploads/2022/06/khu-du-lich-dam-vac-2.jpg",
+    "keywords": []
+  },
+  {
+    "id": "yen-bai-ruong-bac-thang-mu-cang-chai",
+    "name": "Ruộng bậc thang Mù Cang Chải",
+    "province": "Yên Bái",
+    "description": "bậc thang Mù Cang Chải là kiệt tác thiên nhiên và lao động của đồng bào dân tộc H'Mông, nổi tiếng với vẻ đẹp hùng vĩ, đặc biệt vào mùa lúa chín (tháng 9 - tháng 10). Đây là Di sản Quốc gia và một trong những điểm đến hấp dẫn nhất Việt Nam.",
+    "rating": "4.8/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRK66m6GnUSJ7OdjdD2BIgcEkNxillIq3zJeg&s",
+    "keywords": []
+  },
+  {
+    "id": "yen-bai-ho-thac-ba",
+    "name": "Hồ Thác Bà",
+    "province": "Yên Bái",
+    "description": "Hồ Thác Bà là một trong những hồ nước nhân tạo lớn nhất Việt Nam, được bao quanh bởi hàng trăm hòn đảo nhỏ và cảnh quan núi non tuyệt đẹp. Du khách có thể tham gia các hoạt động như chèo thuyền, cắm trại, hoặc khám phá hang động quanh hồ.",
+    "rating": "4.5/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1L7AB6L_cA8vq4sI3Yy17tMYk2yx4jmV_2Q&s",
+    "keywords": []
+  },
+  {
+    "id": "yen-bai-suoi-giang",
+    "name": "Suối Giàng",
+    "province": "Yên Bái",
+    "description": "Suối Giàng nổi tiếng với những cây chè Shan tuyết cổ thụ hàng trăm năm tuổi và khí hậu mát mẻ quanh năm. Đây là nơi lý tưởng để thưởng trà, tận hưởng không khí trong lành và tìm hiểu văn hóa của đồng bào người Mông.",
+    "rating": "4.3/5",
+    "image": "https://motogo.vn/wp-content/uploads/2020/02/du-lich-yen-bai-mu-cang-chai-7.jpg",
+    "keywords": []
+  },
+  {
+    "id": "yen-bai-ban-lim-mong",
+    "name": "Bản Lìm Mông",
+    "province": "Yên Bái",
+    "description": "Bản Lìm Mông là một ngôi làng nhỏ nằm giữa những ngọn núi và ruộng bậc thang tuyệt đẹp. Đây là nơi du khách có thể trải nghiệm cuộc sống của người H'Mông, tận hưởng sự yên bình và không khí trong lành.",
+    "rating": "4.7/5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSxk3hjozJUo0JtAfDF67UVi5NiofujgEHYw&s",
+    "keywords": []
+  },
+  {
+    "id": "yen-bai-ong-thien-cung",
+    "name": "Động Thiên Cung",
+    "province": "Yên Bái",
+    "description": "Động Thiên Cung nằm trong khu vực hồ Thác Bà, nổi tiếng với hệ thống nhũ đá lung linh và phong cảnh huyền ảo bên trong hang động. Đây là điểm tham quan hấp dẫn cho những ai yêu thích khám phá hang động.",
+    "rating": "4.5/5",
+    "image": "https://ik.imagekit.io/tvlk/blog/2023/06/dong-thien-cung-19-1024x684.jpg?tr=dpr-2,w-675",
+    "keywords": []
+  },
+  {
+    "id": "ak-lak-buon-on",
+    "name": "Buôn Đôn",
+    "province": "Đắk Lắk",
+    "description": "Buôn Đôn, nằm tại tỉnh Đắk Lắk, Việt Nam, là một vùng đất nổi tiếng với văn hóa đặc sắc và khung cảnh thiên nhiên hùng vĩ. Đây là vùng đất của người dân tộc Ê-đê và Mnông, nơi bạn có thể khám phá những nét văn hóa độc đáo và các hoạt động thú vị",
+    "rating": "3.6",
+    "image": "https://cdn.tgdd.vn/Files/2023/09/28/1549550/du-lich-buon-don-dak-lak-7-dia-diem-khong-the-bo-lo-202309282152153920.jpg",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "ak-lak-ho-lak",
+    "name": "Hồ Lắk",
+    "province": "Đắk Lắk",
+    "description": "Hồ Lắk là một hồ nước lớn tại Việt Nam, nằm ở phía tây bắc tỉnh Lâm Đồng. Hồ này được biết đến với cảnh quan thiên nhiên tuyệt đẹp và đa dạng sinh học phong phú. Hồ Lắk cũng là một điểm đến thu hút du khách với các hoạt động như lặn biển, câu cá, và du thuyền",
+    "rating": "3.4",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsOvhXUBk60SmnYLmkC5qZ1c-BF0w4VF5Dyw&s",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ak-lak-thac-dray-nur",
+    "name": "Thác Dray Nur",
+    "province": "Đắk Lắk",
+    "description": "Thác Dray Nur, nằm ở tỉnh Đắk Lắk, là một trong những thác nước đẹp và hùng vĩ nhất của Tây Nguyên. Thác này nằm bên dòng sông Sêrêpôk, nổi tiếng với vẻ đẹp hoang sơ và huyền bí",
+    "rating": "3.9",
+    "image": "https://images.baodantoc.vn/uploads/2021/Th%C3%A1ng_10/Ng%C3%A0y_14/NGN%C3%82/th%C3%A1c%20Dray%20Nur/41-1634140188-dray-nur.jpg",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "ak-lak-bao-tang-ca-phe-the-gioi",
+    "name": "Bảo tàng cà phê Thế giới",
+    "province": "Đắk Lắk",
+    "description": "Bảo tàng Thế giới Cà phê, tọa lạc tại Buôn Ma Thuột, Đắk Lắk, là một điểm đến hấp dẫn cho những ai yêu thích cà phê và muốn tìm hiểu về văn hóa cà phê toàn cầu",
+    "rating": "3.7",
+    "image": "https://thaiantravel.com/wp-content/uploads/2024/06/bao-tang-the-gioi-ca-phe-o-tay-nguyen-1-jpg.webp",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "ak-lak-khu-du-lich-ko-tam",
+    "name": "Khu du lịch Ko Tam",
+    "province": "Đắk Lắk",
+    "description": "Khu du lịch Ko Tam, tọa lạc tại Buôn Ma Thuột, Đắk Lắk, là một điểm đến sinh thái và văn hóa nổi bật của Tây Nguyên. Với diện tích khoảng 13 hecta, Ko Tam mang đến cho du khách một không gian thiên nhiên hoang sơ và yên bình, cùng với những nét văn hóa đặc sắc của người dân tộc Ê-đê",
+    "rating": "3",
+    "image": "https://vcdn1-dulich.vnecdn.net/2023/09/18/thac-lieng-nung-ha-the-bao-169-4064-1297-1695029127.jpg?w=1200&h=0&q=100&dpr=1&fit=crop&s=PEGSVxss36taUtg2gGqjxA",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  },
+  {
+    "id": "ak-nong-cong-vien-ia-chat-ak-nong",
+    "name": "Công viên địa chất Đắk Nông",
+    "province": "Đắk Nông",
+    "description": "Công viên Địa chất Đắk Nông nổi tiếng với hệ thống hang động núi lửa độc đáo, bao gồm gần 50 hang động với tổng chiều dài hơn 10.000 mét. Công viên Địa chất Đắk Nông không chỉ là nơi bảo tồn các giá trị địa chất, mà còn là nơi lưu giữ và giới thiệu văn hóa của các dân tộc bản địa như người Mạ, người Mnông và người Ê-đê",
+    "rating": "4.3",
+    "image": "https://vcdn1-dulich.vnecdn.net/2023/09/18/thac-lieng-nung-ha-the-bao-169-4064-1297-1695029127.jpg?w=1200&h=0&q=100&dpr=1&fit=crop&s=PEGSVxss36taUtg2gGqjxA",
+    "keywords": [
+      "di sản",
+      "lịch sử",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "ak-nong-thac-dray-sap",
+    "name": "Thác Dray Sap",
+    "province": "Đắk Nông",
+    "description": "Thác Dray Sap, còn được gọi là Thác Khói, là một trong những thác nước đẹp và hùng vĩ nhất của Tây Nguyên",
+    "rating": "3.4",
+    "image": "https://cdn.vntrip.vn/cam-nang/wp-content/uploads/2017/10/dray-sap-1.jpg",
+    "keywords": [
+      "địa phương",
+      "độc đáo",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ak-nong-hang-ong-chu-bluk",
+    "name": "Hang động Chư Bluk",
+    "province": "Đắk Nông",
+    "description": "Hang động Chư Bluk, nằm ở huyện Krông Nô, tỉnh Đắk Nông, là hệ thống hang động núi lửa dài nhất Đông Nam Á. Hang động Chư Bluk nổi bật với vẻ đẹp hoang sơ và kỳ bí, với những cấu trúc đá bazan độc đáo và hệ sinh thái phong phú. Đây là điểm đến lý tưởng cho những ai yêu thích khám phá và mạo hiểm, bởi việc tiếp cận hang động không hề dễ dàng và đòi hỏi sự hướng dẫn của người dân địa phương",
+    "rating": "4.8",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnfpJMgpfKMIvaekKmSaiDLqoAG1EkhGtEJg&s",
+    "keywords": [
+      "thiên nhiên",
+      "du lịch",
+      "hòa bình"
+    ]
+  },
+  {
+    "id": "ak-nong-ho-ea-sno",
+    "name": "Hồ Ea Snô",
+    "province": "Đắk Nông",
+    "description": "Hồ Ea Snô được bao quanh bởi hệ sinh thái thực vật đa dạng và phong phú, là nơi sinh sống của nhiều cộng đồng dân tộc bản địa. Khung cảnh nơi đây mang lại cảm giác bình yên và thư thá",
+    "rating": "4.6",
+    "image": "https://nqs.1cdn.vn/2023/06/11/dautu.kinhtechungkhoan.vn-stores-news_dataimages-2023-062023-11-11-_t1-222620230611115748.jpg",
+    "keywords": [
+      "cảnh quan",
+      "địa danh",
+      "nổi bật"
+    ]
+  },
+  {
+    "id": "ak-nong-khu-bao-ton-thien-nhien-nam-nung",
+    "name": "Khu bảo tồn thiên nhiên Nâm Nung",
+    "province": "Đắk Nông",
+    "description": "Khu bảo tồn nằm ở tỉnh Đắk Nông, nổi tiếng với hệ sinh thái đa dạng gồm rừng nguyên sinh, thác nước hùng vĩ và nhiều loài động thực vật quý hiếm. Đây là địa điểm lý tưởng cho các hoạt động khám phá thiên nhiên, trekking, và nghiên cứu sinh thái.",
+    "rating": "4.3",
+    "image": "https://danviet.mediacdn.vn/296231569849192448/2022/7/7/d7d72db1fc3e3f60662f-16571735477191741026026.jpg",
+    "keywords": [
+      "khám phá",
+      "thiên nhiên",
+      "thư giãn"
+    ]
+  },
+  {
+    "id": "ien-bien-oi-a1",
+    "name": "Đồi A1",
+    "province": "Điện Biên",
+    "description": "Đồi A1 là một trong những di tích lịch sử quan trọng trong chiến dịch Điện Biên Phủ, nơi từng diễn ra các trận đánh khốc liệt. Hiện nay, nơi đây trở thành điểm tham quan với hầm chiến đấu, hệ thống giao thông hào và bảo tồn nhiều hiện vật lịch sử.",
+    "rating": "3.7",
+    "image": "https://dienbientv.vn/dataimages/201907/original/images2790806_29.jpg",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "ien-bien-ham-de-castries",
+    "name": "Hầm De Castries",
+    "province": "Điện Biên",
+    "description": "Đây là nơi ở và chỉ huy của tướng De Castries trong chiến dịch Điện Biên Phủ. Hầm được xây dựng kiên cố và hiện nay là di tích lịch sử được bảo tồn để tái hiện lại chiến trường năm xưa.",
+    "rating": "3.5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSh6mulULwY4KND80JkIMOAeIg2wkGdNHAjZw&s",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ien-bien-bao-tang-chien-thang-ien-bien-phu",
+    "name": "Bảo tàng chiến thắng Điện Biên Phủ",
+    "province": "Điện Biên",
+    "description": "Bảo tàng lưu giữ các hiện vật, tư liệu và hình ảnh về chiến dịch Điện Biên Phủ, tái hiện lịch sử hào hùng của dân tộc Việt Nam. Đây là điểm đến không thể bỏ qua khi ghé thăm Điện Biên.",
+    "rating": "4.8",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTum8lds95DiG7GYG-gW2VKxz0lUn0sJUqiGw&s",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "ien-bien-canh-ong-muong-thanh",
+    "name": "Cánh đồng Mường Thanh",
+    "province": "Điện Biên",
+    "description": "Cánh đồng lúa lớn nhất vùng Tây Bắc, nổi tiếng với vẻ đẹp thơ mộng và vai trò quan trọng trong lịch sử chiến dịch Điện Biên Phủ. Cảnh quan ở đây thay đổi theo mùa vụ, thu hút nhiều du khách đến chiêm ngưỡng.",
+    "rating": "3.7",
+    "image": "https://dulichkhatvongviet.com/wp-content/uploads/2022/02/Dep-ngo-ngang-truoc-ve-dep-mua-vang-cua-canh-dong-Muong-Thanh.jpg",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "ien-bien-tuong-ai-chien-thang-ien-bien-phu",
+    "name": "Tượng đài chiến thắng Điện Biên Phủ",
+    "province": "Điện Biên",
+    "description": "Tượng đài nằm trên đồi D1, là biểu tượng của chiến thắng lịch sử Điện Biên Phủ. Đây là nơi tôn vinh sự hy sinh và chiến công của các chiến sĩ Việt Nam, đồng thời cũng là điểm ngắm toàn cảnh thành phố Điện Biên.",
+    "rating": "4.1",
+    "image": "https://bizweb.dktcdn.net/100/006/093/files/tuong-dai-chien-thang-dien-bien-phu-1.jpg?v=1709521625245",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  },
+  {
+    "id": "ong-nai-vuon-quoc-gia-cat-tien",
+    "name": "Vườn quốc gia Cát Tiên",
+    "province": "Đồng Nai",
+    "description": "Một trong những vườn quốc gia nổi tiếng nhất Việt Nam, nằm ở tỉnh Đồng Nai. Nơi đây sở hữu hệ sinh thái phong phú với nhiều loài động thực vật quý hiếm, cùng các hoạt động như khám phá rừng, ngắm chim và dã ngoại.",
+    "rating": "4.9",
+    "image": "https://cattiennationalpark.com.vn/wp-content/uploads/2023/03/word-image-6772-3-768x512.jpeg",
+    "keywords": [
+      "di sản",
+      "lịch sử",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "ong-nai-khu-du-lich-buu-long",
+    "name": "Khu du lịch Bửu Long",
+    "province": "Đồng Nai",
+    "description": "Được ví như “Vịnh Hạ Long thu nhỏ” ở Đồng Nai, Bửu Long nổi bật với hồ nước trong xanh, núi đá và cảnh quan thơ mộng. Đây là nơi lý tưởng cho các hoạt động dã ngoại, cắm trại và chụp ảnh.",
+    "rating": "3.3",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRUQFhtdPrAb32sIE09O6TgymIvvjoRn5JSA&s",
+    "keywords": [
+      "địa phương",
+      "độc đáo",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ong-nai-ho-tri-an",
+    "name": "Hồ Trị An",
+    "province": "Đồng Nai",
+    "description": "Hồ Trị An với trên 70 đảo lớn, nhỏ và nhiều đảo trong số này có cư dân sinh sống, cộng thêm vài hòn đảo có diện tích lớn được khai thác du lịch gần chục năm trở lại đây đã trở thành điểm nhấn của sông nước Trị An",
+    "rating": "4.9",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/camping-ho-tri-an-4-1693238728.jpg",
+    "keywords": [
+      "thiên nhiên",
+      "du lịch",
+      "hòa bình"
+    ]
+  },
+  {
+    "id": "ong-nai-ao-o",
+    "name": "Đảo Ó",
+    "province": "Đồng Nai",
+    "description": "Một hòn đảo nằm giữa lòng hồ Trị An, sở hữu không gian xanh mát và trong lành. Đảo Ó là điểm đến hấp dẫn cho các hoạt động dã ngoại, cắm trại, và thưởng ngoạn thiên nhiên.",
+    "rating": "3.5",
+    "image": "https://zoomtravel.vn/upload/news/vien-ngoc-giua-long-ho-tri-an-thien-nhien-hoang-so-ky-vi12230.jpg",
+    "keywords": [
+      "cảnh quan",
+      "địa danh",
+      "nổi bật"
+    ]
+  },
+  {
+    "id": "ong-nai-thac-giang-ien",
+    "name": "Thác Giang Điền",
+    "province": "Đồng Nai",
+    "description": "Một thác nước đẹp ở Đồng Nai, được bao quanh bởi rừng cây xanh mát. Thác Giang Điền là địa điểm du lịch sinh thái, hấp dẫn cho các hoạt động nghỉ dưỡng, picnic và chụp ảnh kỷ niệm.",
+    "rating": "3",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/thac-giang-dien-va-nhung-trai-nghiem-thu-vi-co-mot-khong-hai-03-1689266277.jpg",
+    "keywords": [
+      "khám phá",
+      "thiên nhiên",
+      "thư giãn"
+    ]
+  },
+  {
+    "id": "ong-thap-vuon-quoc-gia-tram-chim",
+    "name": "Vườn quốc gia Tràm Chim",
+    "province": "Đồng Tháp",
+    "description": "Vườn quốc gia ở Đồng Tháp, nơi bảo tồn hệ sinh thái đất ngập nước đặc trưng Đồng bằng sông Cửu Long. Tràm Chim là nhà của nhiều loài chim quý hiếm, đặc biệt là sếu đầu đỏ.",
+    "rating": "4.6",
+    "image": "https://tainguyenvamoitruong.vn/images/news/lg-danh-gia-tac-dong-cua-nguoi-dan-den-khu-vuc-vuon-quoc-gia-tram-chim-tai-xa-phu-tho-phu-duc-huyen-tam-nong-tinh-dong-thap_566.jpg",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "ong-thap-lang-hoa-sa-ec",
+    "name": "Làng hoa Sa Đéc",
+    "province": "Đồng Tháp",
+    "description": "Làng nghề truyền thống nổi tiếng ở Đồng Tháp, nơi trồng hàng trăm loài hoa đẹp và quý. Làng hoa thu hút du khách với những vườn hoa rực rỡ quanh năm.",
+    "rating": "4.8",
+    "image": "https://scontent.iocvnpt.com/resources/portal/Images/DTP/dtblieu/lang_hoa/48bf9d85d2d3118d48c2_826106342.jpeg",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ong-thap-khu-di-tich-xeo-quyt",
+    "name": "Khu di tích Xẻo Quýt",
+    "province": "Đồng Tháp",
+    "description": "Một khu di tích lịch sử kết hợp du lịch sinh thái tại Đồng Tháp, nơi tái hiện các căn cứ cách mạng trong rừng tràm thời kháng chiến.",
+    "rating": "3.5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNFW3oOOp10fGV9fAYtic3l1Y4dmLSb7Q3zg&s",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "ong-thap-lang-cu-nguyen-sinh-sac",
+    "name": "Lăng cụ Nguyễn Sinh Sắc",
+    "province": "Đồng Tháp",
+    "description": "Nơi an nghỉ của cụ Nguyễn Sinh Sắc, thân sinh Chủ tịch Hồ Chí Minh. Lăng được thiết kế hài hòa giữa kiến trúc và cảnh quan thiên nhiên.",
+    "rating": "3.4",
+    "image": "https://scontent.iocvnpt.com/resources/portal/Images/DTP/superadminportal.dtp/trangchu/portal/luutru/diadiem/ditichnguyensinhsac/h1.jpg_636758375125902652.jpg",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "ong-thap-cho-cao-lanh",
+    "name": "Chợ Cao Lãnh",
+    "province": "Đồng Tháp",
+    "description": "Một khu chợ sầm uất tại thành phố Cao Lãnh, nơi du khách có thể khám phá văn hóa ẩm thực và đời sống người dân địa phương.",
+    "rating": "4.7",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREw0kvfKqWUVy7gogbII8hIDj_ivcyzfhDiQ&s",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  },
+  {
+    "id": "gia-lai-bien-ho",
+    "name": "Biển Hồ",
+    "province": "Gia Lai",
+    "description": "Một khu chợ sầm uất tại thành phố Cao Lãnh, nơi du khách có thể khám phá văn hóa ẩm thực và đời sống người dân địa phương.",
+    "rating": "4.3",
+    "image": "https://sakos.vn/wp-content/uploads/2024/08/1-18.jpg",
+    "keywords": [
+      "di sản",
+      "lịch sử",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "gia-lai-thac-phu-cuong",
+    "name": "Thác Phú Cường",
+    "province": "Gia Lai",
+    "description": "Một thác nước đẹp tại Gia Lai, nằm giữa rừng nguyên sinh. Thác nổi bật với dòng nước trắng xóa, đổ từ độ cao hơn 45m.",
+    "rating": "4.9",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_VHJsbvkvT0mm43ZwE4YjRaLmOPaDjxeXKQ&s",
+    "keywords": [
+      "địa phương",
+      "độc đáo",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "gia-lai-chua-minh-thanh",
+    "name": "Chùa Minh Thành",
+    "province": "Gia Lai",
+    "description": "Ngôi chùa nổi tiếng ở Gia Lai, được xây dựng theo phong cách Phật giáo Nhật Bản, với kiến trúc độc đáo và không gian thanh tịnh.",
+    "rating": "4",
+    "image": "https://datviettour.com.vn/uploads/images/tin-tuc-SEO/tay-nguyen/danh-thang/chua-minh-thanh-pleiku.jpg",
+    "keywords": [
+      "thiên nhiên",
+      "du lịch",
+      "hòa bình"
+    ]
+  },
+  {
+    "id": "gia-lai-quang-truong-ai-oan-ket",
+    "name": "Quảng trường Đại Đoàn Kết",
+    "province": "Gia Lai",
+    "description": "Quảng trường lớn nhất Tây Nguyên, nằm tại Pleiku, Gia Lai. Đây là nơi tổ chức các sự kiện lớn và cũng là biểu tượng của đoàn kết dân tộc.",
+    "rating": "4.7",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/quang-truong-dai-doan-ket-noi-ket-tinh-tu-tuong-dan-toc-1659087815.jpg",
+    "keywords": [
+      "cảnh quan",
+      "địa danh",
+      "nổi bật"
+    ]
+  },
+  {
+    "id": "gia-lai-oi-che-bau-can",
+    "name": "Đồi chè Bàu Cạn",
+    "province": "Gia Lai",
+    "description": "Đồi chè Bàu Cạn ở Gia Lai là một trong những đồi chè lâu đời nhất Việt Nam, nổi bật với những luống chè xanh mướt trải dài, mang vẻ đẹp yên bình. Đây là điểm đến lý tưởng để thư giãn và chụp ảnh giữa không gian thiên nhiên tươi mát.",
+    "rating": "3.7",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/ghe-tham-doi-che-bau-can-voi-sac-xanh-cuc-quyen-ru-02-1659459923.jpg",
+    "keywords": [
+      "khám phá",
+      "thiên nhiên",
+      "thư giãn"
+    ]
+  },
+  {
+    "id": "ha-giang-cot-co-lung-cu",
+    "name": "Cột cờ Lũng Cú",
+    "province": "Hà Giang",
+    "description": "Cột cờ Lũng Cú, nằm ở cực Bắc Việt Nam (Hà Giang), là biểu tượng thiêng liêng của chủ quyền quốc gia. Du khách chinh phục gần 800 bậc thang để chiêm ngưỡng lá cờ đỏ sao vàng tung bay trên đỉnh núi hùng vĩ.",
+    "rating": "3.9",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSigfgZFV4EvIXqI5SCa9MfMv9bGaePC9_0VQ&s",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "ha-giang-eo-ma-pi-leng",
+    "name": "Đèo Mã Pí Lèng",
+    "province": "Hà Giang",
+    "description": "Đèo Mã Pí Lèng là cung đường hùng vĩ tại Hà Giang, với sông Nho Quế xanh ngọc chảy uốn lượn phía dưới. Đây là điểm thu hút phượt thủ và du khách yêu vẻ đẹp thiên nhiên hoang sơ.",
+    "rating": "4",
+    "image": "https://owa.bestprice.vn/images/destinations/uploads/deo-ma-pi-leng-6001155be6540.jpg",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ha-giang-pho-co-ong-van",
+    "name": "Phố cổ Đồng Văn",
+    "province": "Hà Giang",
+    "description": "Phố cổ Đồng Văn (Hà Giang) lưu giữ nét kiến trúc cổ kính với những ngôi nhà tường đất, mái ngói âm dương. Phiên chợ cuối tuần nhộn nhịp là điểm nhấn văn hóa hấp dẫn.",
+    "rating": "5",
+    "image": "https://tuyengiao.hagiang.gov.vn/upload/64711/fck/leminhtien.btgtu/2022_06_16_23_23_014.png",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "ha-giang-hem-tu-san",
+    "name": "Hẻm Tu Sản",
+    "province": "Hà Giang",
+    "description": "Hẻm Tu Sản, nơi sâu nhất Đông Nam Á, nổi bật với vách đá cao 800m và dòng sông Nho Quế xanh biếc. Du khách có thể chèo thuyền khám phá khung cảnh kỳ vĩ này.",
+    "rating": "4.5",
+    "image": "https://images.baodantoc.vn/uploads/2022/Th%C3%A1ng%201/Ng%C3%A0y%207/NG%C3%82N/Tu%20S%E1%BA%A3n/kham-pha-ve-dep-hem-tu-san-hem-vuc-sau-nhat-tai-dong-nam-a-o-ha-giang3-1639281377835787560145.jpg",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "ha-giang-dinh-vua-meo",
+    "name": "Dinh Vua Mèo",
+    "province": "Hà Giang",
+    "description": "Dinh Vua Mèo (Hà Giang) là dinh thự cổ của dòng họ Vương, với kiến trúc kết hợp độc đáo giữa Trung Hoa, Pháp và văn hóa dân tộc H'Mông, thu hút nhiều du khách tham quan.",
+    "rating": "4.8",
+    "image": "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/09/25/dinh-thu-vua-meo-1-1430.jpg",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  },
+  {
+    "id": "ha-nam-chua-tam-chuc",
+    "name": "Chùa Tam Chúc",
+    "province": "Hà Nam",
+    "description": "Chùa Tam Chúc (Hà Nam) là một trong những quần thể chùa lớn nhất Việt Nam, nổi bật với kiến trúc hoành tráng và cảnh quan thiên nhiên tươi đẹp. Được bao quanh bởi những dãy núi, hồ nước trong xanh, đây là nơi thu hút tín đồ Phật giáo và du khách tham quan.",
+    "rating": "4",
+    "image": "https://www.kynghidongduong.vn/images/product/img2/du-lich-chua-tam-chuc-kynghidongduong-004.jpg",
+    "keywords": [
+      "di sản",
+      "lịch sử",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "ha-nam-en-tran-thuong",
+    "name": "Đền Trần Thương",
+    "province": "Hà Nam",
+    "description": "Đền Trần Thương (Hà Nam) thờ các vị vua Trần, nổi bật với kiến trúc cổ kính và không gian thanh tịnh. Đền là điểm đến văn hóa, tâm linh, thu hút du khách vào mùa lễ hội.",
+    "rating": "4.9",
+    "image": "https://mia.vn/media/uploads/blog-du-lich/den-tran-thuong-7-1696133302.jpg",
+    "keywords": [
+      "địa phương",
+      "độc đáo",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ha-nam-hang-luon",
+    "name": "Hang Luồn",
+    "province": "Hà Nam",
+    "description": "Hang Luồn, nằm trong khu di tích Hạ Long, Quảng Ninh, nổi tiếng với hệ thống hang động kỳ vĩ. Du khách có thể chèo thuyền vào hang, khám phá vẻ đẹp hoang sơ của thiên nhiên.",
+    "rating": "4.1",
+    "image": "https://www.dulichhalong.net/wp-content/uploads/Hang-Luon-Halong.jpg",
+    "keywords": [
+      "thiên nhiên",
+      "du lịch",
+      "hòa bình"
+    ]
+  },
+  {
+    "id": "ha-nam-en-lanh-giang",
+    "name": "Đền Lảnh Giang",
+    "province": "Hà Nam",
+    "description": "Đền Lảnh Giang (Hưng Yên) là di tích lịch sử thờ các bậc vua hùng, mang đậm giá trị văn hóa và lịch sử. Đây là một điểm du lịch tâm linh nổi bật tại miền Bắc.",
+    "rating": "3.1",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRC0tZbj_KAypbee0hvzuXUKlPNYZrhTvMsCQ&s",
+    "keywords": [
+      "cảnh quan",
+      "địa danh",
+      "nổi bật"
+    ]
+  },
+  {
+    "id": "ha-nam-lang-vu-ai",
+    "name": "Làng Vũ Đại",
+    "province": "Hà Nam",
+    "description": "Làng Vũ Đại (Hà Nam) nổi tiếng nhờ sự gắn kết với tác phẩm \"Chí Phèo\" của nhà văn Nam Cao. Nơi đây có những ngôi nhà cổ, là điểm du lịch văn hóa, nơi lưu giữ nét đẹp văn hóa truyền thống.",
+    "rating": "4.6",
+    "image": "https://baogiaothong.mediacdn.vn/upload/images/2019-3/article_img/2019-09-12/ngo-i-nha-ba-kie-n-gio-tro-tha-nh-mo-t-die-m-tham-quan-mie-n-phi-cho-du-kha-ch--1568293960-width914height486.jpg",
+    "keywords": [
+      "khám phá",
+      "thiên nhiên",
+      "thư giãn"
+    ]
+  },
+  {
+    "id": "ha-noi-lang-chu-tich-ho-chi-minh",
+    "name": "Lăng Chủ tịch Hồ Chí Minh",
+    "province": "Hà Nội",
+    "description": "Lăng Chủ tịch Hồ Chí Minh (Hà Nội) là nơi lưu giữ thi hài của Chủ tịch Hồ Chí Minh, trở thành biểu tượng của lòng tôn kính và biết ơn của nhân dân Việt Nam.",
+    "rating": "4.2",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMHx0pkR_hUf4DaJq8ywbEqYONg2J014vbnw&s",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "ha-noi-ho-guom",
+    "name": "Hồ Gươm",
+    "province": "Hà Nội",
+    "description": "Hồ Gươm (Hà Nội) là trung tâm của thủ đô, nổi bật với Tháp Rùa và cầu Thê Húc. Đây là điểm du lịch hấp dẫn, nơi người dân thư giãn và là biểu tượng của Hà Nội.",
+    "rating": "3.2",
+    "image": "https://images.vietnamtourism.gov.vn/vn/images/2021/ho_guom.jpg",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ha-noi-van-mieu-quoc-tu-giam",
+    "name": "Văn Miếu - Quốc Tử Giám",
+    "province": "Hà Nội",
+    "description": "Văn Miếu - Quốc Tử Giám (Hà Nội) là một di tích lịch sử và văn hóa, nơi thờ Khổng Tử và là trường đại học đầu tiên của Việt Nam. Đây là điểm tham quan giáo dục và văn hóa.",
+    "rating": "3.1",
+    "image": "https://honglam.vn/pic/general/images/van-mieu-quoc-tu-giam%20(5).png",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "ha-noi-hoang-thanh-thang-long",
+    "name": "Hoàng thành Thăng Long",
+    "province": "Hà Nội",
+    "description": "Hoàng Thành Thăng Long (Hà Nội) là di tích lịch sử quan trọng của Việt Nam, từng là trung tâm quyền lực của nhiều triều đại. Di tích này mang đậm dấu ấn lịch sử và văn hóa dân tộc.",
+    "rating": "3.6",
+    "image": "https://hoangthanhthanglong.vn/wp-content/uploads/2023/05/hoangthanh.jpg",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "ha-noi-cau-long-bien",
+    "name": "Cầu Long Biên",
+    "province": "Hà Nội",
+    "description": "Cầu Long Biên (Hà Nội) là một trong những cây cầu lâu đời nhất, mang đậm giá trị lịch sử. Cầu nối liền hai bờ sông Hồng và là biểu tượng của thủ đô.",
+    "rating": "3.5",
+    "image": "https://i2.ex-cdn.com/crystalbay.com/files/content/2024/09/12/cau-long-bien-1-1709.jpg",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  },
+  {
+    "id": "ha-tinh-nga-ba-ong-loc",
+    "name": "Ngã ba Đồng Lộc",
+    "province": "Hà Tĩnh",
+    "description": "Ngã ba Đồng Lộc (Hà Tĩnh) là di tích lịch sử nổi tiếng gắn liền với cuộc kháng chiến chống Mỹ. Nơi đây là nơi tưởng niệm các liệt sĩ hy sinh trong chiến tranh.",
+    "rating": "4.4",
+    "image": "https://lh5.googleusercontent.com/proxy/sF7ugItIUxhPD4gRthgCfsONGinLrN4hEqo_HzazT8C3WqdNtM-xAkxSX-huljbHsrCQLUpdXEgl5zs6Ne7fTaq__2Y",
+    "keywords": [
+      "di sản",
+      "lịch sử",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "ha-tinh-chua-huong-tich",
+    "name": "Chùa Hương Tích",
+    "province": "Hà Tĩnh",
+    "description": "Ngã ba Đồng Lộc (Hà Tĩnh) là di tích lịch sử nổi tiếng gắn liền với cuộc kháng chiến chống Mỹ. Nơi đây là nơi tưởng niệm các liệt sĩ hy sinh trong chiến tranh.",
+    "rating": "3.9",
+    "image": "https://static.kinhtedothi.vn/images/upload/2021/12/20/7a462a22-c4d4-492f-b92a-c83c57c2e93d.jpg",
+    "keywords": [
+      "địa phương",
+      "độc đáo",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "ha-tinh-bien-thien-cam",
+    "name": "Biển Thiên Cầm",
+    "province": "Hà Tĩnh",
+    "description": "Biển Thiên Cầm (Hà Tĩnh) là bãi biển xinh đẹp với bãi cát dài và nước biển trong xanh, nơi du khách có thể thư giãn và tham gia các hoạt động thể thao biển.",
+    "rating": "3.2",
+    "image": "https://thiencam.net/wp-content/uploads/2017/04/thien-cam-ha-tinh.jpg",
+    "keywords": [
+      "thiên nhiên",
+      "du lịch",
+      "hòa bình"
+    ]
+  },
+  {
+    "id": "ha-tinh-khu-di-tich-nguyen-du",
+    "name": "Khu di tích Nguyễn Du",
+    "province": "Hà Tĩnh",
+    "description": "Khu di tích Nguyễn Du (Hà Tĩnh) là nơi tưởng niệm đại thi hào Nguyễn Du, tác giả của \"Truyện Kiều\". Di tích này giữ gìn những giá trị văn hóa, lịch sử về cuộc đời và sự nghiệp của ông.",
+    "rating": "4.9",
+    "image": "https://bizweb.dktcdn.net/100/467/540/files/5e51f1b2-2e3d-495d-ba66-b2fc90acdf3f-c2174aa5-b9f4-484f-9089-1e386f3d8ff1.jpg?v=1695609583388",
+    "keywords": [
+      "cảnh quan",
+      "địa danh",
+      "nổi bật"
+    ]
+  },
+  {
+    "id": "ha-tinh-eo-ngang",
+    "name": "Đèo Ngang",
+    "province": "Hà Tĩnh",
+    "description": "Đèo Ngang (Quảng Bình) là một trong những con đèo đẹp nhất Việt Nam, nối liền hai tỉnh Quảng Bình và Hà Tĩnh. Đèo có cảnh quan hùng vĩ và thơ mộng.",
+    "rating": "4.3",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYlUKMe1H2ET_dO5xzAeo6GyQ6R07Ci3huow&s",
+    "keywords": [
+      "khám phá",
+      "thiên nhiên",
+      "thư giãn"
+    ]
+  },
+  {
+    "id": "hai-duong-ao-co-chi-lang-nam",
+    "name": "Đảo Cò Chi Lăng Nam",
+    "province": "Hải Dương",
+    "description": "Đảo Cò Chi Lăng Nam (Hải Dương) là một khu vực bảo tồn thiên nhiên nổi bật với hàng nghìn con cò sinh sống. Đây là địa điểm du lịch sinh thái lý tưởng, với không gian yên bình và cảnh quan tuyệt đẹp.",
+    "rating": "3.3",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpzhFtGutS_W02Fr-0hiSq89Y7JzA_vKdnSA&s",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "hai-duong-chua-con-son",
+    "name": "Chùa Côn Sơn",
+    "province": "Hải Dương",
+    "description": "Chùa Côn Sơn (Hải Dương) là di tích lịch sử và văn hóa, nổi bật với kiến trúc cổ kính và không gian thanh tịnh. Nơi đây là một trong những địa điểm du lịch tâm linh nổi tiếng ở miền Bắc.",
+    "rating": "3.5",
+    "image": "https://consonkiepbac.org.vn/wp-content/uploads/2021/03/Cuu-pham-3.jpg",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "hai-duong-lang-roi-nuoc-thanh-hai",
+    "name": "Làng rối nước Thanh Hải",
+    "province": "Hải Dương",
+    "description": "Làng rối nước Thanh Hải (Hải Dương) là nơi bảo tồn và phát triển nghệ thuật rối nước truyền thống. Du khách có thể thưởng thức những màn rối đặc sắc trong không gian văn hóa dân gian đậm đà.",
+    "rating": "4.1",
+    "image": "https://luhanhvietnam.com.vn/du-lich/vnt_upload/news/06_2021/lang-roi-nuoc-thanh-hai-sa.png",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "hai-duong-en-kiep-bac",
+    "name": "Đền Kiếp Bạc",
+    "province": "Hải Dương",
+    "description": "Đền Kiếp Bạc (Hải Dương) là nơi thờ Hưng Đạo Đại Vương Trần Quốc Tuấn, người có công lớn trong chiến tranh chống Nguyên. Đền mang đậm giá trị lịch sử và văn hóa.",
+    "rating": "3.1",
+    "image": "https://vietsensetravel.com/view/at_den-kiep-bac_910af4a7a9046696946822e976e0a962.jpg",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "hai-duong-cho-ong-ngo-quyen",
+    "name": "Chợ Đông Ngô Quyền",
+    "province": "Hải Dương",
+    "description": "Chợ Đông Ngô Quyền (Hải Phòng) là chợ truyền thống nổi tiếng với đa dạng mặt hàng và không khí tấp nập. Chợ là nơi giao thương của người dân địa phương và du khách.",
+    "rating": "3.5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5VsYHUiMpVj0SqNQ-3n5vB7orjjCW2v9jzw&s",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  },
+  {
+    "id": "hai-phong-o-son",
+    "name": "Đồ Sơn",
+    "province": "Hải Phòng",
+    "description": "Đồ Sơn (Hải Phòng) là một bãi biển đẹp nổi tiếng với những dãy núi và biển xanh. Đây là khu du lịch biển với các hoạt động thể thao nước và thư giãn dưới ánh nắng.",
+    "rating": "3.5",
+    "image": "https://vietrapro.com/wp-content/uploads/2017/05/bai-bien-do-son-hai-phong.jpg",
+    "keywords": [
+      "di sản",
+      "lịch sử",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "hai-phong-cat-ba",
+    "name": "Cát Bà",
+    "province": "Hải Phòng",
+    "description": "Cát Bà (Hải Phòng) là hòn đảo nổi tiếng với bãi biển tuyệt đẹp và hệ sinh thái đa dạng. Nơi đây là một điểm đến lý tưởng cho những ai yêu thích du lịch sinh thái và biển.",
+    "rating": "4.8",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3GEramqChIIWX08m0x2Cq_5N26odngXetIA&s",
+    "keywords": [
+      "địa phương",
+      "độc đáo",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "hai-phong-ben-nghieng-ben-k15",
+    "name": "Bến Nghiêng - Bến K15",
+    "province": "Hải Phòng",
+    "description": "Bến Nghiêng (Bến K15) (Quảng Ninh) là một bến cảng nổi tiếng, gắn liền với lịch sử chiến tranh. Đây là một trong những điểm di tích lịch sử quan trọng của miền Bắc.",
+    "rating": "4.1",
+    "image": "https://image.vietgoing.com/editor/image_czc1638431389.jpg",
+    "keywords": [
+      "thiên nhiên",
+      "du lịch",
+      "hòa bình"
+    ]
+  },
+  {
+    "id": "hai-phong-hai-ang-hon-dau",
+    "name": "Hải đăng Hòn Dấu",
+    "province": "Hải Phòng",
+    "description": "Hải đăng Hòn Dấu (Hải Phòng) là ngọn hải đăng cổ kính, nằm trên đảo Hòn Dấu. Đây là một trong những ngọn hải đăng quan trọng ở khu vực vịnh Bắc Bộ.",
+    "rating": "4",
+    "image": "https://ticotravel.com.vn/wp-content/uploads/2022/05/Hai-dang-Hon-Dau-2.jpg",
+    "keywords": [
+      "cảnh quan",
+      "địa danh",
+      "nổi bật"
+    ]
+  },
+  {
+    "id": "hai-phong-cau-hoang-van-thu",
+    "name": "Cầu Hoàng Văn Thụ",
+    "province": "Hải Phòng",
+    "description": "Cầu Hoàng Văn Thụ (Hải Phòng) là một cây cầu huyết mạch nối liền các khu vực trong thành phố. Cầu nổi bật với kiến trúc hiện đại và là điểm đến tham quan chính của du khách.",
+    "rating": "3.3",
+    "image": "https://imagev3.dantocmiennui.vn/w1000/Uploaded/2024/ngotzz/2022_08_25/cauhoangvanthu2.jpeg",
+    "keywords": [
+      "khám phá",
+      "thiên nhiên",
+      "thư giãn"
+    ]
+  },
+  {
+    "id": "hau-giang-khu-du-lich-lung-ngoc-hoang",
+    "name": "Khu du lịch Lung Ngọc Hoàng",
+    "province": "Hậu Giang",
+    "description": "Khu du lịch Lung Ngọc Hoàng (Hậu Giang) là khu bảo tồn thiên nhiên nổi bật với hệ sinh thái rừng ngập mặn. Đây là điểm đến lý tưởng cho những ai yêu thích du lịch sinh thái và nghiên cứu động thực vật.",
+    "rating": "5",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCuDRxQuW4UyoIJKAcItE_ahWHE3_moYpOXg&s",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "hau-giang-cho-noi-nga-bay",
+    "name": "Chợ nổi Ngã Bảy",
+    "province": "Hậu Giang",
+    "description": "Chợ nổi Ngã Bảy (Hậu Giang) là một trong những chợ nổi nổi tiếng ở miền Tây. Du khách có thể trải nghiệm việc mua bán trên sông và khám phá nền văn hóa chợ nổi đặc sắc.",
+    "rating": "3",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWb2p0D3meLtBculBebw-4Pea5g8O-zyvo1g&s",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "hau-giang-cong-vien-giai-tri-vinpearl-hau-giang",
+    "name": "Công viên giải trí Vinpearl Hậu Giang",
+    "province": "Hậu Giang",
+    "description": "Công viên giải trí Vinpearl Hậu Giang là khu vui chơi giải trí hiện đại, với nhiều trò chơi hấp dẫn cho cả gia đình. Đây là điểm đến lý tưởng cho du khách tìm kiếm sự giải trí và thư giãn.",
+    "rating": "4.3",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKcf2MdvR1tzFaSudJbTNbCmNy5Jxo-qQoIw&s",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "hau-giang-vuon-co-tan-long",
+    "name": "Vườn cò Tân Long",
+    "province": "Hậu Giang",
+    "description": "Vườn cò Tân Long (Vĩnh Long) là khu vực bảo tồn sinh thái, nơi có hàng nghìn con cò sinh sống. Du khách có thể ngắm nhìn những đàn cò bay lượn trong không gian thanh bình.",
+    "rating": "4.5",
+    "image": "https://luhanhvietnam.com.vn/du-lich/vnt_upload/news/10_2021/diem-du-lich-sinh-thai.jpg",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "hau-giang-song-cai-lon",
+    "name": "Sông Cái Lớn",
+    "province": "Hậu Giang",
+    "description": "Sông Cái Lớn (Cà Mau) là con sông dài, chảy qua các tỉnh miền Tây. Nơi đây có hệ sinh thái phong phú và là điểm du lịch sinh thái nổi bật của vùng đồng bằng sông Cửu Long.",
+    "rating": "3.2",
+    "image": "https://cdn.tuoitre.vn/thumb_w/480/2022/3/13/logo-dptrungnam7-1647141329088927871571.jpg",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  },
+  {
+    "id": "hoa-binh-thung-nai",
+    "name": "Thung Nai",
+    "province": "Hòa Bình",
+    "description": "Thung Nai (Hòa Bình) là khu du lịch nổi tiếng với cảnh sắc thiên nhiên hùng vĩ, bao gồm hồ nước rộng lớn và các dãy núi bao quanh. Nơi đây là địa điểm lý tưởng cho du khách yêu thích du lịch sinh thái và tham gia các hoạt động ngoài trời như chèo thuyền.",
+    "rating": "4.7",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYz1fmShZLDoqjX0N9o-8uDiP5fvlaUGP4Ow&s",
+    "keywords": [
+      "di sản",
+      "lịch sử",
+      "văn hóa"
+    ]
+  },
+  {
+    "id": "hoa-binh-mai-chau",
+    "name": "Mai Châu",
+    "province": "Hòa Bình",
+    "description": "Mai Châu (Hòa Bình) là một thung lũng xinh đẹp, nổi tiếng với những ngôi nhà sàn và cảnh sắc thiên nhiên hoang sơ. Mai Châu thu hút du khách bởi không khí trong lành, cộng với nền văn hóa đặc sắc của đồng bào dân tộc Thái.",
+    "rating": "4.2",
+    "image": "https://vcdn1-dulich.vnecdn.net/2022/04/12/du-lich-Mai-Chau-thang-07-mobi-5431-9625-1649760588.jpg?w=0&h=0&q=100&dpr=1&fit=crop&s=5cITecmks1K0MS75q6iQnQ",
+    "keywords": [
+      "địa phương",
+      "độc đáo",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "hoa-binh-ong-a-bac",
+    "name": "Động Đá Bạc",
+    "province": "Hòa Bình",
+    "description": "Động Đá Bạc (Quảng Ninh) là một hang động tự nhiên nổi bật với những khối đá vôi kỳ lạ và vẻ đẹp huyền bí. Du khách có thể khám phá hệ thống thạch nhũ và các tạo hình đá độc đáo trong không gian yên tĩnh của động.",
+    "rating": "3.9",
+    "image": "https://tour.dulichvietnam.com.vn/uploads/image/a-dia-danh-du-lich/dong-da-bac-1.jpg",
+    "keywords": [
+      "thiên nhiên",
+      "du lịch",
+      "hòa bình"
+    ]
+  },
+  {
+    "id": "hoa-binh-cuu-thac-tu-son",
+    "name": "Cửu thác Tú Sơn",
+    "province": "Hòa Bình",
+    "description": "Cửu thác Tú Sơn (Hà Giang) là một hệ thống 9 thác nước lớn nhỏ nằm giữa thiên nhiên hoang sơ. Đây là điểm đến lý tưởng cho những ai yêu thích khám phá và tìm hiểu các thác nước giữa không gian núi rừng.",
+    "rating": "3.2",
+    "image": "https://dulichbennghe.cdn.vccloud.vn/wp-content/uploads/2020/03/du-lich-ben-nghe-cuu-thac-tu-son.jpg",
+    "keywords": [
+      "cảnh quan",
+      "địa danh",
+      "nổi bật"
+    ]
+  },
+  {
+    "id": "hoa-binh-en-thac-bo",
+    "name": "Đền Thác Bờ",
+    "province": "Hòa Bình",
+    "description": "Đền Thác Bờ (Hòa Bình) là một di tích lịch sử, thờ nữ tướng Cao Thị Lịch. Đền nằm gần thác Bờ, có khung cảnh huyền bí và là nơi linh thiêng, thu hút du khách đến tham quan và cầu nguyện.",
+    "rating": "4.4",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShxh5UJa4Rwa6DjOg-8EmOofNkwvzf9QuAQA&s",
+    "keywords": [
+      "khám phá",
+      "thiên nhiên",
+      "thư giãn"
+    ]
+  },
+  {
+    "id": "hung-yen-pho-hien",
+    "name": "Phố Hiến",
+    "province": "Hưng Yên",
+    "description": "Phố Hiến (Hưng Yên) là một khu phố cổ nổi tiếng với những công trình kiến trúc mang đậm dấu ấn lịch sử. Đây là một điểm đến hấp dẫn cho du khách muốn tìm hiểu về lịch sử, văn hóa và thưởng thức ẩm thực địa phương.",
+    "rating": "4",
+    "image": "https://media.thanhtra.com.vn/public/data/images/0/2022/02/19/travan/pho%CC%82%CC%81-hie%CC%82%CC%81n-1.jpeg",
+    "keywords": [
+      "du lịch",
+      "thiên nhiên",
+      "cảnh đẹp"
+    ]
+  },
+  {
+    "id": "hung-yen-chua-chuong",
+    "name": "Chùa Chuông",
+    "province": "Hưng Yên",
+    "description": "Chùa Chuông (Hà Nội) là một ngôi chùa cổ có kiến trúc độc đáo, nằm trong khuôn viên rộng rãi, thanh tịnh. Đây là một địa điểm hành hương nổi tiếng, thu hút đông đảo phật tử và du khách đến tham quan.",
+    "rating": "4.3",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTN_eID3pJlJkMN1b66P0GMq8yYTTUBj05Y6w&s",
+    "keywords": [
+      "lịch sử",
+      "văn hóa",
+      "khám phá"
+    ]
+  },
+  {
+    "id": "hung-yen-lang-nghe-uc-ong-long-thuong",
+    "name": "Làng nghề đúc đồng Lộng Thượng",
+    "province": "Hưng Yên",
+    "description": "Làng nghề đúc đồng Lộng Thượng (Hà Nội) nổi tiếng với nghề đúc đồng truyền thống từ lâu đời. Du khách có thể tham quan quy trình sản xuất các sản phẩm đồng thủ công mỹ nghệ và tìm hiểu về lịch sử làng nghề.",
+    "rating": "4.7",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZBAnp--Ji_JlUPtWDWROIXwNRBCdT5cjONQ&s",
+    "keywords": [
+      "địa danh nổi tiếng",
+      "biểu tượng"
+    ]
+  },
+  {
+    "id": "hung-yen-en-phu-ung",
+    "name": "Đền Phù Ủng",
+    "province": "Hưng Yên",
+    "description": "Đền Phù Ủng (Hưng Yên) là di tích lịch sử, thờ Đức thánh Phù Ủng, người có công giúp vua Hùng trong các cuộc chiến. Đền nằm trong khuôn viên rộng lớn, với không gian thanh tịnh và linh thiêng.",
+    "rating": "4.6",
+    "image": "https://s-aicmscdn.vietnamhoinhap.vn/vnhn-media/20/1/26/img_2020-01-26_1580004165.jpg",
+    "keywords": [
+      "thư giãn",
+      "yên bình",
+      "du lịch sinh thái"
+    ]
+  },
+  {
+    "id": "hung-yen-inh-lang-nom",
+    "name": "Đình làng Nôm",
+    "province": "Hưng Yên",
+    "description": "Đình làng Nôm (Hưng Yên) là một di tích văn hóa đặc sắc, nổi bật với kiến trúc cổ truyền và các hoạt động lễ hội dân gian. Đây là điểm đến thu hút du khách khám phá những giá trị văn hóa truyền thống.",
+    "rating": "3.9",
+    "image": "https://imagev3.vietnamplus.vn/w1000/Uploaded/2024/qfsqy/2022_11_04/dinh_lang_nom.JPG.webp",
+    "keywords": [
+      "bảo tồn",
+      "động vật",
+      "thực vật"
+    ]
+  }
+]

@@ -72,7 +72,14 @@ export default function UserDropdown({ user }: UserDropdownProps) {
             onClick={() => setOpen(false)}
             className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-slate-50"
           >
-            Quản lý profile
+            Thông tin của bạn
+          </Link>
+          <Link
+            href="/profile?tab=trips"
+            onClick={() => setOpen(false)}
+            className="block cursor-pointer px-4 py-2.5 text-sm text-[var(--color-text)] transition-colors hover:bg-slate-50"
+          >
+            Chuyến đi của tôi
           </Link>
           <div className="my-1 border-t border-[var(--color-border)]" />
           <button

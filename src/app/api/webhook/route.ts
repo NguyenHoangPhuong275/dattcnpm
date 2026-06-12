@@ -12,15 +12,21 @@ import {
 import { getRedis } from '@/lib/redis';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
+function getWebhookSecret() {
+  const secret = process.env.WEBHOOK_SECRET;
+  if (!secret) {
+    throw new AppError('INTERNAL_ERROR', 'WEBHOOK_SECRET is not configured', 500);
+  }
+  return secret;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('x-webhook-secret');
-    const { searchParams } = new URL(request.url);
-    const querySecret = searchParams.get('secret');
+    const querySecret = request.nextUrl.searchParams.get('secret');
+    const webhookSecret = getWebhookSecret();
 
-    const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'lotus_travel_admin_webhook_secret_2026';
-
-    if (authHeader !== WEBHOOK_SECRET && querySecret !== WEBHOOK_SECRET) {
+    if (authHeader !== webhookSecret && querySecret !== webhookSecret) {
       throw new AppError('UNAUTHORIZED', 'Unauthorized admin access', 401);
     }
 
@@ -89,14 +95,15 @@ export async function POST(request: NextRequest) {
 
       case 'db.listCollections': {
         const mongoDb = mongoose.connection.db;
+        const managedCollections = new Set<string>(MANAGED_COLLECTIONS);
         const current: string[] = mongoDb 
-          ? (await mongoDb.listCollections().toArray()).map((c: any) => c.name)
+          ? (await mongoDb.listCollections().toArray()).map((collection) => collection.name)
           : [];
 
         return sendSuccess({
           managed: MANAGED_COLLECTIONS,
           current,
-          unknown: current.filter((c: string) => !MANAGED_COLLECTIONS.includes(c as any)),
+          unknown: current.filter((collection) => !managedCollections.has(collection)),
         });
       }
 
@@ -340,7 +347,7 @@ export async function POST(request: NextRequest) {
           targetId: undefined,
           metadata: { inserted, updated, source: 'depth3.json' },
           createdAt: now,
-        } as any);
+        } as unknown as Record<string, unknown>);
 
         return sendSuccess({
           message: `Đã seed thành công dữ liệu hành chính Việt Nam. Inserted: ${inserted}, Updated: ${updated}. Dữ liệu ~11k phường/xã đã sẵn sàng cho search nhanh trong DB.`,

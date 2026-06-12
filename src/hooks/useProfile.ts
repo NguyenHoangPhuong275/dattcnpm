@@ -31,25 +31,29 @@ type ProfileApiData = {
   twoFactorEnabled?: boolean | null;
 };
 
+function toBirthdayInput(value?: string | null) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}/${day}/${date.getFullYear()}`;
+}
+
 export interface UseProfileReturn {
   personal: PersonalInfo;
   preferences: TravelPreferences;
   memberSince: string;
   is2FAEnabled: boolean;
-
   loading: boolean;
   savingPersonal: boolean;
   savingPreferences: boolean;
-
   setPersonal: React.Dispatch<React.SetStateAction<PersonalInfo>>;
   setPreferences: React.Dispatch<React.SetStateAction<TravelPreferences>>;
   setIs2FAEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-
   savePersonal: (e: React.FormEvent) => Promise<void>;
   savePreferences: (e: React.FormEvent) => Promise<void>;
   toggle2FA: () => void;
-
-  
   updateAvatar: (url: string) => void;
 }
 
@@ -70,12 +74,10 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
   const [memberSince, setMemberSince] = useState('');
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
 
-  
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -86,32 +88,34 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       setLoading(true);
       try {
         const { response, data } = await apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', { userId });
+
         if (response.ok && data.success && data.profile) {
-          const p = data.profile;
-          const names = p.fullName ? p.fullName.trim().split(' ') : [];
+          const profile = data.profile;
+          const names = profile.fullName ? profile.fullName.trim().split(/\s+/) : [];
 
           setPersonal({
             firstName: names[0] || '',
             lastName: names.slice(1).join(' ') || '',
-            email: p.email || '',
-            phone: p.phone || '',
-            dateOfBirth: p.dateOfBirth || '',
-            gender: p.gender || '',
-            nationality: p.nationality || 'Việt Nam',
-            preferredLanguage: p.preferredLanguage || 'Tiếng Việt',
-            homeCity: p.homeCity || '',
-            emergencyContactName: p.emergencyContact?.name || '',
-            emergencyContactPhone: p.emergencyContact?.phone || '',
-            avatarUrl: p.avatarUrl || '',
+            email: profile.email || '',
+            phone: profile.phone || '',
+            dateOfBirth: toBirthdayInput(profile.dateOfBirth),
+            gender: profile.gender || '',
+            nationality: profile.nationality || 'Việt Nam',
+            preferredLanguage: profile.preferredLanguage || 'Tiếng Việt',
+            homeCity: profile.homeCity || '',
+            emergencyContactName: profile.emergencyContact?.name || '',
+            emergencyContactPhone: profile.emergencyContact?.phone || '',
+            avatarUrl: profile.avatarUrl || '',
           });
+
           setPreferences({
-            travelStyles: p.travelStyles || [],
-            interests: p.interests || [],
-            budgetLevel: p.budgetLevel || 'Trung bình',
-            preferredDestinations: p.preferredDestinations || [],
+            travelStyles: profile.travelStyles || [],
+            interests: profile.interests || [],
+            budgetLevel: profile.budgetLevel || 'Trung bình',
+            preferredDestinations: profile.preferredDestinations || [],
           });
-          setMemberSince(p.createdAt || '');
-          setIs2FAEnabled(!!p.twoFactorEnabled);
+          setMemberSince(profile.createdAt || '');
+          setIs2FAEnabled(!!profile.twoFactorEnabled);
         }
       } catch {
       } finally {
@@ -123,7 +127,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
   }, [userId]);
 
   const updateAvatar = useCallback((url: string) => {
-    setPersonal(prev => ({ ...prev, avatarUrl: url }));
+    setPersonal((prev) => ({ ...prev, avatarUrl: url }));
   }, []);
 
   const savePersonal = useCallback(async (e: React.FormEvent) => {
@@ -131,10 +135,11 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     if (!userId) throw new Error('No user');
 
     setSavingPersonal(true);
+    const fullName = `${personal.firstName} ${personal.lastName}`.trim();
 
     updateStoredUser((current) => ({
       ...current,
-      fullName: `${personal.firstName} ${personal.lastName}`.trim(),
+      fullName,
       email: personal.email,
     }));
 
@@ -144,7 +149,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         userId,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: `${personal.firstName} ${personal.lastName}`.trim(),
+          fullName,
           email: personal.email,
           phone: personal.phone,
           dateOfBirth: personal.dateOfBirth,
@@ -198,24 +203,24 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
   const toggle2FA = useCallback(async () => {
     if (!userId) return;
 
-    const newVal = !is2FAEnabled;
-    setIs2FAEnabled(newVal); 
+    const nextValue = !is2FAEnabled;
+    setIs2FAEnabled(nextValue);
 
     try {
       const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
         method: 'PATCH',
         userId,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ twoFactorEnabled: newVal }),
+        body: JSON.stringify({ twoFactorEnabled: nextValue }),
       });
 
       if (!response.ok || !data.success) {
-        setIs2FAEnabled(!newVal);
+        setIs2FAEnabled(!nextValue);
         throw new Error(getApiErrorMessage(data, 'Cập nhật 2FA thất bại'));
       }
-    } catch (err) {
-      setIs2FAEnabled(!newVal);
-      throw err;
+    } catch (error) {
+      setIs2FAEnabled(!nextValue);
+      throw error;
     }
   }, [userId, is2FAEnabled]);
 
@@ -236,4 +241,3 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     updateAvatar,
   };
 }
-

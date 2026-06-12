@@ -1,6 +1,27 @@
-export * from './mongodb';
-export * from './redis';
-export * from './auth';
+export {
+  connectMongo,
+  getDb,
+  disconnectMongo,
+  COLLECTIONS,
+  MANAGED_COLLECTIONS,
+  type CollectionName,
+} from './mongodb';
+
+export {
+  cacheGet,
+  cacheSet,
+  connectRedis,
+  disconnectRedis,
+  getRedis,
+  rateLimitIncr,
+} from './redis';
+
+export {
+  authCookieName,
+  getAuthUserId,
+  signAuthToken,
+  verifyAuthToken,
+} from './auth';
 
 export {
   getApiErrorMessage,
@@ -10,4 +31,22 @@ export {
   type ApiRequestOptions,
 } from './api-client';
 
-export * from './user';
+export {
+  clearStoredUser,
+  getStoredUser,
+  setStoredUser,
+  syncUserToStorage,
+  updateStoredUser,
+} from './user';
+
+export {
+  formatDateRange,
+  formatMoney,
+  formatTripDayDate,
+  getDuration,
+  getTripCities,
+  getTripImage,
+  normalizeText,
+  type TripDisplayInfo,
+  type TripDuration,
+} from './trip-utils';

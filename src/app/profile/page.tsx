@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
-
-import ProfileMenu, { ProfileTab } from '@/components/profile/ProfileMenu';
+import ProfileMenu from '@/components/profile/ProfileMenu';
 import PersonalInfoForm from '@/components/profile/PersonalInfoForm';
 import TravelPreferencesForm from '@/components/profile/TravelPreferencesForm';
 import MyTripsSection from '@/components/profile/MyTripsSection';
@@ -16,72 +15,104 @@ import CreateTripModal from '@/components/profile/CreateTripModal';
 import PasswordChangeModal from '@/components/profile/PasswordChangeModal';
 import TripDetailModal from '@/components/profile/TripDetailModal';
 import ProfileToast from '@/components/profile/ProfileToast';
-
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { useProfile } from '@/hooks/useProfile';
 import { useMyTrips } from '@/hooks/useMyTrips';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useMyReviews } from '@/hooks/useMyReviews';
-
-import { TripSummary } from '@/types/profile';
-
+import { TripSummary, ProfileTab } from '@/types/profile';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { getDefaultTripDates } from '@/lib/date';
 
 export default function ProfilePage() {
-  
+  return (
+    <Suspense fallback={<ProfileLoading />}>
+      <ProfilePageContent />
+    </Suspense>
+  );
+}
+
+function ProfileLoading() {
+  return (
+    <div className="relative flex min-h-dvh items-center justify-center bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: "url('/images/profile_hero.png')" }}>
+      <div className="absolute inset-0 z-0 bg-white/70 backdrop-blur-[2px]" />
+      <div className="relative z-10 text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary-dark)] border-t-transparent" />
+        <p className="mt-4 text-sm font-semibold text-slate-500">Đang tải thông tin...</p>
+      </div>
+    </div>
+  );
+}
+
+function ProfilePageContent() {
+  const searchParams = useSearchParams();
   const { user, isLoading: userLoading } = useCurrentUser({ redirectIfNone: true });
   const { message: toastMessage, visible: showToastVisible, showToast } = useToast();
-
   const profile = useProfile({ userId: user?.id ?? null });
   const myTripsHook = useMyTrips({ userId: user?.id ?? null });
   const favoritesHook = useFavorites({ userId: user?.id ?? null });
   const reviewsHook = useMyReviews({ userId: user?.id ?? null });
 
-  const [activeTab, setActiveTab] = useState<ProfileTab>('personal');
+  const initialTab = (searchParams.get('tab') as ProfileTab) || 'personal';
+  const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
 
-  
   const [showCreateTripModal, setShowCreateTripModal] = useState(false);
   const [newTripTitle, setNewTripTitle] = useState('');
   const [newTripDest, setNewTripDest] = useState('');
-  const [selectedTripForDetail, setSelectedTripForDetail] = useState<TripSummary | null>(null);
+  const { startDate: defaultStart, endDate: defaultEnd } = getDefaultTripDates(3);
+  const [newTripStartDate, setNewTripStartDate] = useState(defaultStart);
+  const [newTripEndDate, setNewTripEndDate] = useState(defaultEnd);
+  const [newTripDescription, setNewTripDescription] = useState('');
+  const [newTripIsPublic, setNewTripIsPublic] = useState(false);
+
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [oldPass, setOldPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
 
-  
+  const [viewingTrip, setViewingTrip] = useState<TripSummary | null>(null);
+
   const { personal, preferences, memberSince, is2FAEnabled, loading: profileLoading, savingPersonal, savingPreferences, setPersonal, setPreferences, savePersonal, savePreferences, toggle2FA, updateAvatar } = profile;
   const { trips: myTrips, loading: loadingTrips, creating: creatingTrip, createTrip, deleteTrip, loadTrips } = myTripsHook;
   const { favorites, loading: loadingFavorites, removeFavorite, loadFavorites } = favoritesHook;
   const { reviews: myReviews, loading: loadingReviews, loadReviews } = reviewsHook;
 
-  
-  const handlePersonalChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setPersonal(prev => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as ProfileTab | null;
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, activeTab]);
+
+  const handlePersonalChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setPersonal((prev) => ({ ...prev, [name]: value }));
+  }, [setPersonal]);
+
+  const handleFullNameChange = useCallback((value: string) => {
+    const parts = value.trimStart().split(/\s+/).filter(Boolean);
+    setPersonal((prev) => ({
+      ...prev,
+      firstName: parts[0] || '',
+      lastName: parts.slice(1).join(' '),
+    }));
   }, [setPersonal]);
 
   const handlePreferenceChange = useCallback(<K extends keyof typeof preferences,>(field: K, value: (typeof preferences)[K]) => {
-    setPreferences(prev => ({ ...prev, [field]: value }));
+    setPreferences((prev) => ({ ...prev, [field]: value }));
   }, [setPreferences]);
 
   const toggleInterest = useCallback((tag: string) => {
-    setPreferences(prev => {
-      const has = prev.interests.includes(tag);
+    setPreferences((prev) => {
+      const hasTag = prev.interests.includes(tag);
       return {
         ...prev,
-        interests: has ? prev.interests.filter(t => t !== tag) : [...prev.interests, tag],
+        interests: hasTag ? prev.interests.filter((item) => item !== tag) : [...prev.interests, tag],
       };
     });
   }, [setPreferences]);
 
-  const handleTabChange = useCallback((tab: ProfileTab) => {
-    
-    setActiveTab(tab);
-  }, []);
-
-  
   const handleDeleteTrip = useCallback(async (id: string) => {
     try {
       await deleteTrip(id);
@@ -90,6 +121,10 @@ export default function ProfilePage() {
       showToast('Xóa thất bại, vui lòng thử lại');
     }
   }, [deleteTrip, showToast]);
+
+  const handleViewTrip = useCallback((trip: TripSummary) => {
+    setViewingTrip(trip);
+  }, []);
 
   const handleRemoveFavorite = useCallback(async (id: string) => {
     try {
@@ -100,31 +135,44 @@ export default function ProfilePage() {
     }
   }, [removeFavorite, showToast]);
 
-  
+  const resetCreateTripForm = useCallback(() => {
+    setShowCreateTripModal(false);
+    setNewTripTitle('');
+    setNewTripDest('');
+    const { startDate: dStart, endDate: dEnd } = getDefaultTripDates(3);
+    setNewTripStartDate(dStart);
+    setNewTripEndDate(dEnd);
+    setNewTripDescription('');
+    setNewTripIsPublic(false);
+  }, []);
+
   const handleCreateNewTrip = useCallback(async () => {
-    if (creatingTrip) return; 
+    if (creatingTrip) return;
     if (!newTripTitle.trim() || !newTripDest.trim()) {
       showToast('Vui lòng nhập tiêu đề và điểm đến');
       return;
     }
 
-    const result = await createTrip(newTripTitle.trim(), newTripDest.trim());
+    const result = await createTrip({
+      title: newTripTitle.trim(),
+      destination: newTripDest.trim(),
+      startDate: newTripStartDate,
+      endDate: newTripEndDate,
+      description: newTripDescription.trim(),
+      isPublic: newTripIsPublic,
+    });
     if (result.success) {
-      setShowCreateTripModal(false);
-      setNewTripTitle('');
-      setNewTripDest('');
-      showToast('Chuyến đi mới đã được tạo!');
-      
+      resetCreateTripForm();
+      showToast('Chuyến đi mới đã được tạo');
       loadTrips();
     } else {
       showToast(result.message || 'Tạo chuyến đi thất bại');
     }
-  }, [newTripTitle, newTripDest, createTrip, showToast, creatingTrip, loadTrips]);
+  }, [newTripTitle, newTripDest, newTripStartDate, newTripEndDate, newTripDescription, newTripIsPublic, createTrip, showToast, creatingTrip, loadTrips, resetCreateTripForm]);
 
-  
   const handleChangePassword = useCallback(async () => {
     if (!oldPass || !newPass || newPass !== confirmPass) {
-      showToast('Vui lòng nhập đúng thông tin (mật khẩu mới phải khớp)');
+      showToast('Vui lòng nhập đúng thông tin, mật khẩu mới phải khớp');
       return;
     }
     if (!user?.id) return;
@@ -140,7 +188,7 @@ export default function ProfilePage() {
       setOldPass('');
       setNewPass('');
       setConfirmPass('');
-      showToast(data.success ? 'Đổi mật khẩu thành công!' : (data.message || 'Đổi mật khẩu thất bại'));
+      showToast(data.success ? 'Đổi mật khẩu thành công' : (data.message || 'Đổi mật khẩu thất bại'));
     } catch {
       setShowPasswordModal(false);
       setOldPass('');
@@ -151,34 +199,35 @@ export default function ProfilePage() {
   }, [oldPass, newPass, confirmPass, user?.id, showToast]);
 
   const handleToggle2FA = useCallback(async () => {
-    toggle2FA();
-  }, [toggle2FA]);
+    try {
+      await toggle2FA();
+    } catch {
+      showToast('Cập nhật bảo mật thất bại');
+    }
+  }, [toggle2FA, showToast]);
 
-  
   const handleAvatarChange = useCallback((url: string) => {
     updateAvatar(url);
   }, [updateAvatar]);
 
-  
-  const handleSavePersonal = useCallback(async (e: React.FormEvent) => {
+  const handleSavePersonal = useCallback(async (event: React.FormEvent) => {
     try {
-      await savePersonal(e);
-      showToast('Đã lưu thông tin cá nhân!');
-    } catch (err: unknown) {
-      showToast(getApiErrorMessage(err, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại'));
+      await savePersonal(event);
+      showToast('Đã lưu thông tin cá nhân');
+    } catch (error: unknown) {
+      showToast(getApiErrorMessage(error, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại'));
     }
   }, [savePersonal, showToast]);
 
-  const handleSavePreferences = useCallback(async (e: React.FormEvent) => {
+  const handleSavePreferences = useCallback(async (event: React.FormEvent) => {
     try {
-      await savePreferences(e);
-      showToast('Đã cập nhật sở thích du lịch!');
-    } catch (err: unknown) {
-      showToast(getApiErrorMessage(err, 'Lưu sở thích thất bại, vui lòng thử lại'));
+      await savePreferences(event);
+      showToast('Đã cập nhật sở thích du lịch');
+    } catch (error: unknown) {
+      showToast(getApiErrorMessage(error, 'Lưu sở thích thất bại, vui lòng thử lại'));
     }
   }, [savePreferences, showToast]);
 
-  
   useEffect(() => {
     if (user?.id) {
       loadTrips();
@@ -188,32 +237,34 @@ export default function ProfilePage() {
   }, [user?.id, loadTrips, loadFavorites, loadReviews]);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showCreateTripModal) {
-          setShowCreateTripModal(false);
-          setNewTripTitle('');
-          setNewTripDest('');
-        }
-        if (showPasswordModal) {
-          setShowPasswordModal(false);
-          setOldPass(''); setNewPass(''); setConfirmPass('');
-        }
-        if (selectedTripForDetail) {
-          setSelectedTripForDetail(null);
-        }
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (viewingTrip) {
+        setViewingTrip(null);
+        return;
+      }
+      if (showCreateTripModal) {
+        resetCreateTripForm();
+        return;
+      }
+      if (showPasswordModal) {
+        setShowPasswordModal(false);
+        setOldPass('');
+        setNewPass('');
+        setConfirmPass('');
       }
     };
+
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [showCreateTripModal, showPasswordModal, selectedTripForDetail]);
+  }, [showCreateTripModal, showPasswordModal, viewingTrip, resetCreateTripForm]);
 
   const isLoading = userLoading || profileLoading;
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-cover bg-center bg-no-repeat bg-fixed relative" style={{ backgroundImage: "url('/images/profile_hero.png')" }}>
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] pointer-events-none z-0" />
+      <div className="relative flex min-h-dvh items-center justify-center bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: "url('/images/profile_hero.png')" }}>
+        <div className="absolute inset-0 z-0 bg-white/70 backdrop-blur-[2px]" />
         <div className="relative z-10 text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary-dark)] border-t-transparent" />
           <p className="mt-4 text-sm font-semibold text-slate-500">Đang tải thông tin...</p>
@@ -223,21 +274,21 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white text-slate-800 font-sans antialiased">
-      <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh bg-white font-sans text-slate-800 antialiased">
+      <div className="flex min-h-dvh flex-col">
         <ProfileToast message={toastMessage} visible={showToastVisible} />
         <AppHeader active="profile" />
 
-        <main className="w-full py-8 flex-1">
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 px-4 lg:px-8 w-full">
-            <ProfileMenu activeTab={activeTab} onTabChange={handleTabChange} />
+        <main className="w-full flex-1 py-8">
+          <div className="flex w-full flex-col gap-6 px-4 lg:flex-row lg:gap-8 lg:px-8">
+            <ProfileMenu activeTab={activeTab} onTabChange={setActiveTab} />
 
-            <div className="flex-1 min-w-0">
-              <div className="mb-6 flex items-center justify-between">
+            <div className="min-w-0 flex-1">
+              <div className="mb-6 flex items-center justify-between gap-4">
                 <h2 className="font-display text-2xl font-extrabold text-slate-800">
-                  {activeTab === 'personal' && 'Thông tin cá nhân'}
+                  {activeTab === 'personal' && 'Thông tin của bạn'}
                   {activeTab === 'preferences' && 'Sở thích du lịch'}
-                  {activeTab === 'trips' && 'Hành trình của tôi'}
+                  {activeTab === 'trips' && 'Danh sách chuyến đi'}
                   {activeTab === 'favorites' && 'Địa điểm yêu thích'}
                   {activeTab === 'search-history' && 'Lịch sử tìm kiếm'}
                   {activeTab === 'reviews' && 'Đánh giá của tôi'}
@@ -252,6 +303,7 @@ export default function ProfilePage() {
                 <PersonalInfoForm
                   personal={personal}
                   onChange={handlePersonalChange}
+                  onFullNameChange={handleFullNameChange}
                   onSave={handleSavePersonal}
                   onAvatarChange={handleAvatarChange}
                   saving={savingPersonal}
@@ -273,7 +325,7 @@ export default function ProfilePage() {
                 <MyTripsSection
                   trips={myTrips}
                   onCreateNew={() => setShowCreateTripModal(true)}
-                  onViewDetail={setSelectedTripForDetail}
+                  onViewDetail={handleViewTrip}
                   onDelete={handleDeleteTrip}
                   loading={loadingTrips}
                 />
@@ -288,7 +340,7 @@ export default function ProfilePage() {
               )}
 
               {activeTab === 'search-history' && (
-                <SearchHistorySection />
+                <SearchHistorySection userId={user.id} trips={myTrips} />
               )}
 
               {activeTab === 'security' && (
@@ -303,15 +355,22 @@ export default function ProfilePage() {
           </div>
         </main>
 
-        
         <CreateTripModal
           open={showCreateTripModal}
           title={newTripTitle}
           destination={newTripDest}
+          startDate={newTripStartDate}
+          endDate={newTripEndDate}
+          description={newTripDescription}
+          isPublic={newTripIsPublic}
           creating={creatingTrip}
-          onClose={() => { setShowCreateTripModal(false); setNewTripTitle(''); setNewTripDest(''); }}
+          onClose={resetCreateTripForm}
           onTitleChange={setNewTripTitle}
           onDestChange={setNewTripDest}
+          onStartDateChange={setNewTripStartDate}
+          onEndDateChange={setNewTripEndDate}
+          onDescriptionChange={setNewTripDescription}
+          onIsPublicChange={setNewTripIsPublic}
           onCreate={handleCreateNewTrip}
         />
 
@@ -320,7 +379,12 @@ export default function ProfilePage() {
           oldPass={oldPass}
           newPass={newPass}
           confirmPass={confirmPass}
-          onClose={() => { setShowPasswordModal(false); setOldPass(''); setNewPass(''); setConfirmPass(''); }}
+          onClose={() => {
+            setShowPasswordModal(false);
+            setOldPass('');
+            setNewPass('');
+            setConfirmPass('');
+          }}
           onOldChange={setOldPass}
           onNewChange={setNewPass}
           onConfirmChange={setConfirmPass}
@@ -328,12 +392,12 @@ export default function ProfilePage() {
         />
 
         <TripDetailModal
-          trip={selectedTripForDetail}
-          onClose={() => setSelectedTripForDetail(null)}
-          userId={user?.id ?? null}
+          trip={viewingTrip}
+          onClose={() => setViewingTrip(null)}
+          onTripUpdated={() => loadTrips()}
+          userId={user.id}
         />
       </div>
     </div>
   );
 }
-

@@ -18,12 +18,16 @@ export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
 
 type ApiSuccess<T> = {
   success: true;
+  status: number;
+  error: null;
   data?: T;
   message?: string;
 };
 
 type ApiError = {
   success: false;
+  status: number;
+  data: null;
   error: {
     code: ErrorCodeType;
     message: string;
@@ -54,7 +58,11 @@ export class AppError extends Error {
 export function sendSuccess<T>(data?: T, statusOrMessage?: number | string, status = 200): NextResponse<ApiSuccess<T>> {
   const finalStatus = typeof statusOrMessage === 'number' ? statusOrMessage : status;
   const message = typeof statusOrMessage === 'string' ? statusOrMessage : undefined;
-  const payload: ApiSuccess<T> = { success: true };
+  const payload: ApiSuccess<T> = {
+    success: true,
+    status: finalStatus,
+    error: null,
+  };
 
   if (data !== undefined) payload.data = data;
   if (message !== undefined) payload.message = message;
@@ -72,6 +80,8 @@ export function sendError(
   const details = typeof statusOrDetails !== 'number' ? statusOrDetails : undefined;
   const payload: ApiError = {
     success: false,
+    status: finalStatus,
+    data: null,
     error: {
       code,
       message,

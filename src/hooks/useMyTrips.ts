@@ -8,13 +8,22 @@ interface UseMyTripsOptions {
   userId: string | null;
 }
 
+export interface CreateTripPayload {
+  title: string;
+  destination: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+  isPublic?: boolean;
+}
+
 export interface UseMyTripsReturn {
   trips: TripSummary[];
   loading: boolean;
   creating: boolean;
 
   loadTrips: (uid?: string) => Promise<void>;
-  createTrip: (title: string, destination: string) => Promise<{ success: boolean; message?: string }>;
+  createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string }>;
   deleteTrip: (id: string) => Promise<void>;
 
   setTrips: React.Dispatch<React.SetStateAction<TripSummary[]>>;
@@ -41,11 +50,11 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     }
   }, [userId]);
 
-  const createTrip = useCallback(async (title: string, destination: string) => {
+  const createTrip = useCallback(async (payload: CreateTripPayload) => {
     if (!userId) return { success: false, message: 'No user' };
 
-    const trimmedTitle = title.trim();
-    const trimmedDest = destination.trim();
+    const trimmedTitle = payload.title.trim();
+    const trimmedDest = payload.destination.trim();
 
     if (!trimmedTitle || !trimmedDest) {
       return { success: false, message: 'Vui lòng nhập tiêu đề và điểm đến' };
@@ -54,8 +63,8 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     setCreating(true);
 
     try {
-      const start = new Date().toISOString().split('T')[0];
-      const end = new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString().split('T')[0];
+      const start = payload.startDate || new Date().toISOString().split('T')[0];
+      const end = payload.endDate || new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString().split('T')[0];
 
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary; message?: string }>('/api/trips', {
         method: 'POST',
@@ -66,6 +75,8 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
           destination: trimmedDest,
           startDate: start,
           endDate: end,
+          description: payload.description?.trim() || undefined,
+          isPublic: payload.isPublic ?? false,
         }),
       });
 
@@ -73,7 +84,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
         const createdTrip = data.data;
         setTrips(prev => {
           if (prev.some(t => t._id === createdTrip._id)) {
-            return prev; 
+            return prev;
           }
           return [createdTrip, ...prev];
         });

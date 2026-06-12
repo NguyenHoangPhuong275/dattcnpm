@@ -1,4 +1,6 @@
-
+export type Gender = 'Nam' | 'Nữ' | 'Khác' | '';
+export type BudgetLevel = 'Tiết kiệm' | 'Trung bình' | 'Thoải mái' | 'Sang trọng';
+export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security' | 'search-history';
 
 export interface BasicUser {
   id: string;
@@ -14,7 +16,7 @@ export interface PersonalInfo {
   email: string;
   phone: string;
   dateOfBirth?: string;
-  gender?: 'Nam' | 'Nữ' | 'Khác' | '';
+  gender?: Gender;
   nationality?: string;
   preferredLanguage?: string;
   homeCity?: string;
@@ -26,7 +28,7 @@ export interface PersonalInfo {
 export interface TravelPreferences {
   travelStyles: string[];
   interests: string[];
-  budgetLevel: 'Tiết kiệm' | 'Trung bình' | 'Thoải mái' | 'Sang trọng';
+  budgetLevel: BudgetLevel;
   preferredDestinations: string[];
 }
 
@@ -37,6 +39,7 @@ export interface TripSummary {
   startDate: string;
   endDate: string;
   isPublic: boolean;
+  coverImage?: string | null;
 }
 
 export interface FavoritePlaceSummary {
@@ -53,7 +56,10 @@ export interface MyReview {
   rating: number;
   comment?: string;
   createdAt: string;
-  place?: { id?: string; name?: string; type?: string; address?: string };
+  place?: {
+    id?: string;
+    name?: string;
+    type?: string;
+    address?: string;
+  };
 }
-
-export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security' | 'search-history';
