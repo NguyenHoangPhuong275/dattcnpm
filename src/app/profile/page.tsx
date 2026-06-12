@@ -218,7 +218,7 @@ function ProfilePageContent() {
         method: 'POST',
         userId: user.id,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword: oldPass, newPassword: newPass }),
+        body: JSON.stringify({ currentPassword: oldPass, newPassword: newPass, confirmPassword: confirmPass }),
       });
       setShowPasswordModal(false);
       setOldPass('');

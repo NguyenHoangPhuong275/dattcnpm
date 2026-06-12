@@ -188,9 +188,9 @@ export class MockDatabase {
       action,
       targetType,
       targetId,
-      metadata,
+      metadata: metadata || null,
       createdAt: new Date(),
-    } as any);
+    });
   }
 
   private _wrapUserPersistence() {
@@ -201,7 +201,8 @@ export class MockDatabase {
         const dataMap = (this.users as unknown as { data: Map<string, User> }).data;
         const allUsers = Array.from(dataMap.values());
         savePersistedUsers(allUsers);
-      } catch {
+      } catch (err) {
+        console.error('[mock-db] Failed to persist users:', err);
       }
       return created;
     };

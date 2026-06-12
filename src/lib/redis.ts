@@ -10,7 +10,9 @@ function getRedisClient(): Redis {
       lazyConnect: true,
     });
 
-    redisClient.on('error', () => {});
+    redisClient.on('error', (error) => {
+      console.error('[redis] connection error:', error);
+    });
   }
   return redisClient;
 }

@@ -43,7 +43,8 @@ export function useItineraryWeather(
         if (!controller.signal.aborted) {
           setWarnings(map);
         }
-      } catch {
+      } catch (err) {
+        console.error('Lỗi khi lấy thông tin thời tiết:', err);
         if (!controller.signal.aborted) {
           setWarnings({});
         }

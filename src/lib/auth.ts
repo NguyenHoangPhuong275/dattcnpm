@@ -10,14 +10,12 @@ type AuthUser = {
   role: 'USER' | 'ADMIN';
 };
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('Biến môi trường JWT_SECRET là bắt buộc');
-}
-const ENCODED_SECRET = new TextEncoder().encode(JWT_SECRET);
-
 function getSecret(): Uint8Array {
-  return ENCODED_SECRET;
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('Biến môi trường JWT_SECRET là bắt buộc');
+  }
+  return new TextEncoder().encode(secret);
 }
 
 export async function signAuthToken(user: AuthUser): Promise<string> {
@@ -65,7 +63,7 @@ export async function getAuthUserId(request: NextRequest): Promise<string | null
     }
   }
 
-  if (!token) {
+  if (!token && process.env.NODE_ENV === 'test') {
     const xUserId = request.headers.get('x-user-id');
     if (xUserId) return xUserId;
   }

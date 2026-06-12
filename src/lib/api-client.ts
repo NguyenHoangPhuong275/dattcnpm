@@ -28,7 +28,7 @@ export type ApiRequestOptions = RequestInit & {
 function createRequestHeaders(headers?: HeadersInit, userId?: string | null): Headers {
   const requestHeaders = new Headers(headers);
 
-  if (userId && !requestHeaders.has('x-user-id')) {
+  if (userId && !requestHeaders.has('x-user-id') && process.env.NODE_ENV === 'test') {
     requestHeaders.set('x-user-id', userId);
   }
 

@@ -1,5 +1,26 @@
-export * from './schema';
-export * from './mock-data';
+export type {
+  MongoId,
+  User,
+  Trip,
+  Place,
+  ItineraryItem,
+  FavoritePlace,
+  SearchHistory,
+  AuditLog,
+  Review,
+  TripShare,
+  Notification,
+  Tag,
+  PlaceTag,
+  UserPreference,
+  TripBudget,
+  ItineraryTransport,
+  TripAccommodation,
+  TripChecklist,
+  UserFollow,
+} from './schema';
+
+export { seedData } from './mock-data';
 export { MockDatabase, getMockDatabase, resetMockDatabase } from './mock-db';
 export { MockRedis, getMockRedis, resetMockRedis } from './mock-redis';
 

@@ -128,14 +128,16 @@ const UserSchema = new Schema<IUser>(
   },
   { timestamps: true, collection: COLLECTIONS.users }
 );
+export type PlainUserWithId = PlainUser & { id: string };
+
 export const User: Model<IUser> = models.User || model<IUser>('User', UserSchema);
 
-export async function getUserById(userId: string) {
+export async function getUserById(userId: string): Promise<PlainUser | null> {
   if (!userId) return null;
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     if (userId === 'test-user-phuong') {
       return {
-        _id: 'test-user-phuong' as any,
+        _id: 'test-user-phuong',
         id: 'test-user-phuong',
         email: (process.env.DEFAULT_TEST_EMAIL || 'test@example.com').toLowerCase().trim(),
         fullName: 'Nguyễn Hoàng Phương (Test)',
@@ -145,20 +147,20 @@ export async function getUserById(userId: string) {
         emailVerified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as any;
+      } as PlainUserWithId;
     }
     return null;
   }
   const user = await User.findById(userId).lean();
-  return user ? toPlain<IUser>(user) : null;
+  return user ? (toPlain<PlainUser>(user) ?? null) : null;
 }
 
-export async function updateUserProfile(userId: string, updates: Partial<IUser>) {
+export async function updateUserProfile(userId: string, updates: Partial<IUser>): Promise<PlainUser | null> {
   if (!userId) return null;
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     if (userId === 'test-user-phuong') {
       return {
-        _id: 'test-user-phuong' as any,
+        _id: 'test-user-phuong',
         id: 'test-user-phuong',
         email: (process.env.DEFAULT_TEST_EMAIL || 'test@example.com').toLowerCase().trim(),
         fullName: 'Nguyễn Hoàng Phương (Test)',
@@ -169,7 +171,7 @@ export async function updateUserProfile(userId: string, updates: Partial<IUser>)
         createdAt: new Date(),
         updatedAt: new Date(),
         ...updates,
-      } as any;
+      } as PlainUserWithId;
     }
     return null;
   }
@@ -178,7 +180,7 @@ export async function updateUserProfile(userId: string, updates: Partial<IUser>)
     { $set: updates },
     { returnDocument: 'after', lean: true }
   );
-  return user ? toPlain<IUser>(user) : null;
+  return user ? (toPlain<PlainUser>(user) ?? null) : null;
 }
 
 export interface ITrip extends Document {
