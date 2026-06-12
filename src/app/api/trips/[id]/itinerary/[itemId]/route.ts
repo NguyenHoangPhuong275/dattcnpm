@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 
 import { getDb, createAuditLog } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
-import { ObjectIdSchema } from '@/lib/validations/validation';
+import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 type RouteCtx = {
@@ -48,8 +48,8 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id, itemId } = await ctx.params;
-    ObjectIdSchema.parse(id);
-    ObjectIdSchema.parse(itemId);
+    objectIdSchema.parse(id);
+    objectIdSchema.parse(itemId);
 
     const tripOk = await validateOwnedTrip(id, userId);
     if (!tripOk) {
@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
 
     if (body.placeId !== undefined) {
       const placeId = String(body.placeId || '').trim();
-      ObjectIdSchema.parse(placeId);
+      objectIdSchema.parse(placeId);
       const place = await db.places.findById(placeId);
       if (!place) {
         throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm', 404);
@@ -147,8 +147,8 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id, itemId } = await ctx.params;
-    ObjectIdSchema.parse(id);
-    ObjectIdSchema.parse(itemId);
+    objectIdSchema.parse(id);
+    objectIdSchema.parse(itemId);
 
     const tripOk = await validateOwnedTrip(id, userId);
     if (!tripOk) {

@@ -6,6 +6,12 @@ export { MockRedis, getMockRedis, resetMockRedis } from './mock-redis';
 import { getMockDatabase } from './mock-db';
 import { getMockRedis } from './mock-redis';
 
+if (process.env.NODE_ENV === 'production') {
+  
+  
+  console.warn('[database] Mock database layer loaded in production. This should not happen.');
+}
+
 export const mockDb = getMockDatabase();
 export const mockRedis = getMockRedis();
 

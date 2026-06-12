@@ -45,3 +45,5 @@ export const optionalTrimString = (max = 500) =>
     .optional()
     .nullable()
     .transform((v) => (v === '' ? null : v));
+
+export type ObjectIdInput = z.infer<typeof objectIdSchema>;

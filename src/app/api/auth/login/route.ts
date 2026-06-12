@@ -3,7 +3,7 @@ import { compare } from 'bcryptjs';
 import { authCookieName, signAuthToken } from '@/lib/auth';
 import { getDb, findUserByEmail } from '@/lib/mongodb';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { LoginSchema } from '@/lib/validations/validation';
+import { loginSchema } from '@/lib/validations/auth';
 import { handleApiError, AppError } from '@/lib/api-response';
 
 function setAuthCookie(response: NextResponse, token: string) {
@@ -19,7 +19,7 @@ function setAuthCookie(response: NextResponse, token: string) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const parsed = LoginSchema.parse(body);
+    const parsed = loginSchema.parse(body);
 
     const normalizedEmail = parsed.email;
     const password = parsed.password;

@@ -24,7 +24,4 @@ export const updateProfileSchema = z.object({
   interests: z.array(z.string().trim()).max(15).optional(),
 });
 
-export const passwordChangeSchema = z.object({
-  currentPassword: z.string().min(1, 'Vui lòng nhập mật khẩu hiện tại'),
-  newPassword: z.string().min(6, 'Mật khẩu mới phải có ít nhất 6 ký tự'),
-});
+export type ProfileUpdateInput = z.infer<typeof updateProfileSchema>;

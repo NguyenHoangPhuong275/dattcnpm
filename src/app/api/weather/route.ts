@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { cacheGet, cacheSet } from '@/lib/redis';
 import { getWeatherDescription } from '@/lib/weather';
-import { WeatherSchema } from '@/lib/validations/validation';
+import { weatherSchema } from '@/lib/validations/place';
 import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-response';
 
 const WEATHER_CACHE_TTL = 900;
@@ -9,7 +9,7 @@ const WEATHER_CACHE_TTL = 900;
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const parsed = WeatherSchema.parse({
+    const parsed = weatherSchema.parse({
       lat: searchParams.get('lat'),
       lng: searchParams.get('lng'),
     });

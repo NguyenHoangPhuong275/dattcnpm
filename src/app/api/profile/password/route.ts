@@ -3,7 +3,7 @@ import { getUserById } from '@/lib/mongodb';
 import { compare, hash } from 'bcryptjs';
 import { User } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
-import { PasswordChangeSchema } from '@/lib/validations/validation';
+import { changePasswordSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const parsed = PasswordChangeSchema.parse(body);
+    const parsed = changePasswordSchema.parse(body);
 
     const user = await getUserById(userId);
     if (!user || !user.passwordHash) {

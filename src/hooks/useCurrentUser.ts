@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { BasicUser } from '@/types/profile';
-import { getStoredUser, setStoredUser } from '@/lib/user';
+import { setStoredUser } from '@/lib/user';
+import { apiRequest } from '@/lib/api-client';
 
 export interface UseCurrentUserReturn {
   user: BasicUser | null;
@@ -11,17 +12,30 @@ export interface UseCurrentUserReturn {
   setUser: (user: BasicUser | null) => void;
 }
 
-export function useCurrentUser(options?: { redirectIfNone?: boolean }): UseCurrentUserReturn {
+export function useCurrentUser(
+  options?: { redirectIfNone?: boolean }
+): UseCurrentUserReturn {
   const [user, setUserState] = useState<BasicUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-
-  const { redirectIfNone = true } = options || {};
+  const { redirectIfNone = true } = options ?? {};
 
   useEffect(() => {
-    const stored = getStoredUser();
-    setUserState(stored);
-    setIsLoading(false);
+    let cancelled = false;
+    apiRequest<BasicUser>('/api/profile/me')
+      .then(({ data }) => {
+        if (!cancelled) {
+          setUserState(data);
+          setStoredUser(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setUserState(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -35,9 +49,5 @@ export function useCurrentUser(options?: { redirectIfNone?: boolean }): UseCurre
     setStoredUser(newUser);
   }, []);
 
-  return {
-    user,
-    isLoading,
-    setUser,
-  };
+  return { user, isLoading, setUser };
 }

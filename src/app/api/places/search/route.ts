@@ -3,7 +3,7 @@ import { cacheGet, cacheSet } from '@/lib/redis';
 import { getDb } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { PlacesSearchSchema } from '@/lib/validations/validation';
+import { placesSearchSchema } from '@/lib/validations/place';
 import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-response';
 import { searchTourismPlaces, provinceCenter } from '@/lib/vietnam-tourism';
 import type { Place } from '@/database/schema';
@@ -555,7 +555,7 @@ export async function GET(request: NextRequest) {
   try {
     const query = request.nextUrl.searchParams.get('q');
 
-    const validation = PlacesSearchSchema.parse({ q: query });
+    const validation = placesSearchSchema.parse({ q: query });
     const { q } = validation;
     const normalized = normalizeQuery(q);
     const cacheKey = buildCacheKey(q);

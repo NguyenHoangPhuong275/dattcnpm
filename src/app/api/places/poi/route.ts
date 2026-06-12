@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { cacheGet, cacheSet } from '@/lib/redis';
 import { sendSuccess, handleApiError } from '@/lib/api-response';
-import { PlacesPoiSchema } from '@/lib/validations/validation';
+import { placesPoiSchema } from '@/lib/validations/place';
 import { getTourismDestinationsByRegion } from '@/lib/vietnam-tourism';
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
@@ -125,7 +125,7 @@ function mapOverpassElements(elements: OverpassElement[]): PoiResult[] {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const parsed = PlacesPoiSchema.parse({
+    const parsed = placesPoiSchema.parse({
       lat: searchParams.get('lat'),
       lng: searchParams.get('lng'),
       radius: searchParams.get('radius') || undefined,

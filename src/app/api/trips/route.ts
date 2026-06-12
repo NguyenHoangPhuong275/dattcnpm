@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getDb, createAuditLog } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
-import { TripCreateSchema } from '@/lib/validations/validation';
+import { createTripSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 type TripListItem = {
@@ -62,10 +62,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const parsed = TripCreateSchema.parse(body);
+    const parsed = createTripSchema.parse(body);
 
-    const startDate = parsed.startDate || new Date();
-    const endDate = parsed.endDate || new Date(Date.now() + 1000 * 60 * 60 * 24 * 3);
+    const startDate = new Date(parsed.startDate || Date.now());
+    const endDate = new Date(parsed.endDate || (Date.now() + 1000 * 60 * 60 * 24 * 3));
 
     if (endDate.getTime() < startDate.getTime()) {
       throw new AppError('VALIDATION_ERROR', 'Ngày kết thúc phải sau ngày bắt đầu', 400);

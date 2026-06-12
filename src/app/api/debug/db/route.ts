@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { connectMongo, checkDatabaseConsistency } from '@/lib/mongodb';
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+
   try {
     await connectMongo();
     const report = await checkDatabaseConsistency();

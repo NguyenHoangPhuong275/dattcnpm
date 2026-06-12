@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { getResend } from '@/lib/resend';
 import { getRedis } from '@/lib/redis';
 import { getDb, findUserByEmail } from '@/lib/mongodb';
-import { SendOtpSchema } from '@/lib/validations/validation';
+import { sendOtpSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 function generateOTP(): string {
@@ -69,7 +69,7 @@ function buildEmailHTML(otp: string, fullName: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const parsed = SendOtpSchema.parse(body);
+    const parsed = sendOtpSchema.parse(body);
 
     const normalizedEmail = parsed.email;
 

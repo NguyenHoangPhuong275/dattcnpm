@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { getDb, createAuditLog } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
-import { TripUpdateSchema, ObjectIdSchema } from '@/lib/validations/validation';
+import { updateTripSchema } from '@/lib/validations/trip';
+import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 type RouteCtx = {
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id } = await ctx.params;
-    ObjectIdSchema.parse(id);
+    objectIdSchema.parse(id);
 
     const trip = await findOwnedTrip(id, userId);
     if (!trip) {
@@ -66,7 +67,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id } = await ctx.params;
-    ObjectIdSchema.parse(id);
+    objectIdSchema.parse(id);
 
     const existing = await findOwnedTrip(id, userId);
     if (!existing) {
@@ -74,7 +75,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const parsed = TripUpdateSchema.parse(body);
+    const parsed = updateTripSchema.parse(body);
 
     const updates: Record<string, unknown> = {};
 
@@ -122,7 +123,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id } = await ctx.params;
-    ObjectIdSchema.parse(id);
+    objectIdSchema.parse(id);
 
     const existing = await findOwnedTrip(id, userId);
     if (!existing) {

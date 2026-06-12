@@ -23,10 +23,9 @@ function getWebhookSecret() {
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('x-webhook-secret');
-    const querySecret = request.nextUrl.searchParams.get('secret');
     const webhookSecret = getWebhookSecret();
 
-    if (authHeader !== webhookSecret && querySecret !== webhookSecret) {
+    if (authHeader !== webhookSecret) {
       throw new AppError('UNAUTHORIZED', 'Unauthorized admin access', 401);
     }
 
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     async function logAudit(action: string, targetId: string | undefined, metadata: Record<string, unknown> = {}) {
       await db.auditLogs.insertOne({
-        userId: undefined,
+        userId: null,
         action,
         targetType: 'USER',
         targetId: targetId || undefined,
@@ -186,15 +185,16 @@ export async function POST(request: NextRequest) {
         const users = await db.users.find();
         const notificationCount = users.length;
 
-        for (const u of users) {
-          await db.notifications.insertOne({
+        if (notificationCount > 0) {
+          const docs = users.map((u) => ({
             userId: u._id,
             title: title || 'Thông báo hệ thống',
             content,
             type: type || 'SYSTEM',
             isRead: false,
             createdAt: now,
-          });
+          }));
+          await db.notifications.insertMany(docs);
         }
 
         return sendSuccess({
@@ -341,13 +341,13 @@ export async function POST(request: NextRequest) {
         }
 
         await db.auditLogs.insertOne({
-          userId: undefined,
+          userId: null,
           action: 'SEED_VN_ADMIN',
           targetType: 'LOCATION',
-          targetId: undefined,
+          targetId: null,
           metadata: { inserted, updated, source: 'depth3.json' },
           createdAt: now,
-        } as unknown as Record<string, unknown>);
+        });
 
         return sendSuccess({
           message: `Đã seed thành công dữ liệu hành chính Việt Nam. Inserted: ${inserted}, Updated: ${updated}. Dữ liệu ~11k phường/xã đã sẵn sàng cho search nhanh trong DB.`,

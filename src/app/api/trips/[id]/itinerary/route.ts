@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getDb, createAuditLog } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
-import { ObjectIdSchema } from '@/lib/validations/validation';
+import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 type RouteCtx = {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id } = await ctx.params;
-    ObjectIdSchema.parse(id);
+    objectIdSchema.parse(id);
 
     const trip = await findOwnedTrip(id, userId);
     if (!trip) {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id } = await ctx.params;
-    ObjectIdSchema.parse(id);
+    objectIdSchema.parse(id);
 
     const trip = await findOwnedTrip(id, userId);
     if (!trip) {
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx) {
     const body = await request.json().catch(() => ({}));
     
     const placeId = body.placeId ? String(body.placeId).trim() : '';
-    ObjectIdSchema.parse(placeId);
+    objectIdSchema.parse(placeId);
 
     const db = await getDb();
     const place = await db.places.findById(placeId);
@@ -141,7 +141,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id: tripId } = await ctx.params;
-    ObjectIdSchema.parse(tripId);
+    objectIdSchema.parse(tripId);
 
     const trip = await findOwnedTrip(tripId, userId);
     if (!trip) {
@@ -150,7 +150,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
 
     const body = await request.json().catch(() => ({}));
     const itemId = body.itemId ? String(body.itemId).trim() : '';
-    ObjectIdSchema.parse(itemId);
+    objectIdSchema.parse(itemId);
 
     const db = await getDb();
     const item = await db.itineraryItems.findById(itemId);
@@ -192,7 +192,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id: tripId } = await ctx.params;
-    ObjectIdSchema.parse(tripId);
+    objectIdSchema.parse(tripId);
 
     const trip = await findOwnedTrip(tripId, userId);
     if (!trip) {
@@ -201,7 +201,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
 
     const body = await request.json().catch(() => ({} as any));
     const itemId = body.itemId ? String(body.itemId).trim() : '';
-    ObjectIdSchema.parse(itemId);
+    objectIdSchema.parse(itemId);
 
     const db = await getDb();
     const item = await db.itineraryItems.findById(itemId);

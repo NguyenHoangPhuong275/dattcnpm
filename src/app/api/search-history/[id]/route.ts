@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
-import { ObjectIdSchema } from '@/lib/validations/validation';
+import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 type RouteCtx = {
@@ -16,7 +16,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     }
 
     const { id } = await ctx.params;
-    ObjectIdSchema.parse(id);
+    objectIdSchema.parse(id);
 
     const db = await getDb();
     const item = await db.searchHistories.findById(id);

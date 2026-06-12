@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { getAuthUserId } from '@/lib/auth';
-import { FavoriteSchema } from '@/lib/validations/validation';
+import { createFavoriteSchema } from '@/lib/validations/favorite';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 type FavoriteListItem = {
@@ -58,18 +58,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const parsed = FavoriteSchema.parse(body);
+    const parsed = createFavoriteSchema.parse(body);
 
     const db = await getDb();
     let placeId = parsed.placeId;
 
-    const existingPlace = await db.places.findById(placeId);
+    const existingPlace = placeId ? await db.places.findById(placeId) : null;
     if (!existingPlace) {
       const createdPlace = await db.places.insertOne({
-        name: parsed.name,
-        type: parsed.type || 'custom',
-        lat: parsed.lat,
-        lng: parsed.lng,
+        name: parsed.name || 'Địa điểm đã lưu',
+        type: 'custom',
+        lat: parsed.lat ?? 0,
+        lng: parsed.lng ?? 0,
         address: parsed.address || null,
         ratingAvg: 0,
         ratingCount: 0,
@@ -77,20 +77,20 @@ export async function POST(request: NextRequest) {
       placeId = createdPlace._id;
     }
 
-    const existing = await db.favorites.find({ userId, placeId });
+    const existing = await db.favorites.find({ userId, placeId: placeId! });
     if (existing.length > 0) {
       throw new AppError('CONFLICT', 'Địa điểm đã được lưu', 409);
     }
 
     const created = await db.favorites.insertOne({
       userId,
-      placeId,
+      placeId: placeId!,
     });
 
-    const place = await db.places.findById(placeId);
+    const place = await db.places.findById(placeId!);
     const fav = {
       _id: created._id,
-      placeId,
+      placeId: placeId!,
       name: place?.name || parsed.name || 'Địa điểm đã lưu',
       type: place?.type || 'custom',
       address: place?.address || parsed.address || '',

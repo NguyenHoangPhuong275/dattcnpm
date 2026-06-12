@@ -1,6 +1,20 @@
 # API Report - Smart Travel Guide
 
-Ngày cập nhật: 2026-06-09
+Ngày cập nhật: 2026-06-12 (Security & Code Quality fixes applied)
+
+**Recent changes (P0/P1):**
+- SEC-01/02/03: Debug routes now return 404 in production (middleware + explicit handler guard).
+- SEC-04: Webhook no longer accepts secret via query string (?secret=...); header only.
+- BUG-03: notification.broadcast uses insertMany (no more N+1 per user).
+- BUG-04: logAudit no longer hard-codes userId: undefined (uses null for system actions).
+- SEC-05: User identity no longer persisted to localStorage (in-memory only in lib/user).
+- Q-01: Validation schemas split by domain under src/lib/validations/ (auth, trip, profile, search, favorite); central file is now a barrel.
+- Q-02: Server-only functions (connectMongo, getDb, redis, signAuthToken) removed from public src/lib/index.ts barrel.
+- Q-03: Added production guard/warning when src/database mock layer is imported.
+- Q-04: Added src/types/trip.ts, place.ts, index.ts entry points.
+- STR-03: src/proxy.ts marked deprecated (middleware.ts is the active implementation).
+
+All listed issues from the 12/06 audit have been addressed. Pre-existing TS issues in a few routes remain (unrelated to this pass).
 
 Tài liệu này phản ánh các route thật đang tồn tại trong `src/app/api`. Auth hiện set HttpOnly JWT cookie khi login, logout xóa cookie, API user hỗ trợ JWT cookie hoặc `x-user-id` để tương thích UI hiện có.
 

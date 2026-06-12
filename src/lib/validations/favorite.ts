@@ -10,3 +10,6 @@ export const createFavoriteSchema = z.object({
 }).refine((d) => d.placeId || d.name, {
   message: 'Cần placeId hoặc tên địa điểm',
 });
+
+
+export type FavoriteInput = z.infer<typeof createFavoriteSchema>;

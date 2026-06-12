@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { getUserById, updateUserProfile, type IUser } from '@/lib/mongodb';
 import { storeAvatar, getAvatar } from '@/lib/redis';
 import { getAuthUserId } from '@/lib/auth';
-import { ProfileUpdateSchema } from '@/lib/validations/validation';
+import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 function toSafeDateString(value: unknown): string {
@@ -72,11 +72,11 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const parsed = ProfileUpdateSchema.parse(body);
+    const parsed = updateProfileSchema.parse(body);
 
     const updates: Partial<IUser> = {};
 
-    if (parsed.fullName !== undefined) updates.fullName = parsed.fullName;
+    if (parsed.fullName !== undefined && parsed.fullName !== null) updates.fullName = parsed.fullName;
     if (parsed.phone !== undefined) updates.phone = parsed.phone;
     if (parsed.dateOfBirth !== undefined) {
       if (!parsed.dateOfBirth) {

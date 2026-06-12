@@ -36,3 +36,8 @@ export const updateItineraryItemSchema = createItineraryItemSchema.partial().ext
 export const deleteItineraryItemSchema = z.object({
   itemId: objectIdSchema,
 });
+
+
+export type TripCreateInput = z.infer<typeof createTripSchema>;
+export type TripUpdateInput = z.infer<typeof updateTripSchema>;
+export type ItineraryItemInput = z.infer<typeof createItineraryItemSchema>;

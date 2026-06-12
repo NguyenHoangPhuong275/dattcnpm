@@ -1,4 +1,6 @@
 import mongoose, { Schema, model, models, Document, Types, Model } from 'mongoose';
+
+
 import type { 
   MongoId,
   User as PlainUser,
@@ -552,6 +554,12 @@ function createCollection<T extends { _id: MongoId }>(mongooseModel: Model<any>)
       const plain = toPlain<T>(created);
       if (!plain) throw new Error('Failed to create document');
       return plain;
+    },
+    async insertMany(docs: InsertInput[]): Promise<T[]> {
+      if (!docs.length) return [];
+      const created = await mongooseModel.create(docs);
+      const arr = Array.isArray(created) ? created : [created];
+      return arr.map((c: unknown) => toPlain<T>(c)).filter((d): d is T => !!d);
     },
     async updateOne(id: MongoId, update: Record<string, unknown>): Promise<T | null> {
       if (!id || !mongoose.Types.ObjectId.isValid(String(id))) return null;

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserId } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
-import { SearchHistoryCreateSchema } from '@/lib/validations/validation';
+import { searchHistoryCreateSchema } from '@/lib/validations/search';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 function toHistoryResponse(item: Record<string, unknown>) {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const parsed = SearchHistoryCreateSchema.parse(body);
+    const parsed = searchHistoryCreateSchema.parse(body);
 
     const db = await getDb();
     const created = await db.searchHistories.insertOne({

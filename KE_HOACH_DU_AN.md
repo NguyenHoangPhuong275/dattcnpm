@@ -1,6 +1,13 @@
 # Kế hoạch dự án - Smart Travel Guide
 
-Ngày cập nhật: 2026-06-09
+Ngày cập nhật: 2026-06-12
+
+**Security & maintainability pass (12/06):**
+- Completed P0 items: debug route blocking (SEC-01/02/03), webhook secret (SEC-04), N+1 broadcast + logAudit (BUG-03/04).
+- P1: Removed localStorage user data (SEC-05), validation schemas split by domain (Q-01).
+- Selected P2: Cleaned lib/index barrel (Q-02), mock production guard (Q-03), added types/ entrypoints (Q-04), marked proxy.ts legacy (STR-03).
+- See API_REPORT.md for details.
+- Lint clean on main code; typecheck has some pre-existing issues in route date handling (not part of this scope).
 
 ## 1. Thông tin chung
 

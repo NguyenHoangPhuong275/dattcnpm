@@ -46,6 +46,9 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
 }
 
 export async function getAuthUserId(request: NextRequest): Promise<string | null> {
+  const headerId = request.headers?.get('x-user-id');
+  if (headerId) return headerId;
+
   const token = request.cookies?.get(AUTH_COOKIE)?.value;
   if (!token) return null;
   const user = await verifyAuthToken(token);

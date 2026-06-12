@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRedis } from '@/lib/redis';
 import { getDb, findUserByEmail } from '@/lib/mongodb';
 import { hash } from 'bcryptjs';
-import { VerifyOtpSchema } from '@/lib/validations/validation';
-import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { verifyOtpSchema } from '@/lib/validations/auth';
+import { handleApiError, AppError } from '@/lib/api-response';
 import { signAuthToken, authCookieName } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const parsed = VerifyOtpSchema.parse(body);
+    const parsed = verifyOtpSchema.parse(body);
 
     const normalizedEmail = parsed.email;
 
