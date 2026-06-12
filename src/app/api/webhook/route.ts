@@ -246,6 +246,37 @@ export async function POST(request: NextRequest) {
       }
 
       case 'locations.seed-vn': {
+        interface VnWard {
+          name: string;
+          name_with_type: string;
+          type: string;
+        }
+
+        interface VnDistrict {
+          name: string;
+          name_with_type: string;
+          type: string;
+          wards?: Record<string, VnWard>;
+        }
+
+        interface VnProvince {
+          name: string;
+          name_with_type: string;
+          type: string;
+          districts?: Record<string, VnDistrict>;
+        }
+
+        interface AdminLocationDraft {
+          osmId: string;
+          name: string;
+          type: 'province' | 'district' | 'ward';
+          lat: number | null;
+          lng: number | null;
+          address: string;
+          osmTags: Record<string, unknown>;
+          tags: string[];
+        }
+
         const VN_ADMIN_URL = 'https://raw.githubusercontent.com/kenzouno1/Vietnam-Administrative-Divisions-json/master/sizes/depth3.json';
 
         const fetchRes = await fetch(VN_ADMIN_URL);
@@ -253,12 +284,12 @@ export async function POST(request: NextRequest) {
           throw new AppError('SERVICE_UNAVAILABLE', 'Failed to fetch Vietnam administrative data', 502);
         }
 
-        const vnData: Record<string, any> = await fetchRes.json();
+        const vnData = (await fetchRes.json()) as Record<string, VnProvince>;
 
         let inserted = 0;
         let updated = 0;
 
-        const upsertAdminLocation = async (doc: any) => {
+        const upsertAdminLocation = async (doc: AdminLocationDraft) => {
           const existing = await db.places.findOne({ osmId: doc.osmId });
           if (existing) {
             await db.places.updateOne(existing._id, {
@@ -281,7 +312,7 @@ export async function POST(request: NextRequest) {
           }
         };
 
-        for (const [provCode, prov] of Object.entries<any>(vnData)) {
+        for (const [provCode, prov] of Object.entries(vnData)) {
           await upsertAdminLocation({
             osmId: `vn:${provCode}`,
             name: prov.name_with_type || prov.name,
@@ -299,7 +330,7 @@ export async function POST(request: NextRequest) {
           });
 
           const districts = prov.districts || {};
-          for (const [distCode, dist] of Object.entries<any>(districts)) {
+          for (const [distCode, dist] of Object.entries(districts)) {
             await upsertAdminLocation({
               osmId: `vn:${provCode}-${distCode}`,
               name: dist.name_with_type || dist.name,
@@ -318,7 +349,7 @@ export async function POST(request: NextRequest) {
             });
 
             const wards = dist.wards || {};
-            for (const [wardCode, ward] of Object.entries<any>(wards)) {
+            for (const [wardCode, ward] of Object.entries(wards)) {
               await upsertAdminLocation({
                 osmId: `vn:${provCode}-${distCode}-${wardCode}`,
                 name: ward.name_with_type || ward.name,

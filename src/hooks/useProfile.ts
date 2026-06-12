@@ -37,9 +37,10 @@ function toBirthdayInput(value?: string | null): string {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
+  const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${month}/${day}/${date.getFullYear()}`;
+  return `${year}-${month}-${day}`;
 }
 
 export interface UseProfileReturn {

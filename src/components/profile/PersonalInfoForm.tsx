@@ -109,7 +109,7 @@ const PersonalInfoForm = memo(({
       <div className="space-y-5">
         <div>
           <label className="form-label">Ngày sinh</label>
-          <input type="text" name="dateOfBirth" value={personal.dateOfBirth || ''} onChange={onChange} placeholder="mm/dd/yyyy" className={fieldClass} />
+          <input type="date" name="dateOfBirth" value={personal.dateOfBirth || ''} onChange={onChange} className={fieldClass} />
         </div>
 
         <div>

@@ -580,8 +580,9 @@ function createCollection<T extends { _id: MongoId }>(mongooseModel: Model<any>)
     async reset(): Promise<void> {
       try {
         await mongooseModel.collection.drop();
-      } catch (err: any) {
-        if (err?.code !== 26) throw err;
+      } catch (err: unknown) {
+        if (typeof err === 'object' && err !== null && 'code' in err && (err as { code: number }).code === 26) return;
+        throw err;
       }
     },
     async count(filter: Filter = {}): Promise<number> {
@@ -679,8 +680,9 @@ export async function dropAllManagedCollections(): Promise<string[]> {
     try {
       await db.dropCollection(name);
       dropped.push(name);
-    } catch (err: any) {
-      if (err?.code !== 26) throw err;
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'code' in err && (err as { code: number }).code === 26) continue;
+      throw err;
     }
   }
   dbInstance = null;
@@ -701,8 +703,9 @@ export async function dropUnknownCollections(): Promise<string[]> {
       try {
         await db.dropCollection(col.name);
         dropped.push(col.name);
-      } catch (err: any) {
-        if (err?.code !== 26) throw err;
+      } catch (err: unknown) {
+        if (typeof err === 'object' && err !== null && 'code' in err && (err as { code: number }).code === 26) continue;
+        throw err;
       }
     }
   }
@@ -724,7 +727,7 @@ export async function createAllCollections(): Promise<string[]> {
   const db = mongoose.connection.db;
   if (!db) return [];
 
-  const existing = (await db.listCollections().toArray()).map((c: any) => c.name);
+  const existing = (await db.listCollections().toArray()).map((c) => c.name);
   const created: string[] = [];
 
   for (const name of MANAGED_COLLECTIONS) {
@@ -757,7 +760,7 @@ export async function checkDatabaseConsistency(): Promise<DatabaseConsistencyRep
   const db = mongoose.connection.db;
 
   const actual: string[] = db
-    ? (await db.listCollections().toArray()).map((c: any) => c.name)
+    ? (await db.listCollections().toArray()).map((c) => c.name)
     : [];
 
   const expected = [...MANAGED_COLLECTIONS];

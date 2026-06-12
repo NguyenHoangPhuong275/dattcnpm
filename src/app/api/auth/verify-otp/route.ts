@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (stored.otp !== parsed.otp) {
       stored.attempts += 1;
 
-      await redis.set(otpKey, JSON.stringify(stored), 'EX', 86400);
+      await redis.set(otpKey, JSON.stringify(stored), 'EX', 600);
 
       const remaining = 5 - stored.attempts;
       throw new AppError('VALIDATION_ERROR', `Mã xác minh không đúng. Còn ${remaining} lần thử.`, 400);

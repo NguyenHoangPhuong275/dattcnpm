@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP();
     const otpKey = `otp:${normalizedEmail}`;
 
-    await redis.set(otpKey, JSON.stringify({ otp, attempts: 0 }), 'EX', 86400);
+    await redis.set(otpKey, JSON.stringify({ otp, attempts: 0 }), 'EX', 600);
 
     const db = await getDb();
     await db.auditLogs.insertOne({
