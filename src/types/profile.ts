@@ -51,15 +51,17 @@ export interface FavoritePlaceSummary {
   lng: number;
 }
 
+export interface ReviewedPlace {
+  _id?: string;
+  name?: string;
+  type?: string;
+  address?: string;
+}
+
 export interface MyReview {
   _id: string;
   rating: number;
   comment?: string;
   createdAt: string;
-  place?: {
-    id?: string;
-    name?: string;
-    type?: string;
-    address?: string;
-  };
+  place?: ReviewedPlace;
 }

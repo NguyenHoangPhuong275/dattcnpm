@@ -15,6 +15,7 @@ interface SelectedTripPlace {
 interface UseHomepageTripActionsProps {
   userId: string | null | undefined;
   selectedPlace: SelectedTripPlace | null;
+  onMissingPlace?: () => void;
 }
 
 interface TripsResponse {
@@ -55,7 +56,6 @@ const DEFAULT_TRAVELER_COUNT = 2;
 const FIRST_DAY = 1;
 const FIRST_ITEM_ORDER = 0;
 const CURRENCY_CODE = 'VND';
-const DESTINATION_SEARCH_INPUT_ID = 'destination-search-input';
 
 function getSelectedPlaceDestination(place: SelectedTripPlace): string {
   return place.address || place.name;
@@ -64,6 +64,7 @@ function getSelectedPlaceDestination(place: SelectedTripPlace): string {
 export function useHomepageTripActions({
   userId,
   selectedPlace,
+  onMissingPlace,
 }: UseHomepageTripActionsProps): UseHomepageTripActionsReturn {
   const router = useRouter();
 
@@ -149,7 +150,7 @@ export function useHomepageTripActions({
 
   const createTripFromSelectedPlace = useCallback(async (): Promise<void> => {
     if (!selectedPlace) {
-      document.getElementById(DESTINATION_SEARCH_INPUT_ID)?.focus();
+      onMissingPlace?.();
       return;
     }
 
@@ -190,6 +191,7 @@ export function useHomepageTripActions({
     addSelectedPlaceToTrip,
     endDate,
     resetTripActionMessage,
+    onMissingPlace,
     selectedPlace,
     startDate,
     travelerCount,

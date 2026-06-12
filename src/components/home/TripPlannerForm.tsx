@@ -14,6 +14,7 @@ interface TripPlannerFormProps {
   onCreateTrip: () => void;
   isCreating: boolean;
   isUserLoading: boolean;
+  destinationInputRef?: React.Ref<HTMLInputElement>;
 }
 
 interface DateFieldProps {
@@ -42,6 +43,7 @@ export default function TripPlannerForm({
   onCreateTrip,
   isCreating,
   isUserLoading,
+  destinationInputRef,
 }: TripPlannerFormProps) {
   const {
     searchQuery,
@@ -74,6 +76,7 @@ export default function TripPlannerForm({
               </span>
               <input
                 id="destination-search-input"
+                ref={destinationInputRef}
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}

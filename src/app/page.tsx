@@ -31,9 +31,12 @@ function HomePageContent() {
 
   const { authMode, isClosing, openAuth, closeAuth } = useAuthModal();
 
+  const destinationInputRef = useRef<HTMLInputElement>(null);
+
   const tripActions = useHomepageTripActions({
     userId: user?.id ?? null,
     selectedPlace: search.selectedPlace,
+    onMissingPlace: () => destinationInputRef.current?.focus(),
   });
 
   const [activeSection, setActiveSection] = useState<'destinations' | 'news' | 'local' | undefined>(undefined);
@@ -102,6 +105,7 @@ function HomePageContent() {
         onCreateTrip={tripActions.createTripFromSelectedPlace}
         isCreating={tripActions.isTripActionLoading}
         isUserLoading={userLoading}
+        destinationInputRef={destinationInputRef}
       />
 
       {search.selectedPlace && (
