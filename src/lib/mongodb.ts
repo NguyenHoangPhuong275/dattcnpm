@@ -72,25 +72,25 @@ export interface IUser extends Document {
   deletedAt?: Date | null;
 
   
-  phone?: string | null;
-  dateOfBirth?: Date | null;
-  gender?: 'Nam' | 'Nữ' | 'Khác' | null;
-  nationality?: string | null;
-  preferredLanguage?: string | null;
-  homeCity?: string | null;
+  phone?: string | null | undefined;
+  dateOfBirth?: Date | null | undefined;
+  gender?: 'Nam' | 'Nữ' | 'Khác' | null | undefined;
+  nationality?: string | null | undefined;
+  preferredLanguage?: string | null | undefined;
+  homeCity?: string | null | undefined;
   emergencyContact?: {
     name?: string | null;
     phone?: string | null;
-  } | null;
+  } | null | undefined;
 
   
   travelStyles?: string[];
-  budgetLevel?: string | null;
+  budgetLevel?: string | null | undefined;
   preferredDestinations?: string[];
   interests?: string[];
 
   
-  twoFactorEnabled?: boolean | null;
+  twoFactorEnabled?: boolean | null | undefined;
 }
 
 const UserSchema = new Schema<IUser>(

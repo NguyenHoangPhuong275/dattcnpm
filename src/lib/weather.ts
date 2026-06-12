@@ -8,3 +8,20 @@ export function getWeatherDescription(code: number): string {
   if (code >= 95 && code <= 99) return 'Có dông bão';
   return 'Thời tiết ôn hòa';
 }
+
+export function isBadWeatherCode(code: number): boolean {
+  return code >= 61;
+}
+
+export function getWeatherWarning(
+  activityDate: string,
+  forecast: Array<{ date: string; weathercode: number; precipitationMm: number }>
+): { hasWarning: boolean; description: string } | null {
+  const day = forecast.find((f) => f.date === activityDate);
+  if (!day) return null;
+  if (!isBadWeatherCode(day.weathercode) && day.precipitationMm <= 10) return null;
+  return {
+    hasWarning: true,
+    description: `Dự báo ${getWeatherDescription(day.weathercode)} • ${day.precipitationMm}mm mưa`,
+  };
+}

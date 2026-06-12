@@ -114,8 +114,8 @@ function mapOverpassElements(elements: OverpassElement[]): PoiResult[] {
         id: String(element.id),
         name,
         type: placeType,
-        lat: element.lat,
-        lng: element.lon,
+        lat: element.lat ?? undefined,
+        lng: element.lon ?? undefined,
         address: addressParts.length > 0 ? addressParts.join(', ') : 'Xung quanh khu vực này',
       };
     })

@@ -4,39 +4,22 @@ import { getAuthUserId } from '@/lib/auth';
 import { createTripSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
-type TripListItem = {
-  _id: string;
-  title: string;
-  destination: string;
-  startDate?: Date | string;
-  endDate?: Date | string;
-  isPublic?: boolean;
-  description?: string | null;
-  coverImage?: string | null;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
-};
-
 export async function GET(request: NextRequest) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
     }
-    if (userId === 'test-user-phuong') {
-      return sendSuccess([]);
-    }
-
     const db = await getDb();
     const trips = await db.trips.find({ userId });
 
-    trips.sort((a: TripListItem, b: TripListItem) => {
-      const da = new Date(a.updatedAt || a.createdAt || 0).getTime();
-      const dbt = new Date(b.updatedAt || b.createdAt || 0).getTime();
+    trips.sort((a: any, b: any) => {
+      const da = new Date(a.updatedAt ?? a.createdAt ?? 0).getTime();
+      const dbt = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
       return dbt - da;
     });
 
-    const data = trips.map((t: TripListItem) => ({
+    const data = trips.map((t: any) => ({
       _id: t._id,
       title: t.title,
       destination: t.destination,
@@ -64,8 +47,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const parsed = createTripSchema.parse(body);
 
-    const startDate = new Date(parsed.startDate || Date.now());
-    const endDate = new Date(parsed.endDate || (Date.now() + 1000 * 60 * 60 * 24 * 3));
+    const startDate: Date = parsed.startDate ? new Date(parsed.startDate) : new Date();
+    const endDate: Date = parsed.endDate ? new Date(parsed.endDate) : new Date(Date.now() + 86_400_000 * 3);
 
     if (endDate.getTime() < startDate.getTime()) {
       throw new AppError('VALIDATION_ERROR', 'Ngày kết thúc phải sau ngày bắt đầu', 400);

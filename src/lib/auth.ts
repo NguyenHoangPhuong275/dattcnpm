@@ -46,10 +46,30 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
 }
 
 export async function getAuthUserId(request: NextRequest): Promise<string | null> {
-  const headerId = request.headers?.get('x-user-id');
-  if (headerId) return headerId;
+  // Primary: cookie (works in real Next.js requests)
+  let token = request.cookies?.get(AUTH_COOKIE)?.value ?? null;
 
-  const token = request.cookies?.get(AUTH_COOKIE)?.value;
+  // Fallback: parse Cookie header manually (works in Vitest/test environments)
+  if (!token) {
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE}=([^;]+)`));
+    token = match ? decodeURIComponent(match[1]) : null;
+  }
+
+  // Fallback: Authorization Bearer header (for API client / Postman / E2E tests)
+  if (!token) {
+    const authHeader = request.headers.get('authorization') ?? '';
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice(7);
+    }
+  }
+
+  // Fallback: x-user-id header (compatibility / testing)
+  if (!token) {
+    const xUserId = request.headers.get('x-user-id');
+    if (xUserId) return xUserId;
+  }
+
   if (!token) return null;
   const user = await verifyAuthToken(token);
   return user?.id ?? null;

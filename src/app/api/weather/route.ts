@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`;
+    const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&daily=weathercode,precipitation_sum&forecast_days=7&timezone=Asia%2FHo_Chi_Minh`;
     const response = await fetch(openMeteoUrl, {
       headers: {
         'Accept': 'application/json',
@@ -55,6 +55,12 @@ export async function GET(request: NextRequest) {
       weathercode: current.weathercode,
       description: getWeatherDescription(current.weathercode),
       time: current.time,
+      forecast: (data.daily?.time || []).map((date: string, i: number) => ({
+        date,
+        weathercode: data.daily.weathercode[i],
+        precipitationMm: data.daily.precipitation_sum[i] || 0,
+        isBadWeather: (data.daily.weathercode[i] >= 61) || ((data.daily.precipitation_sum[i] || 0) > 10),
+      })),
     };
 
     await cacheSet(cacheKey, JSON.stringify(weatherResult), WEATHER_CACHE_TTL);

@@ -4,33 +4,23 @@ import { getAuthUserId } from '@/lib/auth';
 import { createFavoriteSchema } from '@/lib/validations/favorite';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
-type FavoriteListItem = {
-  _id: string;
-  placeId?: string | null;
-  createdAt?: Date | string;
-};
-
 export async function GET(request: NextRequest) {
   try {
     const userId = await getAuthUserId(request);
     if (!userId) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
     }
-    if (userId === 'test-user-phuong') {
-      return sendSuccess([]);
-    }
-
     const db = await getDb();
     const favs = await db.favorites.find({ userId });
 
-    favs.sort((a: FavoriteListItem, b: FavoriteListItem) => {
-      const da = new Date(a.createdAt || 0).getTime();
-      const dbt = new Date(b.createdAt || 0).getTime();
+    favs.sort((a: any, b: any) => {
+      const da = new Date(a.createdAt ?? 0).getTime();
+      const dbt = new Date(b.createdAt ?? 0).getTime();
       return dbt - da;
     });
 
     const data = await Promise.all(
-      favs.map(async (f: FavoriteListItem) => {
+      favs.map(async (f: any) => {
         const place = f.placeId ? await db.places.findById(f.placeId) : null;
         return {
           _id: f._id,

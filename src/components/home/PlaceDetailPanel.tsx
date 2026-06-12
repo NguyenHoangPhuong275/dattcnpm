@@ -15,6 +15,7 @@ interface PlaceDetailPanelProps {
   onAddToTrip: (tripId: string) => void;
   onCreateTripFromPlace?: () => void;
   onLogin: () => void;
+  onOpenAddToTripModal?: (place?: SearchResult) => void;
 }
 
 interface TripActionsProps {
@@ -44,6 +45,7 @@ export default function PlaceDetailPanel({
   onAddToTrip,
   onCreateTripFromPlace,
   onLogin,
+  onOpenAddToTripModal,
 }: PlaceDetailPanelProps) {
   const { weather, pois, isWeatherLoading, isPoisLoading } = details;
 
@@ -56,6 +58,17 @@ export default function PlaceDetailPanel({
             <h3 className="mt-1 font-display text-2xl font-extrabold text-slate-900">{selectedPlace.name}</h3>
             {selectedPlace.address && (
               <p className="mt-1 text-sm font-medium text-slate-500">{selectedPlace.address}</p>
+            )}
+
+            {onOpenAddToTripModal && (
+              <button
+                type="button"
+                aria-label={`Thêm ${selectedPlace.name} vào lịch trình`}
+                onClick={() => onOpenAddToTripModal(selectedPlace)}
+                className="mt-3 inline-flex min-h-10 items-center rounded-2xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]"
+              >
+                + Thêm vào lịch trình
+              </button>
             )}
           </div>
 

@@ -14,6 +14,8 @@ import { usePlaceSearch } from '@/hooks/usePlaceSearch';
 import { usePlaceDetails } from '@/hooks/usePlaceDetails';
 import { useAuthModal } from '@/hooks/useAuthModal';
 import { useHomepageTripActions } from '@/hooks/useHomepageTripActions';
+import AddToTripModal from '@/components/trips/AddToTripModal';
+import type { SearchResult } from '@/hooks/usePlaceSearch';
 
 export default function HomePage() {
   return (
@@ -46,6 +48,17 @@ function HomePageContent() {
 
   const [activeSection, setActiveSection] = useState<'destinations' | 'news' | 'local' | undefined>(undefined);
   const { handleSearch, searchFor, setSearchQuery } = search;
+
+  const [addToTripOpen, setAddToTripOpen] = useState(false);
+  const [addToTripPlace, setAddToTripPlace] = useState<SearchResult | null>(null);
+
+  const handleOpenAddToTripModal = (place?: SearchResult) => {
+    const p = place || search.selectedPlace;
+    if (p) {
+      setAddToTripPlace(p);
+      setAddToTripOpen(true);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -125,8 +138,21 @@ function HomePageContent() {
             onAddToTrip={tripActions.addSelectedPlaceToTrip}
             onCreateTripFromPlace={tripActions.createTripFromSelectedPlace}
             onLogin={() => openAuth('login')}
+            onOpenAddToTripModal={handleOpenAddToTripModal}
           />
         </section>
+      )}
+
+      {addToTripOpen && addToTripPlace && (
+        <AddToTripModal
+          isOpen={addToTripOpen}
+          placeName={addToTripPlace.name}
+          placeId={addToTripPlace._id}
+          onClose={() => {
+            setAddToTripOpen(false);
+            setAddToTripPlace(null);
+          }}
+        />
       )}
 
       <FeaturedDestinations onSelect={handleQuickSelect} />

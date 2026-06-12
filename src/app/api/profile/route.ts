@@ -86,7 +86,7 @@ export async function PATCH(request: NextRequest) {
         updates.dateOfBirth = isNaN(d.getTime()) ? null : d;
       }
     }
-    if (parsed.gender !== undefined) updates.gender = parsed.gender || null;
+    if (parsed.gender !== undefined) updates.gender = parsed.gender ?? null;
     if (parsed.nationality !== undefined) updates.nationality = parsed.nationality;
     if (parsed.preferredLanguage !== undefined) updates.preferredLanguage = parsed.preferredLanguage;
     if (parsed.homeCity !== undefined) updates.homeCity = parsed.homeCity;
@@ -101,7 +101,7 @@ export async function PATCH(request: NextRequest) {
           updates.avatarUrl = parsed.avatarUrl; 
         }
       } else {
-        updates.avatarUrl = parsed.avatarUrl || null;
+        updates.avatarUrl = parsed.avatarUrl ?? null;
       }
     }
 
