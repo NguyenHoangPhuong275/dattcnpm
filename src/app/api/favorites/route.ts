@@ -13,17 +13,27 @@ export async function GET(request: NextRequest): Promise<Response> {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
     const userId = String(user._id);
-    const db = await getDb();
-    const favs = (await db.favorites.find({ userId })) as FavoritePlace[];
+    const { searchParams } = new URL(request.url);
+    const page  = Math.max(1, parseInt(searchParams.get('page')  ?? '1', 10));
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
+    const skip  = (page - 1) * limit;
 
-    favs.sort((a: FavoritePlace, b: FavoritePlace) => {
-      const da = new Date(a.createdAt ?? 0).getTime();
-      const dbt = new Date(b.createdAt ?? 0).getTime();
-      return dbt - da;
-    });
+    const db = await getDb();
+    
+    const allFavs = (await db.favorites.find({ userId })) as FavoritePlace[];
+    
+    const sortedFavs = allFavs
+      .sort((a, b) => {
+        const da = new Date(a.createdAt ?? 0).getTime();
+        const dbDate = new Date(b.createdAt ?? 0).getTime();
+        return dbDate - da;
+      });
+
+    const total = sortedFavs.length;
+    const items = sortedFavs.slice(skip, skip + limit);
 
     const data = await Promise.all(
-      favs.map(async (f: FavoritePlace) => {
+      items.map(async (f: FavoritePlace) => {
         const place = f.placeId ? await db.places.findById(f.placeId) : null;
         return {
           _id: f._id,
@@ -37,7 +47,15 @@ export async function GET(request: NextRequest): Promise<Response> {
       })
     );
 
-    return sendSuccess(data);
+    return sendSuccess({
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     return handleApiError(error);
   }

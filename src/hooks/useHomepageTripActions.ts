@@ -5,8 +5,7 @@ import { getDefaultTripDates } from '@/lib/date';
 import { extractTrips, type TripsListResponse } from '@/lib/trip-formatters';
 import type { TripSummary } from '@/types/profile';
 import { ROUTES } from '@/lib/constants';
-
-type RequestStatus = 'idle' | 'loading' | 'success' | 'error';
+import { RequestStatus } from '@/types/common';
 
 interface SelectedTripPlace {
   _id: string;
@@ -43,7 +42,7 @@ interface UseHomepageTripActionsReturn {
   setStartDate: (value: string) => void;
   setEndDate: (value: string) => void;
   setTravelerCount: (value: number) => void;
-  addSelectedPlaceToTrip: (tripId: string) => Promise<void>;
+  addSelectedPlaceToTrip: (tripId: string) => Promise<boolean>;
   createTripFromSelectedPlace: () => Promise<void>;
   resetTripActionMessage: () => void;
   loadMyTrips: () => Promise<void>;
@@ -110,8 +109,8 @@ export function useHomepageTripActions({
     loadMyTrips();
   }, [loadMyTrips]);
 
-  const addSelectedPlaceToTrip = useCallback(async (tripId: string): Promise<void> => {
-    if (!userId || !selectedPlace) return;
+  const addSelectedPlaceToTrip = useCallback(async (tripId: string): Promise<boolean> => {
+    if (!userId || !selectedPlace) return false;
 
     setTripActionStatus('loading');
     resetTripActionMessage();
@@ -136,14 +135,16 @@ export function useHomepageTripActions({
       if (!response.ok || !data.success) {
         setTripActionMessage(getApiErrorMessage(data, 'Không thể thêm địa điểm vào chuyến đi'));
         setTripActionStatus('error');
-        return;
+        return false;
       }
 
       setTripActionStatus('success');
       router.push(`${ROUTES.scheduleReference}/${tripId}`);
+      return true;
     } catch {
       setTripActionMessage('Không thể thêm địa điểm vào chuyến đi lúc này');
       setTripActionStatus('error');
+      return false;
     }
   }, [resetTripActionMessage, router, selectedPlace, userId]);
 

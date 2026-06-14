@@ -77,6 +77,8 @@ function ProfilePageContent() {
   const [oldPass, setOldPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const [viewingTrip, setViewingTrip] = useState<TripSummary | null>(null);
 
@@ -108,6 +110,7 @@ function ProfilePageContent() {
   const favsStatus = favoritesHook.status;
   const { removeFavorite, loadFavorites } = favoritesHook.actions;
   const loadingFavorites = favsStatus === 'loading';
+  const removingIds = favoritesHook.removingIds;
 
   const myReviews = reviewsHook.data;
   const reviewsStatus = reviewsHook.status;
@@ -207,11 +210,10 @@ function ProfilePageContent() {
   }, [newTripTitle, newTripDest, newTripStartDate, newTripEndDate, newTripDescription, newTripIsPublic, createTrip, showToast, creatingTrip, loadTrips, resetCreateTripForm]);
 
   const handleChangePassword = useCallback(async () => {
-    if (!oldPass || !newPass || newPass !== confirmPass) {
-      showToast('Vui lòng nhập đúng thông tin, mật khẩu mới phải khớp');
-      return;
-    }
     if (!user?.id) return;
+
+    setPasswordSaving(true);
+    setPasswordError(null);
 
     try {
       const { data } = await apiRequest<{ success?: boolean; message?: string }>('/api/profile/password', {
@@ -220,25 +222,27 @@ function ProfilePageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: oldPass, newPassword: newPass, confirmPassword: confirmPass }),
       });
-      setShowPasswordModal(false);
-      setOldPass('');
-      setNewPass('');
-      setConfirmPass('');
-      showToast(data.success ? 'Đổi mật khẩu thành công' : (data.message || 'Đổi mật khẩu thất bại'));
+      
+      if (data.success) {
+        setShowPasswordModal(false);
+        setOldPass('');
+        setNewPass('');
+        setConfirmPass('');
+        showToast('Đổi mật khẩu thành công');
+      } else {
+        setPasswordError(data.message || 'Đổi mật khẩu thất bại');
+      }
     } catch {
-      setShowPasswordModal(false);
-      setOldPass('');
-      setNewPass('');
-      setConfirmPass('');
-      showToast('Không thể đổi mật khẩu lúc này');
+      setPasswordError('Không thể đổi mật khẩu lúc này');
+    } finally {
+      setPasswordSaving(false);
     }
   }, [oldPass, newPass, confirmPass, user?.id, showToast]);
 
   const handleToggle2FA = useCallback(async () => {
-    try {
-      await toggle2FA();
-    } catch {
-      showToast('Cập nhật bảo mật thất bại');
+    const result = await toggle2FA();
+    if (!result.success) {
+      showToast(result.error ?? 'Cập nhật bảo mật thất bại');
     }
   }, [toggle2FA, showToast]);
 
@@ -288,6 +292,7 @@ function ProfilePageContent() {
         setOldPass('');
         setNewPass('');
         setConfirmPass('');
+        setPasswordError(null);
       }
     };
 
@@ -368,7 +373,7 @@ function ProfilePageContent() {
               )}
 
               {activeTab === 'favorites' && (
-                <FavoritesSection places={favorites} onRemove={handleRemoveFavorite} loading={loadingFavorites} />
+                <FavoritesSection places={favorites} onRemove={handleRemoveFavorite} loading={loadingFavorites} removingIds={removingIds} />
               )}
 
               {activeTab === 'reviews' && (
@@ -415,11 +420,14 @@ function ProfilePageContent() {
           oldPass={oldPass}
           newPass={newPass}
           confirmPass={confirmPass}
+          saving={passwordSaving}
+          serverError={passwordError}
           onClose={() => {
             setShowPasswordModal(false);
             setOldPass('');
             setNewPass('');
             setConfirmPass('');
+            setPasswordError(null);
           }}
           onOldChange={setOldPass}
           onNewChange={setNewPass}

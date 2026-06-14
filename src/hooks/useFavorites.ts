@@ -3,8 +3,7 @@
 import { useState, useCallback } from 'react';
 import { apiRequest } from '@/lib/api-client';
 import { FavoritePlaceSummary } from '@/types/profile';
-
-export type FavoritesStatus = 'idle' | 'loading' | 'success' | 'error';
+import { RequestStatus } from '@/types/common';
 
 interface UseFavoritesOptions {
   userId: string | null;
@@ -12,10 +11,12 @@ interface UseFavoritesOptions {
 
 export interface UseFavoritesReturn {
   data: FavoritePlaceSummary[];
-  status: FavoritesStatus;
+  status: RequestStatus;
   error: string | null;
+  pagination: { page: number; total: number; totalPages: number } | null;
+  removingIds: Set<string>;
   actions: {
-    loadFavorites: (uid?: string) => Promise<void>;
+    loadFavorites: (uid?: string, page?: number) => Promise<void>;
     removeFavorite: (id: string) => Promise<void>;
     setFavorites: React.Dispatch<React.SetStateAction<FavoritePlaceSummary[]>>;
   };
@@ -23,19 +24,22 @@ export interface UseFavoritesReturn {
 
 export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesReturn {
   const [favorites, setFavorites] = useState<FavoritePlaceSummary[]>([]);
-  const [status, setStatus] = useState<FavoritesStatus>('idle');
+  const [status, setStatus] = useState<RequestStatus>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<{ page: number; total: number; totalPages: number } | null>(null);
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
-  const loadFavorites = useCallback(async (uid?: string): Promise<void> => {
+  const loadFavorites = useCallback(async (uid?: string, page: number = 1): Promise<void> => {
     const id = uid || userId;
     if (!id) return;
 
     setStatus('loading');
     setError(null);
     try {
-      const { response, data } = await apiRequest<{ success?: boolean; data?: FavoritePlaceSummary[] }>('/api/favorites', { userId: id });
+      const { response, data } = await apiRequest<{ success?: boolean; data?: FavoritePlaceSummary[]; pagination?: any }>(`/api/favorites?page=${page}`, { userId: id });
       if (response.ok && data.success && Array.isArray(data.data)) {
         setFavorites(data.data);
+        if (data.pagination) setPagination(data.pagination);
         setStatus('success');
       } else {
         setStatus('error');
@@ -47,8 +51,9 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
   }, [userId]);
 
   const removeFavorite = useCallback(async (id: string): Promise<void> => {
-    if (!userId) return;
+    if (!userId || removingIds.has(id)) return;
 
+    setRemovingIds(prev => new Set(prev).add(id));
     const previous = favorites;
     setFavorites(prev => prev.filter(f => f._id !== id));
 
@@ -58,13 +63,21 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
     } catch (err) {
       setFavorites(previous);
       throw new Error('Remove favorite failed');
+    } finally {
+      setRemovingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
-  }, [userId, favorites]);
+  }, [userId, favorites, removingIds]);
 
   return {
     data: favorites,
     status,
     error,
+    pagination,
+    removingIds,
     actions: {
       loadFavorites,
       removeFavorite,

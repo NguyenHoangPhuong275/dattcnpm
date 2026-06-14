@@ -7,9 +7,10 @@ interface FavoritesSectionProps {
   places: FavoritePlaceSummary[];
   onRemove: (id: string) => void;
   loading?: boolean;
+  removingIds: Set<string>;
 }
 
-const FavoritesSection = memo(({ places, onRemove, loading }: FavoritesSectionProps) => (
+const FavoritesSection = memo(({ places, onRemove, loading, removingIds }: FavoritesSectionProps) => (
   <div>
     {loading ? (
       <div className="text-center py-8 text-slate-400 text-sm">Đang tải...</div>
@@ -24,7 +25,8 @@ const FavoritesSection = memo(({ places, onRemove, loading }: FavoritesSectionPr
               <div className="text-xs text-slate-400 mt-2">Lat {place.lat.toFixed(4)} • Lng {place.lng.toFixed(4)}</div>
               <button
                 onClick={() => onRemove(place._id)}
-                className="absolute top-2 right-2 text-xs text-red-600 hover:bg-red-50 px-1.5 py-0.5 rounded transition-colors"
+                disabled={removingIds?.has(place._id)}
+                className="absolute top-2 right-2 text-xs text-red-600 hover:bg-red-50 px-1.5 py-0.5 rounded transition-colors disabled:opacity-50"
                 title="Xóa khỏi yêu thích"
               >
                 ×

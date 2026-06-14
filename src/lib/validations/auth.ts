@@ -12,6 +12,18 @@ export const verifyOtpSchema = z.object({
   fullName: z.string().trim().min(2, 'Họ và tên tối thiểu 2 ký tự').max(100),
 });
 
+export const registerSchema = z
+  .object({
+    fullName: z.string().trim().min(2, 'Họ và tên tối thiểu 2 ký tự').max(100),
+    email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),
+    password: z.string().min(6, 'Mật khẩu phải từ 6 ký tự trở lên'),
+    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirmPassword'],
+  });
+
 export const loginSchema = z.object({
   email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),
   password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),

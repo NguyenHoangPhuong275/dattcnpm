@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getApiErrorMessage } from '@/lib/api-client';
 import { ROUTES } from '@/lib/constants';
+import { registerSchema } from '@/lib/validations/auth';
 
 type Step = 'form' | 'otp' | 'success';
 
@@ -48,37 +49,30 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
   }, [resendCooldown]);
 
   const validate = () => {
-    const tempErrors: typeof errors = {};
-    if (!fullName.trim()) {
-      tempErrors.fullName = 'Vui lòng nhập họ và tên';
-    } else if (fullName.trim().length < 2) {
-      tempErrors.fullName = 'Họ và tên phải có ít nhất 2 ký tự';
-    }
-
-    if (!email) {
-      tempErrors.email = 'Vui lòng nhập email';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      tempErrors.email = 'Email không đúng định dạng';
-    }
-
-    if (!password) {
-      tempErrors.password = 'Vui lòng nhập mật khẩu';
-    } else if (password.length < 6) {
-      tempErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
-    }
-
-    if (!confirmPassword) {
-      tempErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu';
-    } else if (confirmPassword !== password) {
-      tempErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
-    }
-
     if (!agreeTerms) {
-      tempErrors.agreeTerms = 'Bạn phải đồng ý với Điều khoản dịch vụ';
+      setErrors({ agreeTerms: 'Bạn phải đồng ý với Điều khoản dịch vụ' });
+      return false;
     }
 
-    setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0;
+    const result = registerSchema.safeParse({
+      fullName,
+      email,
+      password,
+      confirmPassword,
+    });
+
+    if (!result.success) {
+      const tempErrors: typeof errors = {};
+      result.error.issues.forEach(err => {
+        const key = err.path[0] as keyof typeof errors;
+        if (!tempErrors[key]) tempErrors[key] = err.message;
+      });
+      setErrors(tempErrors);
+      return false;
+    }
+
+    setErrors({});
+    return true;
   };
 
   const handleSendOTP = async (e?: React.FormEvent) => {

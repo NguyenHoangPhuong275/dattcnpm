@@ -72,7 +72,7 @@ export default function TripPlannerForm({
           <div ref={searchContainerRef} className="relative w-full">
             <div className="relative">
               <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-                <Icons.MapPinIcon className="h-5 w-5" />
+                <Icons.MapPinIcon className="h-5 w-5" aria-hidden="true" />
               </span>
               <input
                 id="destination-search-input"
@@ -89,6 +89,7 @@ export default function TripPlannerForm({
                   }
                 }}
                 placeholder="Chọn địa điểm"
+                aria-label="Tìm kiếm địa điểm"
                 className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/70 pl-12 pr-12 text-base font-semibold text-slate-800 outline-none transition focus:border-[var(--color-primary-dark)] focus:bg-white focus:ring-4 focus:ring-[var(--color-primary-lightest)]"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -101,7 +102,7 @@ export default function TripPlannerForm({
                     className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                     aria-label="Xóa địa điểm đã chọn"
                   >
-                    <Icons.XIcon className="h-5 w-5" />
+                    <Icons.XIcon className="h-5 w-5" aria-hidden="true" />
                   </button>
                 ) : (
                   <button
@@ -111,7 +112,7 @@ export default function TripPlannerForm({
                     className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-primary-darker)] transition hover:bg-[var(--color-primary-lightest)] disabled:opacity-40"
                     aria-label="Tìm kiếm địa điểm"
                   >
-                    <Icons.SearchIcon className="h-5 w-5" />
+                    <Icons.SearchIcon className="h-5 w-5" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -134,12 +135,13 @@ export default function TripPlannerForm({
             <div className="flex min-h-14 flex-col justify-center px-4 py-2 md:border-r md:border-slate-200/70">
               <span className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-400">Số người</span>
               <div className="flex items-center gap-2">
-                <Icons.UsersIcon className="h-5 w-5 shrink-0 text-slate-400" />
+                <Icons.UsersIcon className="h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
                 <input
                   type="number"
                   min="1"
                   max="100"
                   value={travelerCount}
+                  aria-label="Số người"
                   onChange={(event) => onTravelerCountChange(Math.max(1, parseInt(event.target.value) || 1))}
                   className="w-full border-none bg-transparent p-0 text-sm font-bold text-slate-800 outline-none"
                 />
@@ -172,10 +174,11 @@ function DateField({ label, value, onChange }: DateFieldProps) {
     <div className="flex min-h-14 flex-col justify-center px-4 py-2 md:border-r md:border-slate-200/70">
       <span className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-400">{label}</span>
       <div className="flex items-center gap-2">
-        <Icons.CalendarIcon className="h-5 w-5 shrink-0 text-slate-400" />
+        <Icons.CalendarIcon className="h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
         <input
           type="date"
           value={value}
+          aria-label={label}
           onChange={(event) => onChange(event.target.value)}
           className="w-full border-none bg-transparent p-0 text-sm font-bold text-slate-800 outline-none"
         />
@@ -211,7 +214,7 @@ function SearchDropdown({
                 className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 ${isSelected ? 'bg-[var(--color-primary-lightest)]' : ''}`}
               >
                 <div className="mt-0.5 text-[var(--color-primary-darker)]">
-                  <Icons.MapPinIcon className="h-4 w-4" />
+                  <Icons.MapPinIcon className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold text-slate-800">{place.name}</div>

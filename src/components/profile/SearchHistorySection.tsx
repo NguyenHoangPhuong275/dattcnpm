@@ -41,6 +41,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
   const [previewLoading, setPreviewLoading] = useState(false);
   const [activeTripSelectIdx, setActiveTripSelectIdx] = useState<number | null>(null);
   const [addingPlaceLoading, setAddingPlaceLoading] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const { actions: { showToast } } = useToast();
 
@@ -85,10 +86,13 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
     }
   };
 
-  const handleClearAll = async () => {
+  const handleClearAll = () => {
     if (clearing || items.length === 0) return;
-    if (!confirm('Xóa toàn bộ lịch sử tìm kiếm?')) return;
+    setShowClearConfirm(true);
+  };
 
+  const handleConfirmClear = async () => {
+    setShowClearConfirm(false);
     setClearing(true);
     try {
       const { response, data } = await apiRequest<ApiMutationResponse>('/api/search-history', { method: 'DELETE' });
@@ -258,10 +262,10 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                       </span>
                       <span>•</span>
                       <span className="font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">{item.resultCount ?? 0} kết quả</span>
-                      {item.lat != null && item.lng != null && (
+                      {item.lat != null && item.lng != null && !isNaN(Number(item.lat)) && (
                         <>
                           <span>•</span>
-                          <span className="text-xs text-slate-400 font-mono">Tọa độ: ({item.lat.toFixed(2)}, {item.lng.toFixed(2)})</span>
+                          <span className="text-xs text-slate-400 font-mono">Tọa độ: ({Number(item.lat).toFixed(2)}, {Number(item.lng).toFixed(2)})</span>
                         </>
                       )}
                     </div>
@@ -332,6 +336,9 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                                   <button
                                     onClick={() => setActiveTripSelectIdx(activeTripSelectIdx === idx ? null : idx)}
                                     disabled={addingPlaceLoading}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={activeTripSelectIdx === idx}
+                                    aria-label="Thêm vào chuyến đi"
                                     className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white hover:border-[var(--color-primary-dark)] hover:bg-[var(--color-primary-lightest)] px-3 py-1.5 text-xs font-bold text-slate-700 transition"
                                   >
                                     <Icons.PlusIcon className="w-3.5 h-3.5 text-[var(--color-primary-dark)]" />
@@ -375,6 +382,38 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
               </div>
             );
           })}
+        </div>
+      )}
+
+      {showClearConfirm && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-clear-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        >
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 id="confirm-clear-title" className="mb-2 text-base font-semibold text-slate-900">
+              Xóa toàn bộ lịch sử?
+            </h3>
+            <p className="mb-6 text-sm text-slate-500">
+              Hành động này không thể hoàn tác.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleConfirmClear}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                Xóa tất cả
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

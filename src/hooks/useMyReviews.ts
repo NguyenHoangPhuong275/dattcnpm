@@ -3,8 +3,9 @@
 import { useState, useCallback } from 'react';
 import { apiRequest } from '@/lib/api-client';
 import { MyReview } from '@/types/profile';
+import { RequestStatus } from '@/types/common';
 
-export type MyReviewsStatus = 'idle' | 'loading' | 'success' | 'error';
+export type MyReviewsStatus = RequestStatus;
 
 interface UseMyReviewsOptions {
   userId: string | null;

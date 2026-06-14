@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PersonalInfo, TravelPreferences } from '@/types/profile';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { updateStoredUser } from '@/lib/user';
-
-export type ProfileStatus = 'idle' | 'loading' | 'success' | 'error';
+import { RequestStatus } from '@/types/common';
 
 interface UseProfileOptions {
   userId: string | null;
@@ -52,7 +51,7 @@ export interface UseProfileReturn {
     savingPersonal: boolean;
     savingPreferences: boolean;
   };
-  status: ProfileStatus;
+  status: RequestStatus;
   error: string | null;
   actions: {
     setPersonal: React.Dispatch<React.SetStateAction<PersonalInfo>>;
@@ -60,7 +59,7 @@ export interface UseProfileReturn {
     setIs2FAEnabled: React.Dispatch<React.SetStateAction<boolean>>;
     savePersonal: (e: React.FormEvent) => Promise<void>;
     savePreferences: (e: React.FormEvent) => Promise<void>;
-    toggle2FA: () => void;
+    toggle2FA: () => Promise<{ success: boolean; error?: string }>;
     updateAvatar: (url: string) => void;
   };
 }
@@ -82,7 +81,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
   const [memberSince, setMemberSince] = useState('');
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [status, setStatus] = useState<ProfileStatus>('loading');
+  const [status, setStatus] = useState<RequestStatus>('loading');
   const [error, setError] = useState<string | null>(null);
   const [savePersonalStatus, setSavePersonalStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [savePreferencesStatus, setSavePreferencesStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -232,8 +231,8 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     }
   }, [userId, preferences]);
 
-  const toggle2FA = useCallback(async (): Promise<void> => {
-    if (!userId) return;
+  const toggle2FA = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    if (!userId) return { success: false, error: 'No user' };
 
     const nextValue = !is2FAEnabled;
     setIs2FAEnabled(nextValue);
@@ -248,11 +247,15 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
       if (!response.ok || !data.success) {
         setIs2FAEnabled(!nextValue);
-        throw new Error(getApiErrorMessage(data, 'Cập nhật 2FA thất bại'));
+        return { success: false, error: getApiErrorMessage(data, 'Cập nhật 2FA thất bại') };
       }
+      return { success: true };
     } catch (errorValue) {
       setIs2FAEnabled(!nextValue);
-      throw errorValue;
+      return {
+        success: false,
+        error: errorValue instanceof Error ? errorValue.message : 'Không thể thay đổi cài đặt 2FA',
+      };
     }
   }, [userId, is2FAEnabled]);
 

@@ -4,8 +4,9 @@ import { useCallback, useState, type Dispatch, type SetStateAction } from 'react
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { extractTrips, extractTripsPagination, type TripsListResponse, type TripsPagination } from '@/lib/trip-formatters';
 import type { TripSummary } from '@/types/profile';
+import { RequestStatus } from '@/types/common';
 
-export type TripListStatus = 'idle' | 'loading' | 'success' | 'error';
+export type TripListStatus = RequestStatus;
 
 interface UseTripListOptions {
   userId?: string | null;

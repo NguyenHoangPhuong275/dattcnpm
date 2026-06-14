@@ -24,7 +24,15 @@ const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
           <div key={r._id || idx} className="border border-slate-100 rounded-2xl p-4">
             <div className="flex items-center gap-2">
               <span className="font-bold text-[var(--color-primary-dark)]">★ {r.rating}/5</span>
-              <span className="text-sm text-slate-500">{r.createdAt}</span>
+              <span className="text-sm text-slate-500">
+                {r.createdAt
+                  ? new Date(r.createdAt).toLocaleDateString('vi-VN', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
+                  : '—'}
+              </span>
             </div>
             <div className="mt-1 text-sm">{r.comment || '(Không có bình luận)'}</div>
             {r.place?.name && <div className="mt-1 text-xs text-emerald-600 font-semibold">@{r.place.name}</div>}

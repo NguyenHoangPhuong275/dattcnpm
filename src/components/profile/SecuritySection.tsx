@@ -35,15 +35,16 @@ const SecuritySection = memo(({ is2FAEnabled, onToggle2FA, onChangePassword, sav
         type="button"
         onClick={onToggle2FA}
         disabled={saving}
-        className={`relative inline-flex h-6.5 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
           is2FAEnabled ? 'bg-[var(--color-primary-dark)]' : 'bg-slate-200'
         }`}
         role="switch"
         aria-checked={is2FAEnabled}
+        aria-label="Bật hoặc tắt xác thực hai lớp (2FA)"
       >
         <span
-          className={`pointer-events-none inline-block h-5.5 w-5.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-            is2FAEnabled ? 'translate-x-5.5' : 'translate-x-0'
+          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+            is2FAEnabled ? 'translate-x-5' : 'translate-x-0'
           }`}
         />
       </button>

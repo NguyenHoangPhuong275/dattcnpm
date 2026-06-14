@@ -1,6 +1,7 @@
 'use client';
-
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import type { z } from 'zod';
+import { createItineraryItemSchema } from '@/lib/validations/trip';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { TripSummary } from '@/types/profile';
 import EmptyState from '@/components/ui/EmptyState';
@@ -22,13 +23,12 @@ interface ItineraryItem {
   currency?: string | null;
 }
 
-type ItineraryDraft = {
-  day: number;
-  orderIndex: number;
-  placeId: string;
-  note: string;
+type ItineraryItemInput = z.infer<typeof createItineraryItemSchema>;
+
+type ItineraryDraft = Omit<ItineraryItemInput, 'day' | 'orderIndex' | 'cost'> & {
+  day: number | '';
+  orderIndex: number | '';
   cost: string;
-  currency: string;
 };
 
 type TripEditDraft = {
@@ -130,13 +130,20 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setSaving(true);
     setError('');
 
+    if (draft.day === '' || draft.day < 1) {
+      setError('Vui lòng nhập số ngày hợp lệ (>= 1)');
+      setSaving(false);
+      return;
+    }
+    const safeOrderIndex = draft.orderIndex === '' ? 0 : draft.orderIndex;
+
     const payload = {
       placeId: draft.placeId.trim(),
-      day: draft.day,
-      orderIndex: draft.orderIndex,
-      note: draft.note.trim() || undefined,
-      cost: draft.cost.trim() ? Number(draft.cost) : undefined,
-      currency: draft.currency.trim() || undefined,
+      day: Number(draft.day),
+      orderIndex: safeOrderIndex,
+      note: draft.note?.trim() || undefined,
+      cost: draft.cost?.trim() ? Number(draft.cost) : undefined,
+      currency: draft.currency?.trim() || undefined,
     };
 
     try {
@@ -456,7 +463,17 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 type="number"
                 min={1}
                 value={draft.day}
-                onChange={(e) => setDraft(prev => ({ ...prev, day: Math.max(1, parseInt(e.target.value) || 1) }))}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') {
+                    setDraft(prev => ({ ...prev, day: '' }));
+                    return;
+                  }
+                  const parsed = parseInt(raw, 10);
+                  if (!isNaN(parsed) && parsed >= 1) {
+                    setDraft(prev => ({ ...prev, day: parsed }));
+                  }
+                }}
                 placeholder="Ngày"
                 className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
               />
@@ -464,7 +481,17 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 type="number"
                 min={0}
                 value={draft.orderIndex}
-                onChange={(e) => setDraft(prev => ({ ...prev, orderIndex: Math.max(0, parseInt(e.target.value) || 0) }))}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') {
+                    setDraft(prev => ({ ...prev, orderIndex: '' }));
+                    return;
+                  }
+                  const parsed = parseInt(raw, 10);
+                  if (!isNaN(parsed) && parsed >= 0) {
+                    setDraft(prev => ({ ...prev, orderIndex: parsed }));
+                  }
+                }}
                 placeholder="Thứ tự"
                 className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
               />
@@ -485,14 +512,14 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               />
               <input
                 type="text"
-                value={draft.currency}
+                value={draft.currency || ''}
                 onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
                 placeholder="VND"
                 className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
               />
               <input
                 type="text"
-                value={draft.note}
+                value={draft.note || ''}
                 onChange={(e) => setDraft(prev => ({ ...prev, note: e.target.value }))}
                 placeholder="Ghi chú"
                 className="border border-slate-200 rounded-lg px-3 py-2 text-sm sm:col-span-6"
