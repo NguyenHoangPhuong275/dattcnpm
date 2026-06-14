@@ -25,7 +25,7 @@ const tripCoreSchema = z.object({
 });
 
 export const createTripSchema = tripCoreSchema.refine(isChronologicalDateRange, {
-  message: 'Ngay ket thuc phai sau ngay bat dau',
+  message: 'Ngày kết thúc phải sau ngày bắt đầu',
   path: ['endDate'],
 });
 
@@ -44,7 +44,7 @@ export const updateTripSchema = tripCoreSchema.partial().extend({
   { message: 'Không có trường hợp lệ để cập nhật' }
 ).refine(
   isChronologicalDateRange,
-  { message: 'Ngay ket thuc phai sau ngay bat dau', path: ['endDate'] }
+  { message: 'Ngày kết thúc phải sau ngày bắt đầu', path: ['endDate'] }
 );
 
 export const createItineraryItemSchema = z.object({

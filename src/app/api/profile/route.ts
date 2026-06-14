@@ -24,15 +24,15 @@ function toSafeDateString(value: unknown): string {
 function validateAvatarDataUrl(value: string): void {
   const match = value.match(AVATAR_DATA_URL_RE);
   if (!match) {
-    throw new AppError('VALIDATION_ERROR', 'Avatar chi chap nhan JPG, PNG hoac WebP', 400);
+    throw new AppError('VALIDATION_ERROR', 'Avatar chỉ chấp nhận JPG, PNG hoặc WebP', 400);
   }
 
-  const base64 = match[1] ?? '';
-  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
-  const byteLength = Math.floor((base64.length * 3) / 4) - padding;
+  const base64Data = match[2] ?? '';
+  const padding = base64Data.endsWith('==') ? 2 : base64Data.endsWith('=') ? 1 : 0;
+  const byteLength = Math.floor((base64Data.length * 3) / 4) - padding;
 
   if (byteLength > MAX_AVATAR_BYTES) {
-    throw new AppError('VALIDATION_ERROR', 'Avatar toi da 2MB', 400);
+    throw new AppError('VALIDATION_ERROR', 'Ảnh đại diện không được vượt quá 2MB', 400);
   }
 }
 

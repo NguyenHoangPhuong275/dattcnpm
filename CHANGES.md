@@ -33,3 +33,25 @@
 - `npm run typecheck` - passed.
 - `npm run lint` - passed.
 - `npm test` - 12 files passed, 23 tests passed.
+
+## Fix Pass 2
+- `src/app/trips/page.tsx` - restored Vietnamese UI/toast text and updated TripCard import.
+- `src/components/profile/CreateTripModal.tsx` - restored Vietnamese modal labels, actions, placeholders, and date error text.
+- `src/components/profile/MyTripsSection.tsx` - restored Vietnamese button and empty-state text and updated TripCard import.
+- `src/components/profile/PersonalInfoForm.tsx` - restored Vietnamese avatar/help/form text and fixed corrupted gender labels.
+- `src/components/trips/AddToTripModal.tsx` - restored Vietnamese modal text and updated TripCard import.
+- `src/components/trip/TripCard.tsx` - promoted to canonical TripCard implementation and restored Vietnamese card labels.
+- `src/components/trips/TripCard.tsx` - removed duplicate TripCard implementation.
+- `src/app/api/profile/route.ts` - fixed avatar base64 byte-size validation and restored Vietnamese API errors.
+- `src/app/api/reviews/route.ts` - restored duplicate-review API error text.
+- `src/app/api/trips/[id]/itinerary/route.ts` - restored itinerary API errors and only validates changed day values on PATCH.
+- `src/app/globals.css` - bridged semantic brand tokens to the existing primary palette.
+- `src/components/ui/CardSkeleton.tsx` and `src/components/ui/PageSkeleton.tsx` - verified/expanded skeleton variants including `horizontal`.
+- `src/components/ui/LoadingSpinner.tsx` - restored Vietnamese accessible loading label.
+- `src/hooks/useAddToTrip.ts`, `src/hooks/useMyTrips.ts`, `src/hooks/useTripList.ts` - restored Vietnamese user-facing error messages.
+- `src/lib/validations/profile.ts` and `src/lib/validations/trip.ts` - restored Vietnamese validation messages.
+
+## Fix Pass 2 Verification
+- `npx tsc --noEmit` - passed.
+- `npm run lint` - passed.
+- `npm test` - 12 files passed, 23 tests passed.

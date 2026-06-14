@@ -7,9 +7,10 @@
 
   --color-brand-50: #eff6ff;
   --color-brand-100: #dbeafe;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
+  /* Bridge: map new semantic names to the existing palette */
+  --color-brand-500: var(--color-primary-dark);
+  --color-brand-600: var(--color-primary-dark);
+  --color-brand-700: var(--color-primary-darker);
   --color-neutral-50: #f8fafc;
   --color-neutral-100: #f1f5f9;
   --color-neutral-200: #e2e8f0;

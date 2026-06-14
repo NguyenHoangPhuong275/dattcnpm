@@ -5,7 +5,7 @@ import { PlusIcon } from '@/components/icons';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PageSkeleton from '@/components/ui/PageSkeleton';
-import TripCard from '@/components/trips/TripCard';
+import TripCard from '@/components/trip/TripCard';
 import type { TripSummary } from '@/types/profile';
 
 interface MyTripsSectionProps {
@@ -33,7 +33,7 @@ const MyTripsSection = memo(({
         disabled={loading}
       >
         {loading ? <LoadingSpinner size="sm" /> : <PlusIcon className="h-4 w-4" />}
-        Tao lich trinh
+        Tạo lịch trình
       </button>
     </div>
 
@@ -47,9 +47,9 @@ const MyTripsSection = memo(({
       </div>
     ) : (
       <EmptyState
-        title="Ban chua co chuyen di nao."
-        description="Hay bat dau tao lich trinh dau tien."
-        actionLabel="Tao lich trinh"
+        title="Bạn chưa có chuyến đi nào."
+        description="Hãy bắt đầu tạo lịch trình đầu tiên."
+        actionLabel="Tạo lịch trình"
         onAction={onCreateNew}
       />
     )}

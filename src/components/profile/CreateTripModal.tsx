@@ -47,33 +47,33 @@ export default function CreateTripModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="create-trip-title">
       <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6">
-        <h3 id="create-trip-title" className="mb-4 text-lg font-semibold">Tao chuyen di moi</h3>
+        <h3 id="create-trip-title" className="mb-4 text-lg font-semibold">Tạo chuyến đi mới</h3>
         <div className="space-y-4">
           <div>
-            <label htmlFor="trip-title" className="mb-1 block text-xs font-medium text-slate-500">Tieu de</label>
+            <label htmlFor="trip-title" className="mb-1 block text-xs font-medium text-slate-500">Tiêu đề</label>
             <input
               id="trip-title"
               type="text"
               value={title}
               onChange={(event) => onTitleChange(event.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
-              placeholder="Hoi An 4 ngay"
+              placeholder="Hội An 4 ngày"
             />
           </div>
           <div>
-            <label htmlFor="trip-destination" className="mb-1 block text-xs font-medium text-slate-500">Diem den</label>
+            <label htmlFor="trip-destination" className="mb-1 block text-xs font-medium text-slate-500">Điểm đến</label>
             <input
               id="trip-destination"
               type="text"
               value={destination}
               onChange={(event) => onDestChange(event.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
-              placeholder="Hoi An, Quang Nam"
+              placeholder="Hội An, Quảng Nam"
             />
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="trip-start-date" className="mb-1 block text-xs font-medium text-slate-500">Ngay di</label>
+              <label htmlFor="trip-start-date" className="mb-1 block text-xs font-medium text-slate-500">Ngày đi</label>
               <input
                 id="trip-start-date"
                 type="date"
@@ -84,7 +84,7 @@ export default function CreateTripModal({
               />
             </div>
             <div>
-              <label htmlFor="trip-end-date" className="mb-1 block text-xs font-medium text-slate-500">Ngay ve</label>
+              <label htmlFor="trip-end-date" className="mb-1 block text-xs font-medium text-slate-500">Ngày về</label>
               <input
                 id="trip-end-date"
                 type="date"
@@ -99,18 +99,18 @@ export default function CreateTripModal({
           </div>
           {hasDateError && (
             <p id="trip-date-error" className="text-sm font-medium text-red-600" role="alert">
-              Ngay ket thuc phai sau ngay bat dau.
+              Ngày kết thúc phải sau ngày bắt đầu.
             </p>
           )}
           <div>
-            <label htmlFor="trip-description" className="mb-1 block text-xs font-medium text-slate-500">Mo ta tuy chon</label>
+            <label htmlFor="trip-description" className="mb-1 block text-xs font-medium text-slate-500">Mô tả (tùy chọn)</label>
             <textarea
               id="trip-description"
               value={description}
               onChange={(event) => onDescriptionChange(event.target.value)}
               className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
               rows={2}
-              placeholder="Ghi chu them ve chuyen di..."
+              placeholder="Ghi chú thêm về chuyến đi..."
             />
           </div>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
@@ -120,7 +120,7 @@ export default function CreateTripModal({
               onChange={(event) => onIsPublicChange(event.target.checked)}
               className="rounded accent-[var(--color-primary-dark)]"
             />
-            Cong khai chuyen di
+            Công khai chuyến đi
           </label>
         </div>
         <div className="mt-6 flex gap-3">
@@ -130,7 +130,7 @@ export default function CreateTripModal({
             className="flex-1 rounded-lg border border-slate-300 py-2 text-sm hover:bg-slate-50"
             disabled={creating}
           >
-            Huy
+            Hủy
           </button>
           <button
             type="button"
@@ -141,9 +141,9 @@ export default function CreateTripModal({
             {creating ? (
               <>
                 <LoadingSpinner size="sm" />
-                Dang tao...
+                Đang tạo...
               </>
-            ) : 'Tao chuyen di'}
+            ) : 'Tạo chuyến đi'}
           </button>
         </div>
       </div>

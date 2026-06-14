@@ -40,11 +40,11 @@ function assertTripDayIsSchedulable(trip: Trip, day: number): void {
   const tripEndDate = startOfDay(new Date(trip.endDate));
 
   if (itineraryDate < today) {
-    throw new AppError('VALIDATION_ERROR', 'Khong the them lich trinh vao ngay da qua', 400);
+    throw new AppError('VALIDATION_ERROR', 'Không thể thêm lịch trình vào ngày đã qua', 400);
   }
 
   if (itineraryDate > tripEndDate) {
-    throw new AppError('VALIDATION_ERROR', 'Ngay lich trinh vuot qua ngay ket thuc chuyen di', 400);
+    throw new AppError('VALIDATION_ERROR', 'Ngày lịch trình vượt quá ngày kết thúc chuyến đi', 400);
   }
 }
 
@@ -213,7 +213,9 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     const updates: Record<string, unknown> = {};
     if (body.day != null) {
       const nextDay = Math.max(1, Math.floor(Number(body.day)));
-      assertTripDayIsSchedulable(trip, nextDay);
+      if (nextDay !== item.day) {
+        assertTripDayIsSchedulable(trip, nextDay);
+      }
       updates.day = nextDay;
     }
     if (body.orderIndex != null) updates.orderIndex = Math.max(0, Math.floor(Number(body.orderIndex)));

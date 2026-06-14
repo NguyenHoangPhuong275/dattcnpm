@@ -47,7 +47,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     const trimmedDest = payload.destination.trim();
 
     if (!trimmedTitle || !trimmedDest) {
-      return { success: false, message: 'Vui long nhap tieu de va diem den' };
+      return { success: false, message: 'Vui lòng nhập tiêu đề và điểm đến' };
     }
 
     setCreateStatus('loading');
@@ -58,7 +58,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
 
       if (end < start) {
         setCreateStatus('error');
-        return { success: false, message: 'Ngay ket thuc phai sau ngay bat dau' };
+        return { success: false, message: 'Ngày kết thúc phải sau ngày bắt đầu' };
       }
 
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary; message?: string }>('/api/trips', {
@@ -88,11 +88,11 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       }
 
       setCreateStatus('error');
-      return { success: false, message: getApiErrorMessage(data, 'Tao chuyen di that bai') };
+      return { success: false, message: getApiErrorMessage(data, 'Tạo chuyến đi thất bại') };
     } catch (err) {
       console.error('Create trip failed:', err);
       setCreateStatus('error');
-      return { success: false, message: 'Khong the tao chuyen di luc nay' };
+      return { success: false, message: 'Không thể tạo chuyến đi lúc này' };
     }
   }, [setTrips, userId]);
 

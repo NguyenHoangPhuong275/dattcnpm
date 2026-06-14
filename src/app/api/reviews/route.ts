@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (existingReview) {
-        throw new AppError('CONFLICT', 'Ban da danh gia dia diem nay', 409);
+        throw new AppError('CONFLICT', 'Bạn đã đánh giá địa điểm này rồi. Hãy chỉnh sửa đánh giá hiện tại.', 409);
       }
     }
 

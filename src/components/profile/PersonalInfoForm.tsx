@@ -46,7 +46,7 @@ const PersonalInfoForm = memo(({
     setAvatarError(null);
 
     if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
-      const message = 'Chi chap nhan JPG, PNG hoac WebP.';
+      const message = 'Chỉ chấp nhận JPG, PNG hoặc WebP.';
       setAvatarError(message);
       onToast?.(message);
       event.target.value = '';
@@ -54,7 +54,7 @@ const PersonalInfoForm = memo(({
     }
 
     if (file.size > MAX_AVATAR_BYTES) {
-      const message = 'Anh dai dien toi da 2MB.';
+      const message = 'Ảnh đại diện tối đa 2MB.';
       setAvatarError(message);
       onToast?.(message);
       event.target.value = '';
@@ -72,7 +72,7 @@ const PersonalInfoForm = memo(({
       event.target.value = '';
     };
     reader.onerror = (): void => {
-      const message = 'Khong the doc file anh.';
+      const message = 'Không thể đọc file ảnh.';
       setAvatarError(message);
       onToast?.(message);
       setAvatarLoading(false);
@@ -86,7 +86,7 @@ const PersonalInfoForm = memo(({
       <div className="flex flex-col items-center gap-3 border-b border-slate-100 pb-6">
         <div className="relative h-28 w-28 overflow-hidden rounded-full bg-[var(--color-primary-dark)] text-white ring-4 ring-slate-100">
           {personal.avatarUrl ? (
-            <Image src={personal.avatarUrl} alt="Anh dai dien cua nguoi dung" fill sizes="112px" className="object-cover" unoptimized />
+            <Image src={personal.avatarUrl} alt="Ảnh đại diện của người dùng" fill sizes="112px" className="object-cover" unoptimized />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-3xl font-bold">{initials(personal)}</div>
           )}
@@ -98,7 +98,7 @@ const PersonalInfoForm = memo(({
           disabled={avatarLoading}
         >
           {avatarLoading && <LoadingSpinner size="sm" />}
-          Tai anh moi len
+          Tải ảnh mới lên
         </button>
         <input
           id="avatar-file-input"
@@ -108,14 +108,14 @@ const PersonalInfoForm = memo(({
           onChange={handleAvatarFile}
           aria-describedby="avatar-help avatar-error"
         />
-        <p id="avatar-help" className="text-xs font-medium text-slate-500">JPG, PNG hoac WebP. Toi da 2MB.</p>
+        <p id="avatar-help" className="text-xs font-medium text-slate-500">JPG, PNG hoặc WebP. Tối đa 2MB.</p>
         {avatarError && <p id="avatar-error" className="text-sm font-semibold text-red-600" role="alert">{avatarError}</p>}
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-5 lg:grid-cols-2">
         <div className="space-y-5">
           <div>
-            <label htmlFor="profile-full-name" className="form-label">Ho va ten</label>
+            <label htmlFor="profile-full-name" className="form-label">Họ và tên</label>
             <input
               id="profile-full-name"
               type="text"
@@ -127,9 +127,9 @@ const PersonalInfoForm = memo(({
           </div>
 
           <div>
-            <div className="form-label">Gioi tinh</div>
+            <div className="form-label">Giới tính</div>
             <div className="grid grid-cols-3 gap-2">
-              {['Nam', 'Ná»¯', 'KhĂ¡c'].map((gender) => (
+              {['Nam', 'Nữ', 'Khác'].map((gender) => (
                 <label key={gender} className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-3 text-sm font-semibold text-slate-700 transition has-[:checked]:border-[var(--color-primary-dark)] has-[:checked]:bg-[var(--color-primary-lightest)]">
                   <input type="radio" name="gender" value={gender} checked={personal.gender === gender} onChange={onChange} className="h-4 w-4 accent-[var(--color-primary-dark)]" />
                   {gender}
@@ -146,21 +146,21 @@ const PersonalInfoForm = memo(({
 
         <div className="space-y-5">
           <div>
-            <label htmlFor="profile-date-of-birth" className="form-label">Ngay sinh</label>
+            <label htmlFor="profile-date-of-birth" className="form-label">Ngày sinh</label>
             <input id="profile-date-of-birth" type="date" name="dateOfBirth" value={personal.dateOfBirth || ''} onChange={onChange} className={fieldClass} />
           </div>
 
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-3">
-              <label htmlFor="profile-phone" className="form-label mb-0">So dien thoai</label>
-              <button type="button" className="text-xs font-semibold text-[var(--color-primary-dark)] hover:underline">Lien ket so dien thoai</button>
+              <label htmlFor="profile-phone" className="form-label mb-0">Số điện thoại</label>
+              <button type="button" className="text-xs font-semibold text-[var(--color-primary-dark)] hover:underline">Liên kết số điện thoại</button>
             </div>
             <input id="profile-phone" type="text" name="phone" value={personal.phone} onChange={onChange} placeholder="0901 234 567" className={fieldClass} />
           </div>
 
           <div>
-            <label htmlFor="profile-home-city" className="form-label">Dia chi</label>
-            <input id="profile-home-city" type="text" name="homeCity" value={personal.homeCity || ''} onChange={onChange} placeholder="Ha Noi, Viet Nam" className={fieldClass} />
+            <label htmlFor="profile-home-city" className="form-label">Địa chỉ</label>
+            <input id="profile-home-city" type="text" name="homeCity" value={personal.homeCity || ''} onChange={onChange} placeholder="Hà Nội, Việt Nam" className={fieldClass} />
           </div>
         </div>
       </div>
@@ -168,7 +168,7 @@ const PersonalInfoForm = memo(({
       <div className="mt-8 flex justify-center">
         <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-dark)] px-10 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[var(--color-primary-darker)] disabled:opacity-60">
           {saving && <LoadingSpinner size="sm" />}
-          {saving ? 'DANG LUU...' : 'LUU CHINH SUA'}
+          {saving ? 'ĐANG LƯU...' : 'LƯU CHỈNH SỬA'}
         </button>
       </div>
     </form>

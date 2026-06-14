@@ -7,7 +7,7 @@ import { ROUTES } from '@/lib/constants';
 import CardSkeleton from '@/components/ui/CardSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import TripCard from '@/components/trips/TripCard';
+import TripCard from '@/components/trip/TripCard';
 
 interface AddToTripModalProps {
   isOpen: boolean;
@@ -70,21 +70,21 @@ export default function AddToTripModal({
       >
         <div className="flex items-center justify-between gap-4">
           <h2 id="add-to-trip-title" className="text-xl font-bold text-slate-900">
-            Them {placeName} vao lich trinh
+            Thêm {placeName} vào lịch trình
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Dong"
+            aria-label="Đóng"
             className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
           >
-            x
+            ×
           </button>
         </div>
 
         {showSuccess && (
           <div className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700" role="status">
-            Da them {placeName} vao chuyen di.
+            Đã thêm {placeName} vào chuyến đi.
           </div>
         )}
 
@@ -104,15 +104,15 @@ export default function AddToTripModal({
         {status === 'ready' && trips.length === 0 && (
           <div className="mt-6">
             <EmptyState
-              title="Ban chua co chuyen di nao."
-              description="Tao mot lich trinh truoc khi them dia diem nay."
+              title="Bạn chưa có chuyến đi nào."
+              description="Tạo một lịch trình trước khi thêm địa điểm này."
             />
             <Link
               href={ROUTES.trips}
               className="mt-3 inline-flex w-full justify-center rounded-lg bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white"
               onClick={onClose}
             >
-              Tao chuyen di moi
+              Tạo chuyến đi mới
             </Link>
           </div>
         )}
@@ -120,7 +120,7 @@ export default function AddToTripModal({
         {(status === 'ready' || status === 'error') && trips.length > 0 && !showSuccess && (
           <>
             <div className="mt-4">
-              <label className="mb-1 block text-sm font-semibold text-slate-700">Chon chuyen di</label>
+              <label className="mb-1 block text-sm font-semibold text-slate-700">Chọn chuyến đi</label>
               <div className="max-h-80 space-y-2 overflow-auto rounded-lg border border-slate-200 p-2">
                 {trips.map((trip) => (
                   <TripCard
@@ -136,7 +136,7 @@ export default function AddToTripModal({
 
             <div className="mt-4">
               <label htmlFor="day" className="mb-1 block text-sm font-semibold text-slate-700">
-                Ngay thu
+                Ngày thứ
               </label>
               <input
                 id="day"
@@ -146,7 +146,7 @@ export default function AddToTripModal({
                 value={selectedDay}
                 onChange={(event) => setSelectedDay(Math.max(1, Math.min(30, parseInt(event.target.value, 10) || 1)))}
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                aria-label="Ngay trong lich trinh"
+                aria-label="Ngày trong lịch trình"
               />
             </div>
 
@@ -160,7 +160,7 @@ export default function AddToTripModal({
                 onClick={onClose}
                 className="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50"
               >
-                Huy
+                Hủy
               </button>
               <button
                 type="button"
@@ -171,9 +171,9 @@ export default function AddToTripModal({
                 {isLoading ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    Dang them...
+                    Đang thêm...
                   </>
-                ) : 'Them vao lich trinh'}
+                ) : 'Thêm vào lịch trình'}
               </button>
             </div>
           </>
@@ -182,7 +182,7 @@ export default function AddToTripModal({
         {status === 'submitting' && (
           <div className="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-slate-600">
             <LoadingSpinner size="sm" />
-            Dang them dia diem...
+            Đang thêm địa điểm...
           </div>
         )}
       </div>

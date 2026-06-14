@@ -47,12 +47,12 @@ export function useTripList({
 
       setTrips([]);
       setPagination(null);
-      setError(getApiErrorMessage(data, 'Khong the tai danh sach chuyen di'));
+      setError(getApiErrorMessage(data, 'Không thể tải danh sách chuyến đi'));
       setStatus('error');
     } catch (err) {
       setTrips([]);
       setPagination(null);
-      setError(getApiErrorMessage(err, 'Khong the tai danh sach chuyen di'));
+      setError(getApiErrorMessage(err, 'Không thể tải danh sách chuyến đi'));
       setStatus('error');
     }
   }, [endpoint, userId]);

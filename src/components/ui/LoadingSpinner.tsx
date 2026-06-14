@@ -12,7 +12,7 @@ const sizeClassName: Record<NonNullable<LoadingSpinnerProps['size']>, string> = 
 
 export default function LoadingSpinner({
   size = 'md',
-  label = 'Dang tai',
+  label = 'Đang tải',
   className = '',
 }: LoadingSpinnerProps): React.JSX.Element {
   return (
