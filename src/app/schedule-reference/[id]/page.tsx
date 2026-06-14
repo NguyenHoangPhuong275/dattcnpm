@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import ProfileToast from '@/components/profile/ProfileToast';
-import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, TrashIcon, UsersIcon } from '@/components/icons';
+import EmptyState from '@/components/ui/EmptyState';
+import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, ShareIcon, TrashIcon, UsersIcon } from '@/components/icons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
@@ -62,6 +63,12 @@ function displayName(item: ItineraryItem, index: number): string {
   return `Địa điểm ${index + 1}`;
 }
 
+function parseTravelerCount(description?: string): string | null {
+  if (!description) return null;
+  const match = description.match(/^(\d+)\s*(?:người|nguoi|ngÆ°á»i)/i);
+  return match ? `${match[1]} người` : null;
+}
+
 function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlace {
   const name = displayName(item, index);
   const image = getTripImage(trip);
@@ -72,8 +79,11 @@ function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlac
     name,
     address: trip.destination || 'Việt Nam',
     image,
+    // TODO(real-data): fetch real rating from place API
     rating: '10 Tuyệt vời',
+    // TODO(real-data): fetch real hours from place API
     hours: '07:00 - 22:00',
+    // TODO(real-data): compute real distance from user location
     distance: `${(2 + index * 0.4).toFixed(1)} km tới trung tâm`,
     status: open ? 'Đang mở cửa' : 'Đang đóng cửa',
     tags: ['tham quan', 'địa phương'],
@@ -154,6 +164,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const selectedItem = selectedIndex >= 0 ? items[selectedIndex] : items[0];
   const selectedPlace = selectedItem && trip ? buildPlace(selectedItem, trip, Math.max(0, selectedIndex)) : null;
   const duration = getDuration(trip?.startDate, trip?.endDate);
+  const travelerLabel = parseTravelerCount(trip?.description);
   const totalCost = items.reduce((total, item) => total + (Number(item.cost) || 0), 0);
 
   const doDeleteTrip = async (): Promise<void> => {
@@ -255,7 +266,11 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                 <h1 className="font-display text-2xl font-extrabold text-slate-950">{trip.title || 'Chuyến đi Hà Nội'}</h1>
                 <div className="mt-2 flex flex-wrap gap-3 text-sm text-slate-600">
                   <span className="inline-flex items-center gap-1.5"><CalendarIcon className="h-4 w-4" />{duration.label}</span>
-                  <span className="inline-flex items-center gap-1.5"><UsersIcon className="h-4 w-4" />2 Người</span>
+                  {travelerLabel && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <UsersIcon className="h-4 w-4" />{travelerLabel}
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-1.5"><MapPinIcon className="h-4 w-4" />{trip.destination}</span>
                 </div>
               </div>
@@ -277,7 +292,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   title="Chia sẻ"
                   aria-label="Chia sẻ"
                 >
-                  <MapIcon className="h-4 w-4" />
+                  <ShareIcon className="h-4 w-4" />
                 </button>
                 <button
                   id="action-edit-trip"
@@ -375,9 +390,10 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm font-semibold text-slate-500">
-                  Lịch trình này chưa có địa điểm nào.
-                </div>
+                <EmptyState
+                  title="Lịch trình chưa có địa điểm nào."
+                  description="Thêm địa điểm từ trang Khám phá để bắt đầu."
+                />
               )
             ) : (
               <div className="rounded-lg border border-slate-200 bg-white p-5">

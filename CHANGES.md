@@ -60,6 +60,13 @@
 - `src/components/trip/TripCard.tsx` - removed hardcoded budget and member-count metadata because `TripSummary` does not provide those fields.
 - `src/app/globals.css` - corrected semantic brand scale so `brand-500`, `brand-600`, and `brand-700` map to progressively darker existing palette tokens.
 - `src/components/trips/AddToTripModal.tsx` - replaced the text close glyph with an inline SVG X icon.
+- `src/components/profile/TripDetailModal.tsx` - added explicit return types, typed the modal click handler, and added client-side trip date validation.
+- `src/components/profile/TripDetailModal.tsx` - standardized the close button to use an accessible SVG X icon.
+- `src/app/schedule-reference/[id]/page.tsx` - replaced hardcoded traveler count with a label parsed from trip description.
+- `src/components/icons.tsx` and `src/app/schedule-reference/[id]/page.tsx` - added and used `ShareIcon` for the share action while keeping `MapIcon` for map-related UI.
+- `src/app/schedule-reference/[id]/page.tsx` - replaced the itinerary inline empty state with `EmptyState`.
+- `src/app/schedule-reference/[id]/page.tsx` - marked mock display fields in `buildPlace()` with `TODO(real-data)` comments.
 
 ## Fix Pass 3 Verification
 - `npx tsc --noEmit` - passed.
+- `npm run lint` - passed.

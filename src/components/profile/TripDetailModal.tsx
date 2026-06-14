@@ -54,14 +54,14 @@ const emptyDraft: ItineraryDraft = {
   currency: 'VND',
 };
 
-function toDateInput(value?: string) {
+function toDateInput(value?: string): string {
   if (!value) return '';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toISOString().split('T')[0];
 }
 
-export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }: TripDetailModalProps) {
+export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }: TripDetailModalProps): React.JSX.Element | null {
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -124,7 +124,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setEditingId(null);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     if (!trip || !userId || !draft.placeId.trim()) return;
     setSaving(true);
     setError('');
@@ -174,7 +174,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     });
   };
 
-  const handleDelete = async (itemId: string) => {
+  const handleDelete = async (itemId: string): Promise<void> => {
     if (!trip || !userId) return;
     setError('');
     try {
@@ -211,10 +211,16 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setIsEditingTrip(false);
   };
 
-  const saveTrip = async () => {
+  const saveTrip = async (): Promise<void> => {
     if (!trip || !userId) return;
     setSavingTrip(true);
     setError('');
+
+    if (tripDraft.endDate && tripDraft.startDate && tripDraft.endDate < tripDraft.startDate) {
+      setError('Ngày kết thúc phải sau ngày bắt đầu');
+      setSavingTrip(false);
+      return;
+    }
 
     try {
       const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}`, {
@@ -249,7 +255,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
         className="bg-white rounded-2xl p-6 w-full max-w-3xl border border-slate-200 max-h-[88vh] overflow-auto"
-        onClick={e => e.stopPropagation()}
+        onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()}
       >
         <div className="flex justify-between items-center gap-4 mb-4">
           <div>
@@ -262,7 +268,26 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 Sửa thông tin
               </button>
             )}
-            <button onClick={onClose} className="text-sm text-slate-500 hover:text-slate-700">Đóng</button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Đóng"
+              className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
 
