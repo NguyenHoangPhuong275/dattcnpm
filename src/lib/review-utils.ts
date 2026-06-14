@@ -1,21 +1,22 @@
-import type { AppDatabase } from './mongodb';
+import type { AppDatabase } from '@/lib/mongodb';
 
-
-export async function recalculatePlaceRating(placeId: string, db: AppDatabase): Promise<void> {
+export async function recalculatePlaceRating(
+  placeId: string,
+  db: AppDatabase
+): Promise<void> {
   try {
     const reviews = await db.reviews.find({ placeId, deletedAt: null });
-    const ratingCount = reviews.length;
-    const ratingAvg = ratingCount === 0
-      ? 0
-      : reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / ratingCount;
-
+    const count = reviews.length;
+    const avg = count > 0
+      ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / count
+      : 0;
     await db.places.updateOne(placeId, {
       $set: {
-        ratingAvg,
-        ratingCount,
+        ratingAvg: Math.round(avg * 10) / 10,
+        ratingCount: count,
       },
     });
-  } catch (error) {
-    console.error('Lỗi khi cập nhật điểm đánh giá địa điểm:', error);
+  } catch (err) {
+    console.error('recalculatePlaceRating failed for placeId', placeId, err);
   }
 }

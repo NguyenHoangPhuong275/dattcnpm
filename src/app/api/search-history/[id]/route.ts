@@ -14,7 +14,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     if (!user) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
-    const userId = user.id;
+    const userId = String(user._id ?? user.id);
 
     const { id } = await ctx.params;
     objectIdSchema.parse(id);

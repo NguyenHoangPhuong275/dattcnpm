@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
-    const userId = user.id;
+    const userId = String(user._id ?? user.id);
 
     const db = await getDb();
     const histories = await db.searchHistories.find({ userId });
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
-    const userId = user.id;
+    const userId = String(user._id ?? user.id);
 
     const body = await request.json().catch(() => ({}));
     const parsed = searchHistoryCreateSchema.parse(body);
@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest) {
     if (!user) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
-    const userId = user.id;
+    const userId = String(user._id ?? user.id);
 
     const db = await getDb();
     const histories = await db.searchHistories.find({ userId });

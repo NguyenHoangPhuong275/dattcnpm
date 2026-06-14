@@ -7,14 +7,29 @@ export const createTripSchema = z.object({
   startDate: z.string().date().optional(),
   endDate: z.string().date().optional(),
   description: optionalTrimString(2000),
-  coverImage: z.string().url("coverImage phải là URL hợp lệ")
-    .refine(url => url.startsWith('http://') || url.startsWith('https://'), 
-      "coverImage chỉ chấp nhận http/https URL")
-    .optional().nullable(),
+  coverImage: z
+    .string()
+    .url('coverImage phải là URL hợp lệ')
+    .refine(
+      (url) => url.startsWith('http://') || url.startsWith('https://'),
+      'coverImage chỉ chấp nhận http hoặc https URL'
+    )
+    .optional()
+    .nullable(),
   isPublic: z.boolean().optional().default(false),
 });
 
-export const updateTripSchema = createTripSchema.partial().refine(
+export const updateTripSchema = createTripSchema.partial().extend({
+  coverImage: z
+    .string()
+    .url('coverImage phải là URL hợp lệ')
+    .refine(
+      (url) => url.startsWith('http://') || url.startsWith('https://'),
+      'coverImage chỉ chấp nhận http hoặc https URL'
+    )
+    .optional()
+    .nullable(),
+}).refine(
   (data) => Object.keys(data).length > 0,
   { message: 'Không có trường hợp lệ để cập nhật' }
 );
@@ -39,7 +54,6 @@ export const updateItineraryItemSchema = createItineraryItemSchema.partial().ext
 export const deleteItineraryItemSchema = z.object({
   itemId: objectIdSchema,
 });
-
 
 export type TripCreateInput = z.infer<typeof createTripSchema>;
 export type TripUpdateInput = z.infer<typeof updateTripSchema>;

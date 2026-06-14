@@ -1,8 +1,19 @@
-# Changes
+# Fix Report
 
-- Removed production test-account bypasses from auth and MongoDB user helpers.
-- Added test-only user helper, debug route secret guard, and locked-user enforcement helper.
-- Split MongoDB implementation into `src/lib/db/**` modules with `src/lib/mongodb.ts` as a barrel export.
-- Added paginated collections, Trip indexes, public trips discovery, cascade trip cleanup, shared trip response formatting, and review rating recalculation.
-- Hardened trip `coverImage` validation with http/https URL checks and added validation tests.
-- Updated environment examples for removed test account envs, `TEST_USER_*`, and `DEBUG_SECRET`.
+## Modified
+- src/app/api/trips/route.ts — FIX 1
+- src/app/api/trips/public/route.ts — FIX 3
+- src/app/api/trips/[id]/share/route.ts — FIX 4
+- src/app/api/search-history/route.ts — FIX 4
+- src/app/api/search-history/[id]/route.ts — FIX 4
+- src/lib/auth.ts — FIX 9
+- src/lib/trip-utils.ts — FIX 3, FIX 8
+- src/lib/validations/trip.ts — FIX 7
+- src/lib/db/models/trip.model.ts — FIX 10
+- src/lib/db/models/review.model.ts — FIX 10
+- src/lib/db/models/supporting.model.ts — FIX 10
+
+## Created
+- src/lib/test-helpers.ts — FIX 2
+- src/lib/debug-guard.ts — FIX 5
+- src/lib/review-utils.ts — FIX 6

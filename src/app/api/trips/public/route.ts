@@ -38,7 +38,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       { page, limit, sortBy: 'updatedAt', sortOrder: -1 }
     );
 
-    const mappedData = paginated.data.map((trip: Trip) => toTripResponse(trip));
+    const mappedData = paginated.data.map((trip: Trip) => toTripResponse(trip, { omitUserId: true }));
 
     return sendSuccess({
       data: mappedData,

@@ -67,6 +67,8 @@ export const SearchHistorySchema = new Schema<ISearchHistory>({
   metadata: { type: Object, default: null },
 }, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.searchHistories });
 
+SearchHistorySchema.index({ userId: 1, createdAt: -1 });
+
 export const SearchHistory: Model<ISearchHistory> = models.SearchHistory || model<ISearchHistory>('SearchHistory', SearchHistorySchema);
 
 export interface ITripShare extends Document {

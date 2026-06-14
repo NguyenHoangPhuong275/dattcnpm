@@ -141,7 +141,10 @@ export async function deleteTripCascade(tripId: string, db: AppDatabase): Promis
 }
 
 
-export function toTripResponse(trip: Trip): Record<string, unknown> {
+export function toTripResponse(
+  trip: Trip,
+  options?: { omitUserId?: boolean }
+): Record<string, unknown> {
   const toDateOnly = (value: unknown): string => {
     if (!value) return '';
     const date = value instanceof Date ? value : new Date(String(value));
@@ -149,8 +152,9 @@ export function toTripResponse(trip: Trip): Record<string, unknown> {
     return date.toISOString().split('T')[0];
   };
 
-  return {
+  const response: Record<string, unknown> = {
     _id: String(trip._id || ''),
+    userId: String(trip.userId || ''),
     title: String(trip.title || ''),
     destination: String(trip.destination || ''),
     startDate: toDateOnly(trip.startDate),
@@ -161,4 +165,10 @@ export function toTripResponse(trip: Trip): Record<string, unknown> {
     createdAt: trip.createdAt ? new Date(String(trip.createdAt)).toISOString() : '',
     updatedAt: trip.updatedAt ? new Date(String(trip.updatedAt)).toISOString() : '',
   };
+
+  if (options?.omitUserId) {
+    delete response.userId;
+  }
+
+  return response;
 }

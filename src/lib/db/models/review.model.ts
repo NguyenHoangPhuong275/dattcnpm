@@ -25,4 +25,6 @@ export const ReviewSchema = new Schema<IReview>({
   deletedAt: { type: Date, default: null },
 }, { timestamps: true, collection: COLLECTIONS.reviews });
 
+ReviewSchema.index({ placeId: 1, deletedAt: 1 });
+
 export const Review: Model<IReview> = models.Review || model<IReview>('Review', ReviewSchema);

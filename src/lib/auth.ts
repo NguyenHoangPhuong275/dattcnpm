@@ -80,15 +80,40 @@ export async function getAuthUserId(request: NextRequest): Promise<string | null
 export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | null> {
   const userId = await getAuthUserId(request);
   if (!userId) return null;
+
+  const cacheKey = `user:full:${userId}`;
+
+  try {
+    const { getRedis } = await import('./redis');
+    const redis = await getRedis();
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      const parsed: AuthUser & { isLocked?: boolean } = JSON.parse(cached);
+      if (parsed.isLocked) return null;
+      return parsed;
+    }
+  } catch {
+  }
+
   const user = await getUserById(userId);
   if (!user || user.isLocked) return null;
-  return {
+
+  const result: AuthUser = {
     ...user,
-    id: String(user._id || userId),
+    id: String(user._id ?? userId),
     email: user.email,
     fullName: user.fullName,
     role: user.role === 'ADMIN' ? 'ADMIN' : 'USER',
   };
+
+  try {
+    const { getRedis } = await import('./redis');
+    const redis = await getRedis();
+    await redis.set(cacheKey, JSON.stringify(result), 'EX', 30);
+  } catch {
+  }
+
+  return result;
 }
 
 export const authCookieName = AUTH_COOKIE;

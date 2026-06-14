@@ -5,7 +5,6 @@ import { createTripSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { toTripResponse } from '@/lib/trip-utils';
-import type { Trip } from '@/types/trip';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
@@ -26,15 +25,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       { page, limit, sortBy: 'updatedAt', sortOrder: -1 }
     );
 
-    
-    const sortCompare = (a: Trip, b: Trip) => {
-      const da = new Date(a.updatedAt ?? a.createdAt ?? 0).getTime();
-      const dateB = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
-      return dateB - da;
-    };
-    paginated.data.sort(sortCompare);
-
-    const mappedData = paginated.data.map((t: Trip) => toTripResponse(t));
+    const mappedData = paginated.data.map((trip) => toTripResponse(trip));
 
     return sendSuccess({
       data: mappedData,
