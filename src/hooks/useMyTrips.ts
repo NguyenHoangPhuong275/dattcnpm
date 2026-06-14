@@ -90,7 +90,6 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       setCreateStatus('error');
       return { success: false, message: getApiErrorMessage(data, 'Tạo chuyến đi thất bại') };
     } catch (err) {
-      if (process.env.NODE_ENV === 'development') console.error('Create trip failed:', err);
       setCreateStatus('error');
       return { success: false, message: 'Không thể tạo chuyến đi lúc này' };
     }
@@ -110,7 +109,6 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
 
       if (!response.ok) throw new Error('Delete trip failed');
     } catch (err) {
-      if (process.env.NODE_ENV === 'development') console.error('Delete trip failed:', err);
       setTrips(snapshot);
       throw new Error('Delete trip failed');
     }

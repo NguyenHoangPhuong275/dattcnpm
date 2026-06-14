@@ -42,7 +42,6 @@ export default function UserDropdown({ user }: UserDropdownProps): React.JSX.Ele
     try {
       await apiRequest('/api/auth/logout', { method: 'POST' });
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi đăng xuất:', error);
     }
 
     clearStoredUser();

@@ -140,7 +140,6 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         }
       } catch (errorValue) {
         if (errorValue instanceof Error && errorValue.name === 'AbortError') return;
-        if (process.env.NODE_ENV === 'development') console.error('Lỗi khi tải thông tin hồ sơ:', errorValue);
         setError('Không thể tải thông tin hồ sơ');
         setStatus('error');
       }
@@ -198,7 +197,6 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       }
       setSavePersonalStatus('success');
     } catch (err) {
-      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi lưu thông tin cá nhân:', err);
       setSavePersonalStatus('error');
       throw err;
     }
@@ -229,7 +227,6 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       }
       setSavePreferencesStatus('success');
     } catch (err) {
-      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi lưu tùy chọn du lịch:', err);
       setSavePreferencesStatus('error');
       throw err;
     }
@@ -254,7 +251,6 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         throw new Error(getApiErrorMessage(data, 'Cập nhật 2FA thất bại'));
       }
     } catch (errorValue) {
-      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi cập nhật cấu hình 2FA:', errorValue);
       setIs2FAEnabled(!nextValue);
       throw errorValue;
     }

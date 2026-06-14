@@ -94,6 +94,7 @@ const PersonalInfoForm = memo(({
         <button
           type="button"
           onClick={() => document.getElementById('avatar-file-input')?.click()}
+          aria-label="Tải ảnh đại diện mới lên"
           className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-[var(--color-primary-dark)] transition hover:bg-slate-50"
           disabled={avatarLoading}
         >

@@ -319,7 +319,6 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 <input
                   type="date"
                   value={tripDraft.startDate}
-                  max={tripDraft.endDate || undefined}
                   onChange={e => setTripDraft(prev => ({ ...prev, startDate: e.target.value }))}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 />

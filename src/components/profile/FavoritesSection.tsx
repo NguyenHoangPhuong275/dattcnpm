@@ -35,7 +35,7 @@ const FavoritesSection = memo(({ places, onRemove, loading }: FavoritesSectionPr
         {places.length === 0 && (
           <EmptyState
             title="Chưa có địa điểm yêu thích"
-            description="Hãy khám phá và lưu những địa điểm bạn yêu thích!"
+            description="Khám phá và lưu địa điểm bạn muốn ghé thăm."
           />
         )}
       </>

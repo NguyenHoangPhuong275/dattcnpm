@@ -40,7 +40,6 @@ export function useMyReviews({ userId }: UseMyReviewsOptions): UseMyReviewsRetur
         setStatus('error');
       }
     } catch (err) {
-      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi tải danh sách đánh giá:', err);
       setError('Không thể tải danh sách đánh giá');
       setStatus('error');
     }

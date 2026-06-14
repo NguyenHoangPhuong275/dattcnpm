@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/useToast';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import * as Icons from '@/components/icons';
 import { TripSummary } from '@/types/profile';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface SearchHistoryItem {
   _id: string;
@@ -269,6 +270,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                   <div className="flex shrink-0 items-center gap-2">
                     <button
                       onClick={() => handleUseAgain(item)}
+                      aria-label={`Tìm lại "${item.query}"`}
                       className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition duration-200 shadow-sm"
                     >
                       Tìm lại
@@ -276,9 +278,12 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                     <button
                       onClick={() => handleDelete(item._id)}
                       disabled={deletingId === item._id}
+                      aria-label={`Xóa lịch sử tìm kiếm "${item.query}"`}
                       className="rounded-xl border border-red-100 px-3 py-1.5 text-xs font-semibold text-red-600 bg-white hover:bg-red-50 disabled:opacity-50 transition duration-200 shadow-sm"
                     >
-                      {deletingId === item._id ? '...' : 'Xóa'}
+                      {deletingId === item._id
+                        ? <LoadingSpinner size="sm" />
+                        : 'Xóa'}
                     </button>
                   </div>
                 </div>

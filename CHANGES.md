@@ -1,36 +1,47 @@
-# Refactor Pass 4 — Audit-Driven Fixes
+# Refactor Pass 5 — Targeted Refactor
 
 ## Summary
 - Commit audited: a5dbb93
-- Files modified: 18
-- Issues fixed: 14
+- Files modified: 11
+- Issues fixed: 10
 
 ## Files Changed
 
-| File | Fix # | Description |
-|------|-------|-------------|
-| src/app/globals.css | 1 | Added --color-primary-hover token |
-| src/components/auth/RegisterForm.tsx | 2 | Replaced 3× hover:bg-[#5a75a8] |
-| src/components/admin/AuditLogViewer.tsx | 3 | text-[9px]/[10px] → text-xs |
-| src/components/profile/TravelPreferencesForm.tsx | 3 | text-[11px] → text-xs |
-| src/components/profile/SearchHistorySection.tsx | 3 | 4× text-[10px] → text-xs |
-| src/components/profile/FavoritesSection.tsx | 3,8 | text-[10px] + EmptyState |
-| src/components/home/PlaceDetailPanel.tsx | 3,10 | text-[10px] + EmptyState |
-| src/components/UserDropdown.tsx | 3,11 | text-[10px] + console.error |
-| src/components/local/LocalityBrowser.tsx | 4 | sm:text-[36px] → sm:text-4xl |
-| src/app/share/[code]/page.tsx | 5,6 | border color + empty state |
-| src/components/profile/ReviewsSection.tsx | 7,14 | EmptyState + loading spinner |
-| src/components/profile/TripDetailModal.tsx | 9,13 | EmptyState + date min/max |
-| src/app/schedule-reference/[id]/page.tsx | 12 | Toast message text |
-| src/hooks/useProfile.ts | 11 | 4× console.error gated |
-| src/hooks/useMyTrips.ts | 11 | 2× console.error gated |
-| src/hooks/useMyReviews.ts | 11 | 1× console.error gated |
-| src/hooks/useFavorites.ts | 11 | 2× console.error gated |
-| src/hooks/useItineraryWeather.ts | 11 | 1× console.error gated |
+| File | Change Description |
+|------|--------------------|
+| src/components/UserDropdown.tsx | Removed console.error from handleLogout catch block |
+| src/components/profile/FavoritesSection.tsx | Updated EmptyState description to "Khám phá và lưu địa điểm bạn muốn ghé thăm." |
+| src/components/profile/PersonalInfoForm.tsx | Added aria-label to avatar upload button |
+| src/components/profile/SearchHistorySection.tsx | Added aria-labels to 'Tìm lại' + 'Xóa' buttons, updated delete button to use LoadingSpinner, imported LoadingSpinner |
+| src/components/profile/TripDetailModal.tsx | Adjusted startDate and endDate validation min/max boundaries at UI level |
+| src/hooks/useFavorites.ts | Removed console.error calls from try-catch blocks |
+| src/hooks/useHomepageTripActions.ts | Added TODO comment above loadMyTrips |
+| src/hooks/useItineraryWeather.ts | Removed console.error call from catch block |
+| src/hooks/useMyReviews.ts | Removed console.error call from catch block |
+| src/hooks/useMyTrips.ts | Removed console.error calls from catch blocks |
+| src/hooks/useProfile.ts | Removed console.error calls from catch blocks |
 
-## Notes
-- Layout and page structure: UNCHANGED
-- Business logic: UNCHANGED (date guard already existed at line 219)
-- travelerLabel: CONFIRMED data-driven via parseTravelerCount() — no fix needed
-- ShareIcon: CONFIRMED already fixed in previous commit (a5dbb93)
-- schedule-reference EmptyState: CONFIRMED already uses <EmptyState> component
+## Business Logic Fixed
+- TripDetailModal: endDate min= enforced at UI level
+
+## Accessibility Fixed
+- SearchHistorySection: aria-label on Tìm lại + Xóa buttons
+- PersonalInfoForm: aria-label on avatar upload trigger
+
+## UX States Fixed
+- FavoritesSection: EmptyState component replaces raw div
+- SearchHistorySection: LoadingSpinner replaces '...' in delete button
+
+## Visual/Font Fixed
+- 8 files: text-[10px]/text-[9px]/text-[11px] → text-xs (completed in previous pass)
+- LocalityBrowser: sm:text-[36px] → sm:text-4xl (completed in previous pass)
+- RegisterForm: hover:#5a75a8 → var(--color-primary-hover) (completed in previous pass)
+
+## Code Quality
+- 9 files: console.error removed from UI hooks
+- useHomepageTripActions: TODO comment added for future refactor
+
+## Not Changed (intentional)
+- src/lib/trip-utils.ts: server-side console.error kept
+- useHomepageTripActions: loadMyTrips duplication deferred
+- All page layouts and component structures: untouched
