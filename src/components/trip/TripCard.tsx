@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { CalendarIcon, MapPinIcon, TrashIcon, UsersIcon } from '@/components/icons';
-import { formatDateRange, formatMoney, getTripCities, getTripImage } from '@/lib/trip-utils';
+import { CalendarIcon, TrashIcon } from '@/components/icons';
+import { formatDateRange, getTripCities, getTripImage } from '@/lib/trip-utils';
 import type { TripSummary } from '@/types/profile';
 
 interface TripCardProps {
@@ -65,16 +65,8 @@ function TripMeta({ trip }: TripMetaProps): React.JSX.Element {
   return (
     <div className="space-y-2 text-sm text-slate-600">
       <div className="flex items-center gap-2">
-        <MapPinIcon className="h-4 w-4 text-[var(--color-primary-dark)]" />
-        <span>Tổng ngân sách: {formatMoney(0)}</span>
-      </div>
-      <div className="flex items-center gap-2">
         <CalendarIcon className="h-4 w-4 text-[var(--color-primary-dark)]" />
         <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <UsersIcon className="h-4 w-4 text-[var(--color-primary-dark)]" />
-        <span>2 người</span>
       </div>
     </div>
   );

@@ -55,3 +55,11 @@
 - `npx tsc --noEmit` - passed.
 - `npm run lint` - passed.
 - `npm test` - 12 files passed, 23 tests passed.
+
+## Fix Pass 3
+- `src/components/trip/TripCard.tsx` - removed hardcoded budget and member-count metadata because `TripSummary` does not provide those fields.
+- `src/app/globals.css` - corrected semantic brand scale so `brand-500`, `brand-600`, and `brand-700` map to progressively darker existing palette tokens.
+- `src/components/trips/AddToTripModal.tsx` - replaced the text close glyph with an inline SVG X icon.
+
+## Fix Pass 3 Verification
+- `npx tsc --noEmit` - passed.
