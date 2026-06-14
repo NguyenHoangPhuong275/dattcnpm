@@ -1,6 +1,8 @@
 export {
   authCookieName,
+  getAuthUserFull,
   getAuthUserId,
+  type AuthUser,
   signAuthToken,
   verifyAuthToken,
 } from './auth';

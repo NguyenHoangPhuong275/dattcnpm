@@ -35,24 +35,7 @@ export async function POST(request: NextRequest) {
       throw new AppError('RATE_LIMITED', 'Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau.', 429);
     }
 
-    if (
-      process.env.ENABLE_DEFAULT_TEST_ACCOUNT === 'true'
-      && normalizedEmail === (process.env.DEFAULT_TEST_EMAIL || '').toLowerCase().trim()
-      && password === process.env.DEFAULT_TEST_PASSWORD
-    ) {
-      const user = {
-        id: 'test-user-phuong',
-        email: normalizedEmail,
-        fullName: 'Nguyễn Hoàng Phương (Test)',
-        role: 'USER' as const,
-      };
-      
-      const token = await signAuthToken(user);
-      const payload = { success: true, user };
-      const response = NextResponse.json(payload);
-      setAuthCookie(response, token);
-      return response;
-    }
+
 
     const user = await findUserByEmail(normalizedEmail);
 

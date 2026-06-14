@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 import { searchHistoryCreateSchema } from '@/lib/validations/search';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -18,10 +18,11 @@ function toHistoryResponse(item: Record<string, unknown>) {
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = user.id;
 
     const db = await getDb();
     const histories = await db.searchHistories.find({ userId });
@@ -38,10 +39,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = user.id;
 
     const body = await request.json().catch(() => ({}));
     const parsed = searchHistoryCreateSchema.parse(body);
@@ -72,10 +74,11 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = user.id;
 
     const db = await getDb();
     const histories = await db.searchHistories.find({ userId });

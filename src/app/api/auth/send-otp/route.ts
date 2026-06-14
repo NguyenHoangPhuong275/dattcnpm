@@ -73,15 +73,6 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = parsed.email;
 
-    if (
-      process.env.ENABLE_DEFAULT_TEST_ACCOUNT === 'true'
-      && normalizedEmail === (process.env.DEFAULT_TEST_EMAIL || '').toLowerCase().trim()
-    ) {
-      return sendSuccess({
-        maskedEmail: maskEmail(normalizedEmail),
-      });
-    }
-
     const existingUser = await findUserByEmail(normalizedEmail);
     if (existingUser) {
       throw new AppError('CONFLICT', 'Email này đã được đăng ký', 409);

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getUserById, updateUserProfile, type IUser } from '@/lib/mongodb';
+import { updateUserProfile, type IUser } from '@/lib/mongodb';
 import { storeAvatar, getAvatar } from '@/lib/redis';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -20,15 +20,11 @@ function toSafeDateString(value: unknown): string {
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
-    }
-
-    const user = await getUserById(userId);
+    const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy người dùng', 404);
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     let avatarUrl: string | null = null;
     try {
@@ -69,10 +65,11 @@ export async function GET(request: NextRequest): Promise<Response> {
 
 export async function PATCH(request: NextRequest): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:update-profile:${userId}`,

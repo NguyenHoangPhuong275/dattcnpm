@@ -21,7 +21,9 @@ interface UseHomepageTripActionsProps {
 
 interface TripsResponse {
   success?: boolean;
-  data?: TripSummary[];
+  data?: TripSummary[] | {
+    data?: TripSummary[];
+  };
 }
 
 interface TripCreateResponse {
@@ -62,6 +64,12 @@ function getSelectedPlaceDestination(place: SelectedTripPlace): string {
   return place.address || place.name;
 }
 
+function extractTrips(payload: TripsResponse): TripSummary[] {
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && Array.isArray(payload.data.data)) return payload.data.data;
+  return [];
+}
+
 export function useHomepageTripActions({
   userId,
   selectedPlace,
@@ -94,8 +102,8 @@ export function useHomepageTripActions({
 
     try {
       const { response, data } = await apiRequest<TripsResponse>('/api/trips', { userId });
-      if (response.ok && data.success && Array.isArray(data.data)) {
-        setMyTrips(data.data);
+      if (response.ok && data.success && data.data) {
+        setMyTrips(extractTrips(data));
         setTripsStatus('success');
         return;
       }

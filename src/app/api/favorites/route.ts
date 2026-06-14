@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { createFavoriteSchema } from '@/lib/validations/favorite';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -8,10 +8,11 @@ import type { FavoritePlace } from '@/database/schema';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
     const db = await getDb();
     const favs = (await db.favorites.find({ userId })) as FavoritePlace[];
 
@@ -44,10 +45,11 @@ export async function GET(request: NextRequest): Promise<Response> {
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:create-favorite:${userId}`,

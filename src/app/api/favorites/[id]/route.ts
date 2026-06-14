@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -11,10 +11,11 @@ type RouteCtx = {
 
 export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:delete-favorite:${userId}`,

@@ -7,7 +7,10 @@ export const createTripSchema = z.object({
   startDate: z.string().date().optional(),
   endDate: z.string().date().optional(),
   description: optionalTrimString(2000),
-  coverImage: optionalTrimString(500),
+  coverImage: z.string().url("coverImage phải là URL hợp lệ")
+    .refine(url => url.startsWith('http://') || url.startsWith('https://'), 
+      "coverImage chỉ chấp nhận http/https URL")
+    .optional().nullable(),
   isPublic: z.boolean().optional().default(false),
 });
 

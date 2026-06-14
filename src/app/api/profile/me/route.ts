@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserById } from '@/lib/mongodb';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { handleApiError, AppError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
-    }
-
-    const user = await getUserById(userId);
+    const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy người dùng', 404);
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
 
     const basicUser = {
-      id: String(user._id || userId),
+      id: String(user._id),
       email: user.email,
       fullName: user.fullName,
       role: user.role,

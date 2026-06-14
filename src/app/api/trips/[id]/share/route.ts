@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 function generateShareCode(): string {
@@ -18,16 +18,17 @@ interface RouteContext {
 
 export async function POST(request: NextRequest, ctx: RouteContext) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = user.id;
 
     const { id: tripId } = await ctx.params;
     const db = await getDb();
 
     const trip = await db.trips.findById(tripId);
-    if (!trip || trip.userId !== userId) {
+    if (!trip || String(trip.userId) !== userId) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền chia sẻ chuyến đi này', 403);
     }
 
@@ -37,6 +38,8 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
 
     await db.tripShares.insertOne({
       tripId,
+      sharedByUserId: userId,
+      permission: 'READ',
       shareCode,
       createdAt: now,
       expiresAt,
@@ -53,16 +56,17 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
 
 export async function DELETE(request: NextRequest, ctx: RouteContext) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = user.id;
 
     const { id: tripId } = await ctx.params;
     const db = await getDb();
 
     const trip = await db.trips.findById(tripId);
-    if (!trip || trip.userId !== userId) {
+    if (!trip || String(trip.userId) !== userId) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền thu hồi chia sẻ', 403);
     }
 

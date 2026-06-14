@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -10,10 +10,11 @@ type RouteCtx = {
 
 export async function DELETE(request: NextRequest, ctx: RouteCtx) {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = user.id;
 
     const { id } = await ctx.params;
     objectIdSchema.parse(id);

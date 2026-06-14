@@ -33,6 +33,19 @@ export interface UseMyTripsReturn {
   };
 }
 
+type TripsListResponse = {
+  success?: boolean;
+  data?: TripSummary[] | {
+    data?: TripSummary[];
+  };
+};
+
+function extractTrips(payload: TripsListResponse): TripSummary[] {
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && Array.isArray(payload.data.data)) return payload.data.data;
+  return [];
+}
+
 export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [status, setStatus] = useState<MyTripsStatus>('idle');
@@ -48,9 +61,9 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     setStatus('loading');
     setError(null);
     try {
-      const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary[] }>('/api/trips', { userId: id });
-      if (response.ok && data.success && Array.isArray(data.data)) {
-        setTrips(data.data);
+      const { response, data } = await apiRequest<TripsListResponse>('/api/trips', { userId: id });
+      if (response.ok && data.success && data.data) {
+        setTrips(extractTrips(data));
         setStatus('success');
       } else {
         setStatus('error');

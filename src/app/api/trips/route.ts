@@ -1,39 +1,50 @@
 import { NextRequest } from 'next/server';
 import { getDb, createAuditLog } from '@/lib/mongodb';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { createTripSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { toTripResponse } from '@/lib/trip-utils';
 import type { Trip } from '@/types/trip';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
+
+    const url = new URL(request.url);
+    const searchParams = url.searchParams;
+    const page = Math.max(1, Number(searchParams.get('page') || 1));
+    const limit = Math.max(1, Math.min(100, Number(searchParams.get('limit') || 20)));
+
     const db = await getDb();
-    const trips = (await db.trips.find({ userId })) as Trip[];
+    const paginated = await db.trips.findPaginated(
+      { userId },
+      { page, limit, sortBy: 'updatedAt', sortOrder: -1 }
+    );
 
-    trips.sort((a: Trip, b: Trip) => {
+    
+    const sortCompare = (a: Trip, b: Trip) => {
       const da = new Date(a.updatedAt ?? a.createdAt ?? 0).getTime();
-      const dbt = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
-      return dbt - da;
+      const dateB = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
+      return dateB - da;
+    };
+    paginated.data.sort(sortCompare);
+
+    const mappedData = paginated.data.map((t: Trip) => toTripResponse(t));
+
+    return sendSuccess({
+      data: mappedData,
+      pagination: {
+        page: paginated.page,
+        limit,
+        total: paginated.total,
+        totalPages: paginated.totalPages,
+      },
     });
-
-    const data = trips.map((t: Trip) => ({
-      _id: t._id,
-      title: t.title,
-      destination: t.destination,
-      startDate: t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : '',
-      endDate: t.endDate ? new Date(t.endDate).toISOString().split('T')[0] : '',
-      isPublic: !!t.isPublic,
-      description: t.description || '',
-      coverImage: t.coverImage || null,
-      createdAt: t.createdAt ? new Date(t.createdAt).toISOString() : '',
-    }));
-
-    return sendSuccess(data);
   } catch (error) {
     return handleApiError(error);
   }
@@ -41,10 +52,11 @@ export async function GET(request: NextRequest): Promise<Response> {
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:create-trip:${userId}`,
@@ -87,19 +99,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       console.error('Lỗi khi ghi audit log CREATE_TRIP:', err);
     }
 
-    const trip = {
-      _id: created._id,
-      title: created.title,
-      destination: created.destination,
-      startDate: created.startDate ? new Date(created.startDate).toISOString().split('T')[0] : '',
-      endDate: created.endDate ? new Date(created.endDate).toISOString().split('T')[0] : '',
-      isPublic: !!created.isPublic,
-      description: created.description || '',
-      coverImage: created.coverImage || null,
-      createdAt: created.createdAt ? new Date(created.createdAt).toISOString() : '',
-    };
-
-    return sendSuccess(trip, undefined, 201);
+    return sendSuccess(toTripResponse(created), undefined, 201);
   } catch (error) {
     return handleApiError(error);
   }

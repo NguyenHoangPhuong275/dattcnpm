@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getDb, createAuditLog } from '@/lib/mongodb';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -47,10 +47,11 @@ async function findOwnedTrip(tripId: string, userId: string): Promise<Trip | nul
 
 export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const { id } = await ctx.params;
     objectIdSchema.parse(id);
@@ -75,10 +76,11 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
 
 export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:create-itinerary:${userId}`,
@@ -148,10 +150,11 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
 
 export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:update-itinerary:${userId}`,
@@ -211,10 +214,11 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
 
 export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:delete-itinerary:${userId}`,

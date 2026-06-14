@@ -6,9 +6,13 @@ import { TripSummary } from '@/types/profile';
 
 type AddToTripStatus = 'idle' | 'loading-trips' | 'ready' | 'submitting' | 'success' | 'error';
 
+type TripsPage = {
+  data?: TripSummary[];
+};
+
 type TripsEnvelope = {
   success?: boolean;
-  data?: TripSummary[];
+  data?: TripSummary[] | TripsPage;
   message?: string;
   error?: {
     message?: string;
@@ -32,6 +36,12 @@ export interface UseAddToTripReturn {
   addToTrip: (tripId: string, day: number, placeId: string) => Promise<void>;
 }
 
+function extractTrips(payload: TripsEnvelope): TripSummary[] {
+  if (Array.isArray(payload.data)) return payload.data;
+  if (payload.data && Array.isArray(payload.data.data)) return payload.data.data;
+  return [];
+}
+
 export function useAddToTrip(): UseAddToTripReturn {
   const [status, setStatus] = useState<AddToTripStatus>('idle');
   const [trips, setTrips] = useState<TripSummary[]>([]);
@@ -43,8 +53,8 @@ export function useAddToTrip(): UseAddToTripReturn {
     try {
       const { response, data } = await apiRequest<TripsEnvelope>('/api/trips');
 
-      if (response.ok && data.success && Array.isArray(data.data)) {
-        setTrips(data.data);
+      if (response.ok && data.success && data.data) {
+        setTrips(extractTrips(data));
         setStatus('ready');
         return;
       }

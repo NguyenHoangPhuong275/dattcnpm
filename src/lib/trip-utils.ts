@@ -1,3 +1,5 @@
+import type { Trip } from '@/database/schema';
+import type { AppDatabase } from './mongodb';
 import { LOCALITIES } from './localities';
 
 const DEFAULT_TRIP_IMAGE = '/images/hanoi_temple.jpg';
@@ -93,4 +95,70 @@ export function formatMoney(value: number, locale: string = DEFAULT_LOCALE, curr
     currency,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+
+export async function deleteTripCascade(tripId: string, db: AppDatabase): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {
+    itineraryItems: 0,
+    tripShares: 0,
+    tripBudgets: 0,
+    tripAccommodations: 0,
+    tripChecklists: 0,
+  };
+
+  try {
+    counts.itineraryItems = await db.itineraryItems.deleteMany({ tripId });
+  } catch (err) {
+    console.error(`Lỗi cascade delete itineraryItems cho trip ${tripId}:`, err);
+  }
+
+  try {
+    counts.tripShares = await db.tripShares.deleteMany({ tripId });
+  } catch (err) {
+    console.error(`Lỗi cascade delete tripShares cho trip ${tripId}:`, err);
+  }
+
+  try {
+    counts.tripBudgets = await db.tripBudgets.deleteMany({ tripId });
+  } catch (err) {
+    console.error(`Lỗi cascade delete tripBudgets cho trip ${tripId}:`, err);
+  }
+
+  try {
+    counts.tripAccommodations = await db.tripAccommodations.deleteMany({ tripId });
+  } catch (err) {
+    console.error(`Lỗi cascade delete tripAccommodations cho trip ${tripId}:`, err);
+  }
+
+  try {
+    counts.tripChecklists = await db.tripChecklists.deleteMany({ tripId });
+  } catch (err) {
+    console.error(`Lỗi cascade delete tripChecklists cho trip ${tripId}:`, err);
+  }
+
+  return counts;
+}
+
+
+export function toTripResponse(trip: Trip): Record<string, unknown> {
+  const toDateOnly = (value: unknown): string => {
+    if (!value) return '';
+    const date = value instanceof Date ? value : new Date(String(value));
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+  };
+
+  return {
+    _id: String(trip._id || ''),
+    title: String(trip.title || ''),
+    destination: String(trip.destination || ''),
+    startDate: toDateOnly(trip.startDate),
+    endDate: toDateOnly(trip.endDate),
+    isPublic: trip.isPublic === true,
+    description: trip.description ? String(trip.description) : '',
+    coverImage: trip.coverImage ? String(trip.coverImage) : null,
+    createdAt: trip.createdAt ? new Date(String(trip.createdAt)).toISOString() : '',
+    updatedAt: trip.updatedAt ? new Date(String(trip.updatedAt)).toISOString() : '',
+  };
 }

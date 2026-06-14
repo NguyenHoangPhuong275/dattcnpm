@@ -13,37 +13,7 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = parsed.email;
 
-    if (process.env.ENABLE_DEFAULT_TEST_ACCOUNT === 'true' &&
-        normalizedEmail === (process.env.DEFAULT_TEST_EMAIL || '').toLowerCase().trim()) {
 
-      const userForToken = {
-        id: 'test-user-phuong',
-        email: normalizedEmail,
-        fullName: parsed.fullName.trim(),
-        role: 'USER' as const,
-      };
-
-      const token = await signAuthToken(userForToken);
-
-      const response = NextResponse.json({
-        success: true,
-        user: {
-          id: userForToken.id,
-          email: userForToken.email,
-          fullName: userForToken.fullName,
-        },
-      });
-
-      response.cookies.set(authCookieName, token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
-      return response;
-    }
 
     const existingUser = await findUserByEmail(normalizedEmail);
     if (existingUser) {

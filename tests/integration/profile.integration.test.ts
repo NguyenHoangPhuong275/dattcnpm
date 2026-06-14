@@ -1,30 +1,56 @@
-import { describe, it, expect, afterAll } from 'vitest';
-import { POST as loginPOST } from '@/app/api/auth/login/route';
+import { describe, it, expect, afterAll, vi } from 'vitest';
 import { PATCH as profilePATCH, GET as profileGET } from '@/app/api/profile/route';
 import { disconnectMongo } from '@/lib/mongodb';
 
-const TEST_EMAIL = process.env.DEFAULT_TEST_EMAIL || 'test-integration@example.com';
-const TEST_PASS = process.env.DEFAULT_TEST_PASSWORD || 'Test123456';
 
-describe('Integration: Auth + Profile with real DB (optional)', () => {
+vi.mock('@/lib/mongodb', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/mongodb')>();
+  return {
+    ...actual,
+    getUserById: vi.fn().mockImplementation(async (userId: string) => {
+      if (userId === 'test-user-phuong') {
+        return {
+          _id: 'test-user-phuong',
+          id: 'test-user-phuong',
+          email: 'test@example.com',
+          fullName: 'Nguyễn Hoàng Phương (Test)',
+          role: 'USER',
+          avatarUrl: null,
+          isLocked: false,
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as any;
+      }
+      return actual.getUserById(userId);
+    }),
+    updateUserProfile: vi.fn().mockImplementation(async (userId: string, updates: any) => {
+      if (userId === 'test-user-phuong') {
+        return {
+          _id: 'test-user-phuong',
+          id: 'test-user-phuong',
+          email: 'test@example.com',
+          fullName: 'Nguyễn Hoàng Phương (Test)',
+          role: 'USER',
+          avatarUrl: null,
+          isLocked: false,
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ...updates,
+        } as any;
+      }
+      return actual.updateUserProfile(userId, updates);
+    }),
+  };
+});
+
+describe('Integration: Profile with mocked DB helpers', () => {
   afterAll(async () => {
     await disconnectMongo?.().catch(() => {});
   });
 
-  it('login with default test account (if enabled) then GET/PATCH profile', async () => {
-    if (process.env.ENABLE_DEFAULT_TEST_ACCOUNT !== 'true') {
-      expect(true).toBe(true);
-      return;
-    }
-
-    const loginReq = new Request('http://localhost/api/auth/login', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: TEST_EMAIL, password: TEST_PASS }),
-    });
-    const loginRes = await loginPOST(loginReq as any);
-    expect(loginRes.status).toBeLessThan(500);
-
+  it('GET/PATCH profile using mocked test user', async () => {
     const testUserId = 'test-user-phuong';
 
     const getReq = new Request('http://localhost/api/profile', {

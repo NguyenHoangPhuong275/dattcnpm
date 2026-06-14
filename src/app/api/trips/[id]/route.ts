@@ -1,37 +1,16 @@
 import { NextRequest } from 'next/server';
 import { getDb, createAuditLog } from '@/lib/mongodb';
-import { getAuthUserId } from '@/lib/auth';
+import { getAuthUserFull } from '@/lib/auth';
 import { updateTripSchema } from '@/lib/validations/trip';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { toTripResponse, deleteTripCascade } from '@/lib/trip-utils';
 import type { Trip } from '@/types/trip';
 
 type RouteCtx = {
   params: Promise<{ id: string }>;
 };
-
-function toDateOnly(value: unknown): string {
-  if (!value) return '';
-  const date = value instanceof Date ? value : new Date(String(value));
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toISOString().split('T')[0];
-}
-
-function toTripResponse(trip: Trip): Record<string, unknown> {
-  return {
-    _id: String(trip._id || ''),
-    title: String(trip.title || ''),
-    destination: String(trip.destination || ''),
-    startDate: toDateOnly(trip.startDate),
-    endDate: toDateOnly(trip.endDate),
-    isPublic: trip.isPublic === true,
-    description: trip.description ? String(trip.description) : '',
-    coverImage: trip.coverImage ? String(trip.coverImage) : null,
-    createdAt: trip.createdAt ? new Date(String(trip.createdAt)).toISOString() : '',
-    updatedAt: trip.updatedAt ? new Date(String(trip.updatedAt)).toISOString() : '',
-  };
-}
 
 async function findOwnedTrip(id: string, userId: string): Promise<Trip | null> {
   const db = await getDb();
@@ -42,10 +21,11 @@ async function findOwnedTrip(id: string, userId: string): Promise<Trip | null> {
 
 export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const { id } = await ctx.params;
     objectIdSchema.parse(id);
@@ -63,10 +43,11 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
 
 export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:update-trip:${userId}`,
@@ -128,12 +109,14 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
   }
 }
 
+
 export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
-    const userId = await getAuthUserId(request);
-    if (!userId) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials', 401);
+    const user = await getAuthUserFull(request);
+    if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
+    const userId = String(user._id);
 
     const rate = await checkRateLimit({
       key: `rl:delete-trip:${userId}`,
@@ -158,8 +141,14 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
 
+    
+    const cascadeCounts = await deleteTripCascade(id, db);
+
     try {
-      await createAuditLog(userId, 'DELETE_TRIP', 'TRIP', id, { title: existing.title });
+      await createAuditLog(userId, 'DELETE_TRIP', 'TRIP', id, {
+        title: existing.title,
+        cascadeCounts,
+      });
     } catch (err) {
       console.error('Lỗi khi ghi audit log DELETE_TRIP:', err);
     }

@@ -1,8 +1,33 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { getDb, disconnectMongo } from '@/lib/mongodb';
 import { POST as searchHistoryPOST, GET as searchHistoryGET, DELETE as searchHistoryDELETEAll } from '@/app/api/search-history/route';
 
 const TEST_USER = '507f1f77bcf86cd799439019';
+
+
+vi.mock('@/lib/mongodb', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/mongodb')>();
+  return {
+    ...actual,
+    getUserById: vi.fn().mockImplementation(async (userId: string) => {
+      if (userId === TEST_USER) {
+        return {
+          _id: TEST_USER,
+          id: TEST_USER,
+          email: 'test-search-history@example.com',
+          fullName: 'Search History Test User',
+          role: 'USER',
+          avatarUrl: null,
+          isLocked: false,
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as any;
+      }
+      return actual.getUserById(userId);
+    }),
+  };
+});
 
 async function cleanSearchHistory() {
   const db = await getDb();
