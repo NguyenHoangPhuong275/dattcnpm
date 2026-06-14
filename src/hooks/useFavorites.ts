@@ -41,7 +41,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
         setStatus('error');
       }
     } catch (err) {
-      console.error('Lỗi khi tải danh sách địa điểm yêu thích:', err);
+      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi tải danh sách địa điểm yêu thích:', err);
       setError('Không thể tải danh sách địa điểm yêu thích');
       setStatus('error');
     }
@@ -57,7 +57,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
       const { response } = await apiRequest(`/api/favorites/${id}`, { method: 'DELETE', userId });
       if (!response.ok) throw new Error();
     } catch (err) {
-      console.error('Lỗi khi xóa địa điểm yêu thích:', err);
+      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi xóa địa điểm yêu thích:', err);
       setFavorites(previous);
       throw new Error('Remove favorite failed');
     }

@@ -101,11 +101,16 @@ export default async function SharedTripPage({ params }: SharePageProps) {
             <h2 className="mb-4 text-xl font-bold text-slate-800">Lịch trình chi tiết</h2>
 
             {days.length === 0 && (
-              <p className="text-sm text-slate-500">Chưa có hoạt động nào trong lịch trình.</p>
+              <div className="rounded-lg border border-dashed border-slate-300 px-4 py-12 text-center">
+                <p className="text-sm font-semibold text-slate-700">Chưa có lịch trình</p>
+                <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+                  Hành trình này chưa có hoạt động nào được thêm vào.
+                </p>
+              </div>
             )}
 
             {days.map((day) => (
-              <div key={day} className="mb-6 border-l-4 border-[var(--color-primary-darker)] pl-4">
+              <div key={day} className="mb-6 border-l-4 border-[color:var(--color-primary-darker)] pl-4">
                 <div className="mb-2 font-bold text-slate-700">Ngày {day}</div>
                 <ul className="space-y-3">
                   {groupedByDay[day]

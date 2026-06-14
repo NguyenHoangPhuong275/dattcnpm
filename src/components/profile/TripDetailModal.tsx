@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { TripSummary } from '@/types/profile';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface TripDetailModalProps {
   trip: TripSummary | null;
@@ -318,6 +319,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 <input
                   type="date"
                   value={tripDraft.startDate}
+                  max={tripDraft.endDate || undefined}
                   onChange={e => setTripDraft(prev => ({ ...prev, startDate: e.target.value }))}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 />
@@ -327,6 +329,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 <input
                   type="date"
                   value={tripDraft.endDate}
+                  min={tripDraft.startDate || undefined}
                   onChange={e => setTripDraft(prev => ({ ...prev, endDate: e.target.value }))}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 />
@@ -383,7 +386,13 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
         <div className="border-t border-slate-200 pt-4">
           <div className="flex items-center justify-between mb-3">
             <div className="font-semibold text-sm text-slate-800">Lịch trình</div>
-            {loading && <div className="text-xs text-slate-400">Đang tải...</div>}
+            {loading && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2
+                  border-[var(--color-primary-dark)] border-t-transparent" />
+                Đang tải...
+              </div>
+            )}
           </div>
 
           {error && (
@@ -393,9 +402,10 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
           )}
 
           {groupedItems.length === 0 && !loading && (
-            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
-              Chưa có điểm dừng nào trong lịch trình.
-            </div>
+            <EmptyState
+              title="Chưa có điểm dừng"
+              description="Thêm địa điểm đầu tiên vào lịch trình của bạn."
+            />
           )}
 
           <div className="space-y-4 mb-5">

@@ -1,7 +1,7 @@
 'use client';
-
 import React, { memo } from 'react';
 import { MyReview } from '@/types/profile';
+import EmptyState from '@/components/ui/EmptyState';
 
 export type { MyReview }; 
 
@@ -13,7 +13,11 @@ interface ReviewsSectionProps {
 const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
   <div>
     {loading ? (
-      <div className="text-center py-8 text-slate-400 text-sm">Đang tải đánh giá...</div>
+      <div className="flex items-center justify-center gap-2 py-8 text-sm text-slate-400">
+        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2
+          border-[var(--color-primary-dark)] border-t-transparent" />
+        Đang tải đánh giá...
+      </div>
     ) : reviews.length > 0 ? (
       <div className="space-y-3">
         {reviews.map((r, idx) => (
@@ -28,7 +32,10 @@ const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
         ))}
       </div>
     ) : (
-      <div className="text-center py-10 text-slate-400">Bạn chưa có đánh giá nào. Sau khi trải nghiệm địa điểm hãy chia sẻ cảm nhận của bạn!</div>
+      <EmptyState
+        title="Chưa có đánh giá nào"
+        description="Sau khi trải nghiệm địa điểm, hãy chia sẻ cảm nhận của bạn!"
+      />
     )}
   </div>
 ));
@@ -36,3 +43,4 @@ const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
 ReviewsSection.displayName = 'ReviewsSection';
 
 export default ReviewsSection;
+

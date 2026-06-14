@@ -67,16 +67,16 @@ export default function AuditLogViewer({ logs, isLoading, onRefresh }: AuditLogV
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${actionColor}`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${actionColor}`}>
                         {log.action}
                       </span>
-                      <span className="text-[10px] text-slate-500 font-medium">{timeStr}</span>
+                      <span className="text-xs text-slate-500 font-medium">{timeStr}</span>
                     </div>
                     <p className="text-xs text-slate-300 break-words pl-0.5">
                       {String(log.metadata?.email ?? log.metadata?.method ?? log.targetType ?? 'Hành động hệ thống')}
                     </p>
                     {log.metadata && Object.keys(log.metadata).length > 0 && (
-                      <pre className="text-[9px] text-slate-500 bg-slate-950/40 p-1.5 rounded-lg overflow-x-auto">
+                      <pre className="text-xs text-slate-500 bg-slate-950/40 p-1.5 rounded-lg overflow-x-auto">
                         {JSON.stringify(log.metadata, null, 2)}
                       </pre>
                     )}

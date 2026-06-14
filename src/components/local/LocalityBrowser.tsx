@@ -126,7 +126,7 @@ export default function LocalityBrowser() {
   return (
     <>
       <section className="mx-auto max-w-4xl text-center">
-        <h1 className="font-display text-3xl font-bold tracking-normal text-[var(--color-text)] sm:text-[36px]">
+        <h1 className="font-display text-3xl font-bold tracking-normal text-[var(--color-text)] sm:text-4xl">
           Danh sách địa phương
         </h1>
 

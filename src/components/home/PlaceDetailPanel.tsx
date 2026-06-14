@@ -4,6 +4,7 @@ import * as Icons from '@/components/icons';
 import { SearchResult } from '@/hooks/usePlaceSearch';
 import { UsePlaceDetailsReturn } from '@/hooks/usePlaceDetails';
 import { TripSummary } from '@/types/profile';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface PlaceDetailPanelProps {
   selectedPlace: SearchResult;
@@ -152,18 +153,14 @@ function TripActions({
         </>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-slate-500">Bạn chưa có chuyến đi nào.</p>
-          {onCreateTripFromPlace && (
-            <button
-              type="button"
-              onClick={onCreateTripFromPlace}
-              disabled={loading}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--color-primary-darker)] px-4 py-3 text-sm font-extrabold text-white transition hover:bg-[var(--color-primary-dark)] disabled:opacity-60"
-            >
-              <Icons.PlusIcon className="h-4 w-4" />
-              Tạo chuyến đi đầu tiên với địa điểm này
-            </button>
-          )}
+          <EmptyState
+            title="Chưa có chuyến đi nào"
+            description="Tạo chuyến đi đầu tiên để thêm địa điểm này."
+            {...(onCreateTripFromPlace ? {
+              actionLabel: 'Tạo chuyến đi mới',
+              onAction: onCreateTripFromPlace,
+            } : {})}
+          />
         </div>
       )}
     </div>
@@ -224,7 +221,7 @@ function PoiGrid({ pois, loading }: PoiGridProps) {
             <div key={poi.id} className="flex flex-col justify-between rounded-2xl border border-slate-100 p-4 transition hover:border-slate-200 hover:shadow-sm">
               <div>
                 <div className="line-clamp-2 text-sm font-bold text-slate-800">{poi.name}</div>
-                <div className="mt-1 text-[10px] font-extrabold uppercase tracking-wide text-emerald-600">{poi.type}</div>
+                <div className="mt-1 text-xs font-extrabold uppercase tracking-wide text-emerald-600">{poi.type}</div>
                 {poi.description && (
                   <div className="mt-2 line-clamp-2 text-xs font-medium text-slate-500">{poi.description}</div>
                 )}

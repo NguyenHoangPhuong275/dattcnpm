@@ -45,7 +45,7 @@ const TravelPreferencesForm = memo(({
     </div>
 
     <div>
-      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Sở thích / Chủ đề quan tâm</div>
+      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Sở thích / Chủ đề quan tâm</div>
       <div className="flex flex-wrap gap-2">
         {['Biển', 'Núi', 'Thiên nhiên', 'Văn hóa', 'Lịch sử', 'Ẩm thực', 'Phiêu lưu', 'Chụp ảnh', 'Spa & Nghỉ dưỡng'].map(tag => (
           <button

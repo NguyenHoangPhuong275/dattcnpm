@@ -189,7 +189,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
         await navigator.share({ title: trip?.title, url: window.location.href });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        showToast('Đã sao chép liên kết');
+        showToast('Đã sao chép liên kết trang này');
       }
     } catch {
       showToast('Không thể chia sẻ lúc này');

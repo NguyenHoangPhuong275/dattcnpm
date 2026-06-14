@@ -260,7 +260,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                       {item.lat != null && item.lng != null && (
                         <>
                           <span>•</span>
-                          <span className="text-[10px] text-slate-400 font-mono">Tọa độ: ({item.lat.toFixed(2)}, {item.lng.toFixed(2)})</span>
+                          <span className="text-xs text-slate-400 font-mono">Tọa độ: ({item.lat.toFixed(2)}, {item.lng.toFixed(2)})</span>
                         </>
                       )}
                     </div>
@@ -310,7 +310,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="font-semibold text-slate-800 text-sm">{r.name}</span>
                                   {r.type && (
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getTypeColor(r.type)}`}>
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getTypeColor(r.type)}`}>
                                       {getTypeLabel(r.type)}
                                     </span>
                                   )}
@@ -335,7 +335,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
                                   {activeTripSelectIdx === idx && (
                                     <div className="absolute right-0 bottom-full mb-2 z-20 w-56 bg-white border border-slate-150 rounded-2xl shadow-xl p-2.5 animate-fadeIn">
-                                      <div className="text-[10px] font-bold text-slate-400 px-2.5 py-1.5 border-b border-slate-50 uppercase tracking-wider">Thêm vào chuyến đi</div>
+                                      <div className="text-xs font-bold text-slate-400 px-2.5 py-1.5 border-b border-slate-50 uppercase tracking-wider">Thêm vào chuyến đi</div>
                                       <div className="max-h-40 overflow-y-auto space-y-1 mt-1 pr-1 custom-scrollbar">
                                         {trips.length > 0 ? (
                                           trips.map(trip => (
@@ -356,7 +356,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                                   )}
                                 </>
                               ) : (
-                                <span className="text-[10px] text-slate-400 font-medium">Không thể lập lịch</span>
+                                <span className="text-xs text-slate-400 font-medium">Không thể lập lịch</span>
                               )}
                             </div>
                           </div>

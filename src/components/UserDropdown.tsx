@@ -42,7 +42,7 @@ export default function UserDropdown({ user }: UserDropdownProps): React.JSX.Ele
     try {
       await apiRequest('/api/auth/logout', { method: 'POST' });
     } catch (error) {
-      console.error('Lỗi khi đăng xuất:', error);
+      if (process.env.NODE_ENV === 'development') console.error('Lỗi khi đăng xuất:', error);
     }
 
     clearStoredUser();
@@ -59,7 +59,7 @@ export default function UserDropdown({ user }: UserDropdownProps): React.JSX.Ele
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-[10px] font-bold text-[var(--color-primary-darker)]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-xs font-bold text-[var(--color-primary-darker)]">
           {initials}
         </span>
         <span className="hidden sm:inline">Xin chào, {displayName}</span>

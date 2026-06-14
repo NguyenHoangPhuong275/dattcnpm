@@ -44,7 +44,7 @@ export function useItineraryWeather(
           setWarnings(map);
         }
       } catch (err) {
-        console.error('Lỗi khi lấy thông tin thời tiết:', err);
+        if (process.env.NODE_ENV === 'development') console.error('Lỗi khi lấy thông tin thời tiết:', err);
         if (!controller.signal.aborted) {
           setWarnings({});
         }

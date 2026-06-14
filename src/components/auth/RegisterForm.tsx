@@ -246,7 +246,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         <div className="pt-1">
           <button
             onClick={closeOnSuccess}
-            className="inline-flex justify-center w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] focus:ring-offset-white transition-all cursor-pointer min-h-[44px] items-center"
+            className="inline-flex justify-center w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] focus:ring-offset-white transition-all cursor-pointer min-h-[44px] items-center"
           >
             Đóng
           </button>
@@ -308,7 +308,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             type="button"
             onClick={() => handleVerifyOTP()}
             disabled={isLoading || otpDigits.some((d) => !d)}
-          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all min-h-[44px] cursor-pointer flex items-center justify-center"
+          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all min-h-[44px] cursor-pointer flex items-center justify-center"
           >
             {isLoading ? 'Đang xác minh...' : 'XÁC MINH'}
           </button>
@@ -470,7 +470,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[#5a75a8] focus:outline-none transition-all min-h-[44px] cursor-pointer flex items-center justify-center disabled:opacity-60"
+          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none transition-all min-h-[44px] cursor-pointer flex items-center justify-center disabled:opacity-60"
         >
           {isLoading ? 'Đang gửi mã...' : 'TIẾP TỤC'}
         </button>
