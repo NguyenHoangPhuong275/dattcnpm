@@ -41,6 +41,19 @@ export async function POST(request: NextRequest) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm', 404);
     }
 
+    if (!parsed.parentId) {
+      const existingReview = await db.reviews.findOne({
+        userId,
+        placeId: parsed.placeId,
+        parentId: null,
+        deletedAt: null,
+      });
+
+      if (existingReview) {
+        throw new AppError('CONFLICT', 'Ban da danh gia dia diem nay', 409);
+      }
+    }
+
     const created = await db.reviews.insertOne({
       userId,
       placeId: parsed.placeId,

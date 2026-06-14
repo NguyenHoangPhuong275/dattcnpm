@@ -2,8 +2,11 @@
 
 import React, { memo } from 'react';
 import { PlusIcon } from '@/components/icons';
+import EmptyState from '@/components/ui/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import PageSkeleton from '@/components/ui/PageSkeleton';
 import TripCard from '@/components/trips/TripCard';
-import { TripSummary } from '@/types/profile';
+import type { TripSummary } from '@/types/profile';
 
 interface MyTripsSectionProps {
   trips: TripSummary[];
@@ -13,22 +16,29 @@ interface MyTripsSectionProps {
   loading?: boolean;
 }
 
-const MyTripsSection = memo(({ trips, onCreateNew, onViewDetail, onDelete, loading }: MyTripsSectionProps): React.JSX.Element => (
+const MyTripsSection = memo(({
+  trips,
+  onCreateNew,
+  onViewDetail,
+  onDelete,
+  loading,
+}: MyTripsSectionProps): React.JSX.Element => (
   <div className="space-y-5">
     <div className="flex items-center justify-end">
       <button
         id="profile-create-trip-button"
+        type="button"
         onClick={onCreateNew}
         className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary-dark)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-darker)] disabled:opacity-60"
         disabled={loading}
       >
-        <PlusIcon className="h-4 w-4" />
-        Tạo lịch trình
+        {loading ? <LoadingSpinner size="sm" /> : <PlusIcon className="h-4 w-4" />}
+        Tao lich trinh
       </button>
     </div>
 
     {loading ? (
-      <div className="rounded-lg border border-slate-200 py-10 text-center text-sm text-slate-500">Đang tải danh sách chuyến đi...</div>
+      <PageSkeleton count={4} variant="horizontal" />
     ) : trips.length > 0 ? (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {trips.map((trip) => (
@@ -36,9 +46,12 @@ const MyTripsSection = memo(({ trips, onCreateNew, onViewDetail, onDelete, loadi
         ))}
       </div>
     ) : (
-      <div className="rounded-lg border border-dashed border-slate-300 py-12 text-center text-sm text-slate-500">
-        Bạn chưa có chuyến đi nào. Hãy bắt đầu tạo lịch trình đầu tiên.
-      </div>
+      <EmptyState
+        title="Ban chua co chuyen di nao."
+        description="Hay bat dau tao lich trinh dau tien."
+        actionLabel="Tao lich trinh"
+        onAction={onCreateNew}
+      />
     )}
   </div>
 ));

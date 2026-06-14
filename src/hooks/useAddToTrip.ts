@@ -2,22 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
-import { TripSummary } from '@/types/profile';
+import { extractTrips, type TripsListResponse } from '@/lib/trip-formatters';
+import type { TripSummary } from '@/types/profile';
 
 type AddToTripStatus = 'idle' | 'loading-trips' | 'ready' | 'submitting' | 'success' | 'error';
-
-type TripsPage = {
-  data?: TripSummary[];
-};
-
-type TripsEnvelope = {
-  success?: boolean;
-  data?: TripSummary[] | TripsPage;
-  message?: string;
-  error?: {
-    message?: string;
-  } | null;
-};
 
 type AddToTripEnvelope = {
   success?: boolean;
@@ -36,12 +24,6 @@ export interface UseAddToTripReturn {
   addToTrip: (tripId: string, day: number, placeId: string) => Promise<void>;
 }
 
-function extractTrips(payload: TripsEnvelope): TripSummary[] {
-  if (Array.isArray(payload.data)) return payload.data;
-  if (payload.data && Array.isArray(payload.data.data)) return payload.data.data;
-  return [];
-}
-
 export function useAddToTrip(): UseAddToTripReturn {
   const [status, setStatus] = useState<AddToTripStatus>('idle');
   const [trips, setTrips] = useState<TripSummary[]>([]);
@@ -51,7 +33,7 @@ export function useAddToTrip(): UseAddToTripReturn {
     setStatus('loading-trips');
     setErrorMessage(null);
     try {
-      const { response, data } = await apiRequest<TripsEnvelope>('/api/trips');
+      const { response, data } = await apiRequest<TripsListResponse>('/api/trips');
 
       if (response.ok && data.success && data.data) {
         setTrips(extractTrips(data));

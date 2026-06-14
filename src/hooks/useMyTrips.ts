@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
-import type { TripSummary } from '@/types/profile';
 import { getDefaultStartDate, getDefaultEndDate } from '@/lib/date';
+import type { TripSummary } from '@/types/profile';
+import { useTripList, type TripListStatus } from './useTripList';
 
-export type MyTripsStatus = 'idle' | 'loading' | 'success' | 'error';
+export type MyTripsStatus = TripListStatus;
 
 interface UseMyTripsOptions {
   userId: string | null;
@@ -29,51 +30,15 @@ export interface UseMyTripsReturn {
     loadTrips: (uid?: string) => Promise<void>;
     createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string }>;
     deleteTrip: (id: string) => Promise<void>;
-    setTrips: React.Dispatch<React.SetStateAction<TripSummary[]>>;
+    setTrips: Dispatch<SetStateAction<TripSummary[]>>;
   };
-}
-
-type TripsListResponse = {
-  success?: boolean;
-  data?: TripSummary[] | {
-    data?: TripSummary[];
-  };
-};
-
-function extractTrips(payload: TripsListResponse): TripSummary[] {
-  if (Array.isArray(payload.data)) return payload.data;
-  if (payload.data && Array.isArray(payload.data.data)) return payload.data.data;
-  return [];
 }
 
 export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
-  const [trips, setTrips] = useState<TripSummary[]>([]);
-  const [status, setStatus] = useState<MyTripsStatus>('idle');
+  const { trips, status, error, setTrips, loadTrips } = useTripList({ userId });
   const [createStatus, setCreateStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [error, setError] = useState<string | null>(null);
 
   const creating = createStatus === 'loading';
-
-  const loadTrips = useCallback(async (uid?: string): Promise<void> => {
-    const id = uid || userId;
-    if (!id) return;
-
-    setStatus('loading');
-    setError(null);
-    try {
-      const { response, data } = await apiRequest<TripsListResponse>('/api/trips', { userId: id });
-      if (response.ok && data.success && data.data) {
-        setTrips(extractTrips(data));
-        setStatus('success');
-      } else {
-        setStatus('error');
-      }
-    } catch (err) {
-      console.error('Lỗi khi tải danh sách chuyến đi:', err);
-      setError('Không thể tải danh sách chuyến đi');
-      setStatus('error');
-    }
-  }, [userId]);
 
   const createTrip = useCallback(async (payload: CreateTripPayload): Promise<{ success: boolean; message?: string }> => {
     if (!userId) return { success: false, message: 'No user' };
@@ -82,7 +47,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     const trimmedDest = payload.destination.trim();
 
     if (!trimmedTitle || !trimmedDest) {
-      return { success: false, message: 'Vui lòng nhập tiêu đề và điểm đến' };
+      return { success: false, message: 'Vui long nhap tieu de va diem den' };
     }
 
     setCreateStatus('loading');
@@ -90,6 +55,11 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     try {
       const start = payload.startDate || getDefaultStartDate();
       const end = payload.endDate || getDefaultEndDate(3);
+
+      if (end < start) {
+        setCreateStatus('error');
+        return { success: false, message: 'Ngay ket thuc phai sau ngay bat dau' };
+      }
 
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary; message?: string }>('/api/trips', {
         method: 'POST',
@@ -107,44 +77,44 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
 
       if (response.ok && data.success && data.data) {
         const createdTrip = data.data;
-        setTrips(prev => {
-          if (prev.some(t => t._id === createdTrip._id)) {
+        setTrips((prev) => {
+          if (prev.some((trip) => trip._id === createdTrip._id)) {
             return prev;
           }
           return [createdTrip, ...prev];
         });
         setCreateStatus('success');
         return { success: true };
-      } else {
-        setCreateStatus('error');
-        return { success: false, message: getApiErrorMessage(data, 'Tạo chuyến đi thất bại') };
       }
-    } catch (err) {
-      console.error('Lỗi khi tạo chuyến đi:', err);
+
       setCreateStatus('error');
-      return { success: false, message: 'Không thể tạo chuyến đi lúc này' };
+      return { success: false, message: getApiErrorMessage(data, 'Tao chuyen di that bai') };
+    } catch (err) {
+      console.error('Create trip failed:', err);
+      setCreateStatus('error');
+      return { success: false, message: 'Khong the tao chuyen di luc nay' };
     }
-  }, [userId]);
+  }, [setTrips, userId]);
 
   const deleteTrip = useCallback(async (id: string): Promise<void> => {
     if (!userId) return;
 
     let snapshot: TripSummary[] = [];
-    setTrips(prev => {
+    setTrips((prev) => {
       snapshot = prev;
-      return prev.filter(t => t._id !== id);
+      return prev.filter((trip) => trip._id !== id);
     });
 
     try {
       const { response } = await apiRequest(`/api/trips/${id}`, { method: 'DELETE', userId });
 
-      if (!response.ok) throw new Error();
+      if (!response.ok) throw new Error('Delete trip failed');
     } catch (err) {
-      console.error('Lỗi khi xóa chuyến đi:', err);
+      console.error('Delete trip failed:', err);
       setTrips(snapshot);
       throw new Error('Delete trip failed');
     }
-  }, [userId]);
+  }, [setTrips, userId]);
 
   return {
     data: trips,

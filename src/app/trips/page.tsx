@@ -6,6 +6,9 @@ import ProfileToast from '@/components/profile/ProfileToast';
 import CreateTripModal from '@/components/profile/CreateTripModal';
 import TripCard from '@/components/trips/TripCard';
 import { PlusIcon } from '@/components/icons';
+import EmptyState from '@/components/ui/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import PageSkeleton from '@/components/ui/PageSkeleton';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMyTrips } from '@/hooks/useMyTrips';
 import { useToast } from '@/hooks/useToast';
@@ -19,14 +22,12 @@ export default function MyTripsPage(): React.JSX.Element {
 
   const myTripsHook = useMyTrips({ userId: user?.id ?? null });
   const trips = myTripsHook.data;
-  const tripsStatus = myTripsHook.status;
-  const loading = tripsStatus === 'loading';
+  const loading = myTripsHook.status === 'loading';
   const { createTrip, loadTrips } = myTripsHook.actions;
 
   const toast = useToast();
   const toastMessage = toast.data.message;
-  const toastStatus = toast.status;
-  const showToastVisible = toastStatus === 'visible';
+  const showToastVisible = toast.status === 'visible';
   const { showToast } = toast.actions;
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -59,7 +60,12 @@ export default function MyTripsPage(): React.JSX.Element {
 
   const handleCreate = async (): Promise<void> => {
     if (!newTitle.trim() || !newDest.trim()) {
-      showToast('Vui lòng nhập tiêu đề và điểm đến');
+      showToast('Vui long nhap tieu de va diem den');
+      return;
+    }
+
+    if (endDate < startDate) {
+      showToast('Ngay ket thuc phai sau ngay bat dau');
       return;
     }
 
@@ -76,17 +82,17 @@ export default function MyTripsPage(): React.JSX.Element {
 
     if (result.success) {
       closeCreateModal();
-      showToast('Chuyến đi mới đã được tạo');
+      showToast('Chuyen di moi da duoc tao');
       loadTrips();
     } else {
-      showToast(result.message || 'Tạo chuyến đi thất bại');
+      showToast(result.message || 'Tao chuyen di that bai');
     }
   };
 
   if (userLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary-dark)] border-t-transparent" />
+        <LoadingSpinner size="lg" className="text-[var(--color-primary-dark)]" />
       </div>
     );
   }
@@ -99,8 +105,8 @@ export default function MyTripsPage(): React.JSX.Element {
       <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-display text-3xl font-extrabold text-slate-950">Danh sách chuyến đi</h1>
-            <p className="mt-1 text-sm text-slate-500">Quản lý các lịch trình đã tạo và tiếp tục chỉnh sửa khi cần.</p>
+            <h1 className="font-display text-3xl font-extrabold text-slate-950">Danh sach chuyen di</h1>
+            <p className="mt-1 text-sm text-slate-500">Quan ly cac lich trinh da tao va tiep tuc chinh sua khi can.</p>
           </div>
           <button
             id="trips-create-schedule-button"
@@ -109,12 +115,12 @@ export default function MyTripsPage(): React.JSX.Element {
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-dark)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-darker)]"
           >
             <PlusIcon className="h-4 w-4" />
-            Tạo lịch trình
+            Tao lich trinh
           </button>
         </div>
 
         {loading ? (
-          <div className="rounded-lg border border-slate-200 py-12 text-center text-sm font-semibold text-slate-500">Đang tải danh sách chuyến đi...</div>
+          <PageSkeleton count={6} />
         ) : trips.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {trips.map((trip) => (
@@ -122,17 +128,12 @@ export default function MyTripsPage(): React.JSX.Element {
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-slate-300 py-16 text-center">
-            <p className="mb-4 text-sm font-semibold text-slate-500">Bạn chưa có chuyến đi nào.</p>
-            <button
-              id="trips-create-first-schedule-button"
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="rounded-lg bg-[var(--color-primary-dark)] px-6 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-darker)]"
-            >
-              Tạo lịch trình đầu tiên
-            </button>
-          </div>
+          <EmptyState
+            title="Ban chua co chuyen di nao."
+            description="Tao lich trinh dau tien de bat dau sap xep diem den."
+            actionLabel="Tao lich trinh dau tien"
+            onAction={() => setShowCreateModal(true)}
+          />
         )}
       </main>
 

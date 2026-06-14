@@ -22,6 +22,32 @@ function toNumber(value: unknown, fallback: number): number {
   return Number.isFinite(num) ? num : fallback;
 }
 
+function startOfDay(date: Date): Date {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+function getDateForTripDay(trip: Trip, day: number): Date {
+  const tripDate = startOfDay(new Date(trip.startDate));
+  tripDate.setDate(tripDate.getDate() + day - 1);
+  return tripDate;
+}
+
+function assertTripDayIsSchedulable(trip: Trip, day: number): void {
+  const itineraryDate = getDateForTripDay(trip, day);
+  const today = startOfDay(new Date());
+  const tripEndDate = startOfDay(new Date(trip.endDate));
+
+  if (itineraryDate < today) {
+    throw new AppError('VALIDATION_ERROR', 'Khong the them lich trinh vao ngay da qua', 400);
+  }
+
+  if (itineraryDate > tripEndDate) {
+    throw new AppError('VALIDATION_ERROR', 'Ngay lich trinh vuot qua ngay ket thuc chuyen di', 400);
+  }
+}
+
 function toItemResponse(item: ItineraryItem): Record<string, unknown> {
   return {
     _id: item._id,
@@ -112,6 +138,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
 
     const existingItems = await db.itineraryItems.find({ tripId: id });
     const day = Math.max(1, Math.floor(toNumber(body.day, 1)));
+    assertTripDayIsSchedulable(trip, day);
     const fallbackOrder = existingItems.filter((item) => item.day === day).length;
     const orderIndex = Math.max(0, Math.floor(toNumber(body.orderIndex, fallbackOrder)));
     const cost = body.cost === undefined || body.cost === null || body.cost === '' ? null : Number(body.cost);
@@ -184,7 +211,11 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     }
 
     const updates: Record<string, unknown> = {};
-    if (body.day != null) updates.day = Math.max(1, Math.floor(Number(body.day)));
+    if (body.day != null) {
+      const nextDay = Math.max(1, Math.floor(Number(body.day)));
+      assertTripDayIsSchedulable(trip, nextDay);
+      updates.day = nextDay;
+    }
     if (body.orderIndex != null) updates.orderIndex = Math.max(0, Math.floor(Number(body.orderIndex)));
     if (body.note !== undefined) updates.note = body.note ? String(body.note).trim() : null;
     if (body.startTime !== undefined) updates.startTime = toDateOrNull(body.startTime);

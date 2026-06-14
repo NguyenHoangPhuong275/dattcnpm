@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { objectIdSchema, optionalTrimString, trimString } from './common';
 
-export const createTripSchema = z.object({
+function isChronologicalDateRange(data: { startDate?: string; endDate?: string }): boolean {
+  if (!data.startDate || !data.endDate) return true;
+  return data.endDate >= data.startDate;
+}
+
+const tripCoreSchema = z.object({
   title: trimString(2, 120),
   destination: trimString(2, 120),
   startDate: z.string().date().optional(),
@@ -16,10 +21,15 @@ export const createTripSchema = z.object({
     )
     .optional()
     .nullable(),
-  isPublic: z.boolean().optional().default(false),
+  isPublic: z.boolean().optional(),
 });
 
-export const updateTripSchema = createTripSchema.partial().extend({
+export const createTripSchema = tripCoreSchema.refine(isChronologicalDateRange, {
+  message: 'Ngay ket thuc phai sau ngay bat dau',
+  path: ['endDate'],
+});
+
+export const updateTripSchema = tripCoreSchema.partial().extend({
   coverImage: z
     .string()
     .url('coverImage phải là URL hợp lệ')
@@ -32,6 +42,9 @@ export const updateTripSchema = createTripSchema.partial().extend({
 }).refine(
   (data) => Object.keys(data).length > 0,
   { message: 'Không có trường hợp lệ để cập nhật' }
+).refine(
+  isChronologicalDateRange,
+  { message: 'Ngay ket thuc phai sau ngay bat dau', path: ['endDate'] }
 );
 
 export const createItineraryItemSchema = z.object({

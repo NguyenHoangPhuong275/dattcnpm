@@ -34,7 +34,8 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
 
     const shareCode = generateShareCode();
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const expiresInHours = 30 * 24;
+    const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 
     await db.tripShares.insertOne({
       tripId,
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
 
     const shareUrl = `/share/${shareCode}`;
 
-    return sendSuccess({ shareCode, shareUrl, expiresAt: expiresAt.toISOString() }, undefined, 201);
+    return sendSuccess({ shareCode, shareUrl, expiresAt: expiresAt.toISOString(), expiresInHours }, undefined, 201);
   } catch (error) {
     return handleApiError(error);
   }

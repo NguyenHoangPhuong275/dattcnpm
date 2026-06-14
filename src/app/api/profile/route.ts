@@ -6,6 +6,9 @@ import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const AVATAR_DATA_URL_RE = /^data:image\/(jpeg|png|webp|jpg);base64,([a-zA-Z0-9+/=]+)$/;
+
 function toSafeDateString(value: unknown): string {
   if (!value) return '';
   try {
@@ -15,6 +18,21 @@ function toSafeDateString(value: unknown): string {
   } catch (error) {
     console.error('Lỗi khi định dạng ngày sinh:', error);
     return '';
+  }
+}
+
+function validateAvatarDataUrl(value: string): void {
+  const match = value.match(AVATAR_DATA_URL_RE);
+  if (!match) {
+    throw new AppError('VALIDATION_ERROR', 'Avatar chi chap nhan JPG, PNG hoac WebP', 400);
+  }
+
+  const base64 = match[1] ?? '';
+  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+  const byteLength = Math.floor((base64.length * 3) / 4) - padding;
+
+  if (byteLength > MAX_AVATAR_BYTES) {
+    throw new AppError('VALIDATION_ERROR', 'Avatar toi da 2MB', 400);
   }
 }
 
@@ -103,6 +121,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
 
     if (parsed.avatarUrl !== undefined) {
       if (parsed.avatarUrl && typeof parsed.avatarUrl === 'string' && parsed.avatarUrl.startsWith('data:')) {
+        validateAvatarDataUrl(parsed.avatarUrl);
         try {
           await storeAvatar(userId, parsed.avatarUrl);
           updates.avatarUrl = `redis:avatar:${userId}`;

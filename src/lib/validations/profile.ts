@@ -18,7 +18,7 @@ export const updateProfileSchema = z.object({
     .nullable(),
   avatarUrl: z
     .string()
-    .max(7500000)
+    .max(2_800_000, 'Avatar toi da 2MB')
     .refine(
       (val) => {
         if (!val) return true;
@@ -30,10 +30,10 @@ export const updateProfileSchema = z.object({
             return false;
           }
         }
-        return /^data:image\/(jpeg|png|webp|gif|jpg);base64,[a-zA-Z0-9+/=]+$/.test(val);
+        return /^data:image\/(jpeg|png|webp|jpg);base64,[a-zA-Z0-9+/=]+$/.test(val);
       },
       {
-        message: 'Avatar phải là URL hợp lệ hoặc dữ liệu ảnh Base64 hợp lệ (jpeg, png, webp, gif, jpg)',
+        message: 'Avatar phai la URL hop le hoac du lieu anh Base64 hop le (jpeg, png, webp, jpg)',
       }
     )
     .optional()

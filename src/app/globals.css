@@ -1,6 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-heading: "Be Vietnam Pro", "Inter", system-ui, sans-serif;
+
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-500: #64748b;
+  --color-neutral-700: #334155;
+  --color-neutral-900: #0f172a;
+  --color-state-success: #16a34a;
+  --color-state-warning: #d97706;
+  --color-state-danger: #dc2626;
+
   --color-primary: #acc0eb;
   --color-primary-light: #cfe3f8;
   --color-primary-lightest: #e9f2fb;
@@ -36,8 +55,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-be-vietnam-pro), system-ui, sans-serif;
-  --font-display: var(--font-be-vietnam-pro), system-ui, sans-serif;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
 }
 
 html,
@@ -50,9 +69,13 @@ select {
 }
 
 body {
-  line-height: 1.5;
+  color: var(--color-neutral-900);
+  font-size: 1rem;
+  line-height: 1.6;
   font-feature-settings: "kern" 1, "tnum" 1, "cv01" 1;
   font-variant-ligatures: common-ligatures;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
 }
 
 html {

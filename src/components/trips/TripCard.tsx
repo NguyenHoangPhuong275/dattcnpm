@@ -13,6 +13,7 @@ interface TripCardProps {
   href?: string;
   onClick?: (trip: TripSummary) => void;
   onDelete?: (id: string) => void;
+  selected?: boolean;
 }
 
 interface CityChipsProps {
@@ -38,7 +39,12 @@ interface TripImageProps {
   variant: 'horizontal' | 'vertical';
 }
 
-const cardClassName = 'group overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--color-primary-dark)] hover:shadow-md';
+function getCardClassName(selected = false): string {
+  return [
+    'group overflow-hidden rounded-lg border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--color-primary-dark)] hover:shadow-md',
+    selected ? 'border-[var(--color-primary-dark)] ring-2 ring-[var(--color-primary-dark)]/20' : 'border-slate-200',
+  ].join(' ');
+}
 
 function CityChips({ destination }: CityChipsProps): React.JSX.Element {
   const cities = getTripCities(destination);
@@ -158,7 +164,7 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): Rea
   );
 }
 
-export default function TripCard({ trip, variant = 'vertical', href, onClick, onDelete }: TripCardProps): React.JSX.Element {
+export default function TripCard({ trip, variant = 'vertical', href, onClick, onDelete, selected }: TripCardProps): React.JSX.Element {
   const handleClick = (): void => {
     onClick?.(trip);
   };
@@ -173,9 +179,22 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
 
   if (href) {
     return (
-      <Link href={href} className={cardClassName}>
+      <Link href={href} className={getCardClassName(selected)}>
         <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
       </Link>
+    );
+  }
+
+  if (onClick && !onDelete) {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        className={`w-full ${getCardClassName(selected)}`}
+        aria-pressed={selected}
+      >
+        <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
+      </button>
     );
   }
 
@@ -183,9 +202,9 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
     <div
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      className={cardClassName}
+      onClick={onClick ? handleClick : undefined}
+      onKeyDown={onClick ? handleKeyDown : undefined}
+      className={getCardClassName(selected)}
     >
       <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
     </div>

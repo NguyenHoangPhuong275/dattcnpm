@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface CreateTripModalProps {
   open: boolean;
@@ -37,89 +38,112 @@ export default function CreateTripModal({
   onEndDateChange,
   onDescriptionChange,
   onIsPublicChange,
-  onCreate
-}: CreateTripModalProps) {
+  onCreate,
+}: CreateTripModalProps): React.JSX.Element | null {
   if (!open) return null;
 
+  const hasDateError = Boolean(startDate && endDate && endDate < startDate);
+
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 border border-slate-200">
-        <h3 className="font-semibold text-lg mb-4">Tạo chuyến đi mới</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="create-trip-title">
+      <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6">
+        <h3 id="create-trip-title" className="mb-4 text-lg font-semibold">Tao chuyen di moi</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Tiêu đề</label>
+            <label htmlFor="trip-title" className="mb-1 block text-xs font-medium text-slate-500">Tieu de</label>
             <input
+              id="trip-title"
               type="text"
               value={title}
-              onChange={(e) => onTitleChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none"
-              placeholder="Hội An 4 ngày"
+              onChange={(event) => onTitleChange(event.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
+              placeholder="Hoi An 4 ngay"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Điểm đến</label>
+            <label htmlFor="trip-destination" className="mb-1 block text-xs font-medium text-slate-500">Diem den</label>
             <input
+              id="trip-destination"
               type="text"
               value={destination}
-              onChange={(e) => onDestChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none"
-              placeholder="Hội An, Quảng Nam"
+              onChange={(event) => onDestChange(event.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
+              placeholder="Hoi An, Quang Nam"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Ngày đi</label>
+              <label htmlFor="trip-start-date" className="mb-1 block text-xs font-medium text-slate-500">Ngay di</label>
               <input
+                id="trip-start-date"
                 type="date"
                 value={startDate}
-                onChange={(e) => onStartDateChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none"
+                max={endDate || undefined}
+                onChange={(event) => onStartDateChange(event.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Ngày về</label>
+              <label htmlFor="trip-end-date" className="mb-1 block text-xs font-medium text-slate-500">Ngay ve</label>
               <input
+                id="trip-end-date"
                 type="date"
                 value={endDate}
-                onChange={(e) => onEndDateChange(e.target.value)}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none"
+                min={startDate || undefined}
+                onChange={(event) => onEndDateChange(event.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
+                aria-invalid={hasDateError}
+                aria-describedby={hasDateError ? 'trip-date-error' : undefined}
               />
             </div>
           </div>
+          {hasDateError && (
+            <p id="trip-date-error" className="text-sm font-medium text-red-600" role="alert">
+              Ngay ket thuc phai sau ngay bat dau.
+            </p>
+          )}
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Mô tả (tùy chọn)</label>
+            <label htmlFor="trip-description" className="mb-1 block text-xs font-medium text-slate-500">Mo ta tuy chon</label>
             <textarea
+              id="trip-description"
               value={description}
-              onChange={(e) => onDescriptionChange(e.target.value)}
-              className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none resize-none"
+              onChange={(event) => onDescriptionChange(event.target.value)}
+              className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
               rows={2}
-              placeholder="Ghi chú thêm về chuyến đi..."
+              placeholder="Ghi chu them ve chuyen di..."
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
               checked={isPublic}
-              onChange={(e) => onIsPublicChange(e.target.checked)}
-              className="rounded"
+              onChange={(event) => onIsPublicChange(event.target.checked)}
+              className="rounded accent-[var(--color-primary-dark)]"
             />
-            Công khai chuyến đi
+            Cong khai chuyen di
           </label>
         </div>
-        <div className="flex gap-3 mt-6">
+        <div className="mt-6 flex gap-3">
           <button
+            type="button"
             onClick={onClose}
-            className="flex-1 py-2 border border-slate-300 rounded-xl text-sm hover:bg-slate-50"
+            className="flex-1 rounded-lg border border-slate-300 py-2 text-sm hover:bg-slate-50"
             disabled={creating}
           >
-            Hủy
+            Huy
           </button>
           <button
+            type="button"
             onClick={onCreate}
-            className="flex-1 py-2 bg-[var(--color-primary-dark)] text-white rounded-xl text-sm font-semibold disabled:opacity-60"
-            disabled={creating}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-dark)] py-2 text-sm font-semibold text-white disabled:opacity-60"
+            disabled={creating || hasDateError}
           >
-            {creating ? 'Đang tạo...' : 'Tạo chuyến đi'}
+            {creating ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Dang tao...
+              </>
+            ) : 'Tao chuyen di'}
           </button>
         </div>
       </div>

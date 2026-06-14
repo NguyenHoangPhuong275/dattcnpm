@@ -76,8 +76,8 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     if (parsed.description !== undefined) updates.description = parsed.description;
     if (parsed.coverImage !== undefined) updates.coverImage = parsed.coverImage;
     if (parsed.isPublic !== undefined) updates.isPublic = parsed.isPublic;
-    if (parsed.startDate !== undefined) updates.startDate = parsed.startDate;
-    if (parsed.endDate !== undefined) updates.endDate = parsed.endDate;
+    if (parsed.startDate !== undefined) updates.startDate = new Date(parsed.startDate);
+    if (parsed.endDate !== undefined) updates.endDate = new Date(parsed.endDate);
 
     const nextStart = updates.startDate instanceof Date ? updates.startDate : new Date(existing.startDate);
     const nextEnd = updates.endDate instanceof Date ? updates.endDate : new Date(existing.endDate);

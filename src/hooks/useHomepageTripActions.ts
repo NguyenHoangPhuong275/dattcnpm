@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { getDefaultTripDates } from '@/lib/date';
+import { extractTrips, type TripsListResponse } from '@/lib/trip-formatters';
 import type { TripSummary } from '@/types/profile';
 import { ROUTES } from '@/lib/constants';
 
@@ -17,13 +18,6 @@ interface UseHomepageTripActionsProps {
   userId: string | null | undefined;
   selectedPlace: SelectedTripPlace | null;
   onMissingPlace?: () => void;
-}
-
-interface TripsResponse {
-  success?: boolean;
-  data?: TripSummary[] | {
-    data?: TripSummary[];
-  };
 }
 
 interface TripCreateResponse {
@@ -64,12 +58,6 @@ function getSelectedPlaceDestination(place: SelectedTripPlace): string {
   return place.address || place.name;
 }
 
-function extractTrips(payload: TripsResponse): TripSummary[] {
-  if (Array.isArray(payload.data)) return payload.data;
-  if (payload.data && Array.isArray(payload.data.data)) return payload.data.data;
-  return [];
-}
-
 export function useHomepageTripActions({
   userId,
   selectedPlace,
@@ -101,7 +89,7 @@ export function useHomepageTripActions({
     setTripsStatus('loading');
 
     try {
-      const { response, data } = await apiRequest<TripsResponse>('/api/trips', { userId });
+      const { response, data } = await apiRequest<TripsListResponse>('/api/trips', { userId });
       if (response.ok && data.success && data.data) {
         setMyTrips(extractTrips(data));
         setTripsStatus('success');
