@@ -16,7 +16,7 @@ import type {
   TripAccommodation as PlainTripAccommodation,
   TripChecklist as PlainTripChecklist,
   UserFollow as PlainUserFollow,
-} from '../../database/schema';
+} from './schema';
 
 import { createCollection } from './collections';
 import { 

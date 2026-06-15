@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createTripSchema, updateTripSchema } from './trip';
+import { createTripSchema, updateTripSchema } from '@/lib/validations/trip';
 
 const baseTrip = {
   title: 'Lịch trình Đà Nẵng',

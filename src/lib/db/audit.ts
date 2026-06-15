@@ -1,6 +1,6 @@
 import { Schema, model, models, type Document, type Model, type Types } from 'mongoose';
 
-import type { MongoId } from '@/database/schema';
+import type { MongoId } from './schema';
 import { COLLECTIONS } from './collections';
 import { getDb } from './connection';
 

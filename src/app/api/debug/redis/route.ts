@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectRedis, getRedis } from '@/lib/redis';
+import { connectRedis, getRedis } from '@/lib/db';
 import { debugGuard } from '@/lib/debug-guard';
 
 export async function GET(request: NextRequest) {

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb, createAuditLog } from '@/lib/mongodb';
+import { getDb, createAuditLog } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';

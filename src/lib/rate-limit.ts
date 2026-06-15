@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { rateLimitIncr } from '@/lib/redis';
+import { rateLimitIncr } from '@/lib/db';
 
 type RateLimitOptions = {
   key: string;

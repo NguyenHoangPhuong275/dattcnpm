@@ -1,11 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { HOME_NEWS } from '@/lib/home';
+import { HOME_NEWS } from '@/data/home';
 
 export default function TravelNewsSection(): React.JSX.Element {
   return (
-    <section id="travel-news" className="border-t border-[var(--color-border)] bg-slate-50 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 xl:px-12">
+    <section id="travel-news" className="border-t border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-12 sm:px-6 sm:py-16 lg:px-8 xl:px-12">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
           <h2 className="font-display text-3xl font-extrabold text-[var(--color-text)]">Tin tức du lịch</h2>
@@ -18,7 +18,7 @@ export default function TravelNewsSection(): React.JSX.Element {
               key={item.title}
               className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm hover:shadow-md transition"
             >
-              <div className="relative aspect-[16/10] bg-slate-100 w-full">
+              <div className="relative aspect-[16/10] bg-[var(--color-primary-lightest)] w-full">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -31,10 +31,10 @@ export default function TravelNewsSection(): React.JSX.Element {
                 <span className="inline-block rounded-full bg-[var(--color-primary-lightest)] px-2.5 py-1 text-xs font-bold text-[var(--color-primary-darker)]">
                   {item.category}
                 </span>
-                <h3 className="line-clamp-2 text-base font-extrabold text-slate-900 hover:text-[var(--color-primary-darker)] transition-colors cursor-pointer">
+                <h3 className="line-clamp-2 text-base font-extrabold text-[var(--color-text)] hover:text-[var(--color-primary-darker)] transition-colors cursor-pointer">
                   {item.title}
                 </h3>
-                <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+                <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] font-medium">
                   <span>{item.date}</span>
                   <span>{item.views} lượt xem</span>
                 </div>

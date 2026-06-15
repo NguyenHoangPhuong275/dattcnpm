@@ -1,25 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-heading: "Be Vietnam Pro", "Inter", system-ui, sans-serif;
 
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  /* Bridge: map new semantic names to the existing palette */
-  --color-brand-500: var(--color-primary);
-  --color-brand-600: var(--color-primary-dark);
-  --color-brand-700: var(--color-primary-darker);
-  --color-neutral-50: #f8fafc;
-  --color-neutral-100: #f1f5f9;
-  --color-neutral-200: #e2e8f0;
-  --color-neutral-500: #64748b;
-  --color-neutral-700: #334155;
-  --color-neutral-900: #0f172a;
-  --color-state-success: #16a34a;
-  --color-state-warning: #d97706;
-  --color-state-danger: #dc2626;
 
   --color-primary: #acc0eb;
   --color-primary-light: #cfe3f8;
@@ -58,8 +40,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-body);
-  --font-display: var(--font-heading);
+  --font-sans: var(--font-body, "Inter", system-ui, sans-serif);
+  --font-display: var(--font-heading, "Be Vietnam Pro", system-ui, sans-serif);
 }
 
 html,
@@ -72,7 +54,7 @@ select {
 }
 
 body {
-  color: var(--color-neutral-900);
+  color: var(--color-text);
   font-size: 1rem;
   line-height: 1.6;
   font-feature-settings: "kern" 1, "tnum" 1, "cv01" 1;
@@ -141,7 +123,7 @@ html {
   }
 
   .app-header-search {
-    @apply hidden w-48 items-center rounded-full bg-slate-100 px-3 py-2 text-sm transition-all md:flex xl:w-60;
+    @apply hidden w-48 items-center rounded-full bg-[var(--color-bg)] px-3 py-2 text-sm transition-all md:flex xl:w-60;
   }
 
   .app-header-search-input {
@@ -157,11 +139,11 @@ html {
   }
 
   .app-page-shell {
-    @apply bg-[var(--color-bg)] text-slate-800 antialiased;
+    @apply bg-[var(--color-bg)] text-[var(--color-text)] antialiased;
   }
 
   .app-surface {
-    @apply rounded-3xl border border-slate-100/80 bg-white shadow-[0_10px_45px_rgba(0,0,0,0.06)];
+    @apply rounded-3xl border border-[var(--color-border)] bg-white shadow-[0_10px_45px_rgba(0,0,0,0.06)];
   }
 }
 

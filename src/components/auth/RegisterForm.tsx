@@ -171,21 +171,23 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     }
   };
 
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!pasted) return;
 
     const newDigits = [...otpDigits];
-    for (let i = 0; i < 6; i++) {
-      newDigits[i] = pasted[i] || '';
-    }
+    pasted.split('').forEach((char, i) => {
+      if (i < 6) newDigits[i] = char;
+    });
     setOtpDigits(newDigits);
 
-    if (pasted.length === 6) {
+    const nextEmpty = newDigits.findIndex((c) => !c);
+    const focusIdx = nextEmpty === -1 ? 5 : nextEmpty;
+    otpRefs.current[focusIdx]?.focus();
+
+    if (newDigits.every((c) => c !== '')) {
       handleVerifyOTP(newDigits);
-    } else {
-      otpRefs.current[Math.min(pasted.length, 5)]?.focus();
     }
   };
 

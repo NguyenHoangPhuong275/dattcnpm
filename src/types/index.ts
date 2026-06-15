@@ -27,4 +27,5 @@ export type {
   SearchHistory,
 } from './place';
 
-export type { Notification, AuditLog, User } from '@/database/schema';
+export type { Notification, AuditLog, User } from '@/lib/db';
+

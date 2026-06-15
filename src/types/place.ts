@@ -1,1 +1,2 @@
-export type { Place, Review, FavoritePlace, SearchHistory } from '@/database/schema';
+export type { Place, Review, FavoritePlace, SearchHistory } from '@/lib/db';
+

@@ -1,4 +1,4 @@
-import type { AppDatabase } from '@/lib/mongodb';
+import type { AppDatabase } from '@/lib/db';
 
 export async function recalculatePlaceRating(
   placeId: string,

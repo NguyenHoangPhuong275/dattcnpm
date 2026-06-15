@@ -87,7 +87,7 @@ export default function UserDropdown({ user }: UserDropdownProps): React.JSX.Ele
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full cursor-pointer px-4 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+            className="w-full cursor-pointer px-4 py-2.5 text-left text-sm text-[var(--color-danger)] transition-colors hover:bg-[var(--color-danger)]/5"
           >
             Đăng xuất
           </button>

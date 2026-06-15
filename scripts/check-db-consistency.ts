@@ -1,4 +1,4 @@
-import { checkDatabaseConsistency, disconnectMongo } from '../src/lib/mongodb';
+import { checkDatabaseConsistency, disconnectMongo } from '../src/lib/db';
 
 async function main() {
   console.log('Checking database consistency...\n');
@@ -32,7 +32,7 @@ async function main() {
       console.log('   - Click "Check DB Consistency" (already ran)');
       console.log('   - Use "Xóa trắng Database" or call webhook events: db.dropUnknown, db.hardReset');
       console.log('\nOr from code:');
-      console.log('   import { dropUnknownCollections, hardResetDatabase } from "@/lib/mongodb";');
+      console.log('   import { dropUnknownCollections, hardResetDatabase } from "@/lib/db";');
     }
   } catch (err) {
     console.error('Failed to check DB:', err);

@@ -262,17 +262,17 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl p-6 w-full max-w-3xl border border-slate-200 max-h-[88vh] overflow-auto"
+        className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-3xl border border-[var(--color-border)] max-h-[88vh] overflow-auto"
         onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()}
       >
         <div className="flex justify-between items-center gap-4 mb-4">
           <div>
-            <h3 className="font-semibold text-lg text-slate-900">Chi tiết chuyến đi</h3>
-            <p className="text-xs text-slate-500">{trip.destination}</p>
+            <h3 className="font-semibold text-lg text-[var(--color-text)]">Chi tiết chuyến đi</h3>
+            <p className="text-xs text-[var(--color-text-muted)]">{trip.destination}</p>
           </div>
           <div className="flex items-center gap-2">
             {!isEditingTrip && (
-              <button onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
+              <button onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]">
                 Sửa thông tin
               </button>
             )}
@@ -280,7 +280,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               type="button"
               onClick={onClose}
               aria-label="Đóng"
-              className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-lg p-2 text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg)] hover:text-[var(--color-text-secondary)]"
             >
               <svg
                 width="16"
@@ -300,49 +300,49 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
         </div>
 
         {isEditingTrip ? (
-          <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-4 mb-6">
-            <div className="text-sm font-semibold text-slate-800 mb-3">Chỉnh sửa thông tin chuyến đi</div>
+          <div className="rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-primary-lightest)]/30 p-4 mb-6">
+            <div className="text-sm font-semibold text-[var(--color-text)] mb-3">Chỉnh sửa thông tin chuyến đi</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Tiêu đề</label>
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Tiêu đề</label>
                 <input
                   type="text"
                   value={tripDraft.title}
                   onChange={e => setTripDraft(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Điểm đến</label>
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Điểm đến</label>
                 <input
                   type="text"
                   value={tripDraft.destination}
                   onChange={e => setTripDraft(prev => ({ ...prev, destination: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Ngày đi</label>
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Ngày đi</label>
                 <input
                   type="date"
                   value={tripDraft.startDate}
                   onChange={e => setTripDraft(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Ngày về</label>
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Ngày về</label>
                 <input
                   type="date"
                   value={tripDraft.endDate}
                   min={tripDraft.startDate || undefined}
                   onChange={e => setTripDraft(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
                 />
               </div>
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={tripDraft.isPublic}
@@ -356,13 +356,13 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               <button
                 onClick={saveTrip}
                 disabled={savingTrip || !tripDraft.title.trim() || !tripDraft.destination.trim()}
-                className="text-sm px-4 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-50"
+                className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
               >
                 {savingTrip ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
               <button
                 onClick={cancelEditTrip}
-                className="text-sm px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+                className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
               >
                 Hủy
               </button>
@@ -370,30 +370,30 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-6">
-            <div className="rounded-xl border border-slate-200 px-3 py-2">
-              <div className="text-xs text-slate-500">Tiêu đề</div>
-              <div className="font-medium text-slate-800">{trip.title}</div>
+            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
+              <div className="text-xs text-[var(--color-text-muted)]">Tiêu đề</div>
+              <div className="font-medium text-[var(--color-text)]">{trip.title}</div>
             </div>
-            <div className="rounded-xl border border-slate-200 px-3 py-2">
-              <div className="text-xs text-slate-500">Thời gian</div>
-              <div className="font-medium text-slate-800">{trip.startDate} đến {trip.endDate}</div>
+            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
+              <div className="text-xs text-[var(--color-text-muted)]">Thời gian</div>
+              <div className="font-medium text-[var(--color-text)]">{trip.startDate} đến {trip.endDate}</div>
             </div>
-            <div className="rounded-xl border border-slate-200 px-3 py-2">
-              <div className="text-xs text-slate-500">Trạng thái</div>
-              <div className="font-medium text-slate-800">{trip.isPublic ? 'Công khai' : 'Riêng tư'}</div>
+            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
+              <div className="text-xs text-[var(--color-text-muted)]">Trạng thái</div>
+              <div className="font-medium text-[var(--color-text)]">{trip.isPublic ? 'Công khai' : 'Riêng tư'}</div>
             </div>
-            <div className="rounded-xl border border-slate-200 px-3 py-2">
-              <div className="text-xs text-slate-500">Số điểm dừng</div>
-              <div className="font-medium text-slate-800">{items.length}</div>
+            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
+              <div className="text-xs text-[var(--color-text-muted)]">Số điểm dừng</div>
+              <div className="font-medium text-[var(--color-text)]">{items.length}</div>
             </div>
           </div>
         )}
 
-        <div className="border-t border-slate-200 pt-4">
+        <div className="border-t border-[var(--color-border)] pt-4">
           <div className="flex items-center justify-between mb-3">
-            <div className="font-semibold text-sm text-slate-800">Lịch trình</div>
+            <div className="font-semibold text-sm text-[var(--color-text)]">Lịch trình</div>
             {loading && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
                 <span className="inline-block h-3 w-3 animate-spin rounded-full border-2
                   border-[var(--color-primary-dark)] border-t-transparent" />
                 Đang tải...
@@ -402,7 +402,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
           </div>
 
           {error && (
-            <div className="mb-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-600">
+            <div className="mb-3 rounded-xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 px-3 py-2 text-sm text-[var(--color-danger)]">
               {error}
             </div>
           )}
@@ -416,19 +416,19 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
 
           <div className="space-y-4 mb-5">
             {groupedItems.map((group) => (
-              <div key={group.day} className="rounded-xl border border-slate-200 overflow-hidden">
-                <div className="bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">
+              <div key={group.day} className="rounded-xl border border-[var(--color-border)] overflow-hidden">
+                <div className="bg-[var(--color-bg)] px-4 py-2 text-sm font-semibold text-[var(--color-text)]">
                   Ngày {group.day}
                 </div>
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-[var(--color-border)]">
                   {group.items.map((item) => (
                     <div key={item._id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm">
                       <div className="min-w-0">
-                        <div className="text-slate-600">Thứ tự #{item.orderIndex}</div>
-                        <div className="font-medium text-slate-900 break-words">{item.note || 'Chưa có ghi chú'}</div>
-                        <div className="text-xs text-slate-400 break-all">placeId: {item.placeId}</div>
+                        <div className="text-[var(--color-text-secondary)]">Thứ tự #{item.orderIndex}</div>
+                        <div className="font-medium text-[var(--color-text)] break-words">{item.note || 'Chưa có ghi chú'}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] break-all">placeId: {item.placeId}</div>
                         {item.cost != null && (
-                          <div className="text-xs text-slate-500 mt-1">
+                          <div className="text-xs text-[var(--color-text-secondary)] mt-1">
                             Chi phí: {item.cost.toLocaleString('vi-VN')} {item.currency || 'VND'}
                           </div>
                         )}
@@ -436,13 +436,13 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                       <div className="flex shrink-0 gap-2">
                         <button
                           onClick={() => handleEdit(item)}
-                          className="text-xs px-2 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+                          className="text-xs px-2 py-1 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
                         >
                           Sửa
                         </button>
                         <button
                           onClick={() => handleDelete(item._id)}
-                          className="text-xs px-2 py-1 rounded-lg border border-red-100 text-red-600 hover:bg-red-50"
+                          className="text-xs px-2 py-1 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
                         >
                           Xóa
                         </button>
@@ -454,8 +454,8 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             ))}
           </div>
 
-          <div className="rounded-xl border border-slate-200 p-4">
-            <div className="text-sm font-semibold text-slate-800 mb-3">
+          <div className="rounded-xl border border-[var(--color-border)] p-4">
+            <div className="text-sm font-semibold text-[var(--color-text)] mb-3">
               {editingId ? 'Sửa điểm dừng' : 'Thêm điểm dừng'}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-6 gap-2">
@@ -475,7 +475,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                   }
                 }}
                 placeholder="Ngày"
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
               />
               <input
                 type="number"
@@ -493,14 +493,14 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                   }
                 }}
                 placeholder="Thứ tự"
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
               />
               <input
                 type="text"
                 value={draft.placeId}
                 onChange={(e) => setDraft(prev => ({ ...prev, placeId: e.target.value }))}
                 placeholder="placeId"
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm sm:col-span-2"
+                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm sm:col-span-2 bg-white"
               />
               <input
                 type="number"
@@ -508,35 +508,35 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 value={draft.cost}
                 onChange={(e) => setDraft(prev => ({ ...prev, cost: e.target.value }))}
                 placeholder="Chi phí"
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
               />
               <input
                 type="text"
                 value={draft.currency || ''}
                 onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
                 placeholder="VND"
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
               />
               <input
                 type="text"
                 value={draft.note || ''}
                 onChange={(e) => setDraft(prev => ({ ...prev, note: e.target.value }))}
                 placeholder="Ghi chú"
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm sm:col-span-6"
+                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm sm:col-span-6 bg-white"
               />
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={handleSave}
                 disabled={saving || !draft.placeId.trim()}
-                className="text-sm px-4 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-50"
+                className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
               >
                 {saving ? 'Đang lưu...' : editingId ? 'Lưu thay đổi' : 'Thêm vào lịch trình'}
               </button>
               {editingId && (
                 <button
                   onClick={resetForm}
-                  className="text-sm px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
                 >
                   Hủy sửa
                 </button>

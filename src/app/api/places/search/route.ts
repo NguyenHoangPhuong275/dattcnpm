@@ -1,13 +1,12 @@
 import { NextRequest } from 'next/server';
-import { cacheGet, cacheSet } from '@/lib/redis';
-import { getDb } from '@/lib/mongodb';
+import { getDb, cacheGet, cacheSet, type Place } from '@/lib/db';
 import { getAuthUserId } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { placesSearchSchema } from '@/lib/validations/place';
 import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-response';
 import { searchTourismPlaces, provinceCenter } from '@/lib/vietnam-tourism';
-import type { Place } from '@/database/schema';
-import { LOCALITIES } from '@/lib/localities';
+import { LOCALITIES } from '@/data/localities';
+import { normalizeVietnameseText } from '@/lib/string';
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
@@ -147,17 +146,7 @@ function normalizeQuery(query: string): string {
 }
 
 function normalizeVietnameseSearch(value: string): string {
-  return removeVietnameseTones(value)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\u0111/g, 'd')
-    .replace(/\u0110/g, 'D')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .trim()
-    .toLowerCase();
+  return normalizeVietnameseText(value);
 }
 
 function getPriorityLocalityResults(query: string): PlaceDraft[] {
@@ -264,25 +253,6 @@ async function recordSearchHistory(userId: string | null, query: string, resultC
   }
 }
 
-function removeVietnameseTones(str: string): string {
-  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, 'a');
-  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, 'e');
-  str = str.replace(/ì|í|ị|ỉ|ĩ/g, 'i');
-  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, 'o');
-  str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, 'u');
-  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, 'y');
-  str = str.replace(/đ/g, 'd');
-  str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, 'A');
-  str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, 'E');
-  str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, 'I');
-  str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, 'O');
-  str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, 'U');
-  str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, 'Y');
-  str = str.replace(/Đ/g, 'D');
-  str = str.replace(/\u0300|\u0301|\u0309|\u0303|\u0323/g, '');
-  str = str.replace(/\u02C6|\u0306|\u031B/g, '');
-  return str;
-}
 
 function getParentRegion(address?: Record<string, string>): string | null {
   if (!address) return null;

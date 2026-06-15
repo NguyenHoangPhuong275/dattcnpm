@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { POST } from './route';
+import { POST } from '@/app/api/auth/logout/route';
 import { authCookieName } from '@/lib/auth';
 
 describe('POST /api/auth/logout', () => {

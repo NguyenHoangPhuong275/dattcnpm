@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { compare, hash } from 'bcryptjs';
-import { User } from '@/lib/mongodb';
+import { User } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { passwordChangeSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';

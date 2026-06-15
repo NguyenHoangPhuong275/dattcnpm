@@ -41,8 +41,8 @@ interface TripImageProps {
 
 function getCardClassName(selected = false): string {
   return [
-    'group overflow-hidden rounded-lg border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--color-primary-dark)] hover:shadow-md',
-    selected ? 'border-[var(--color-primary-dark)] ring-2 ring-[var(--color-primary-dark)]/20' : 'border-slate-200',
+    'group overflow-hidden rounded-lg border bg-[var(--color-surface)] text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--color-primary-dark)] hover:shadow-md',
+    selected ? 'border-[var(--color-primary-dark)] ring-2 ring-[var(--color-primary-dark)]/20' : 'border-[var(--color-border)]',
   ].join(' ');
 }
 
@@ -51,9 +51,9 @@ function CityChips({ destination }: CityChipsProps): React.JSX.Element {
   const labels = cities.length > 0 ? cities : [destination];
 
   return (
-    <div className="flex flex-wrap gap-1.5 text-xs font-semibold text-slate-600">
+    <div className="flex flex-wrap gap-1.5 text-xs font-semibold text-[var(--color-text-secondary)]">
       {labels.map((city) => (
-        <span key={city} className="rounded-full bg-slate-100 px-2.5 py-1">
+        <span key={city} className="rounded-full bg-[var(--color-primary-lightest)] px-2.5 py-1">
           {city}
         </span>
       ))}
@@ -63,7 +63,7 @@ function CityChips({ destination }: CityChipsProps): React.JSX.Element {
 
 function TripMeta({ trip }: TripMetaProps): React.JSX.Element {
   return (
-    <div className="space-y-2 text-sm text-slate-600">
+    <div className="space-y-2 text-sm text-[var(--color-text-secondary)]">
       <div className="flex items-center gap-2">
         <CalendarIcon className="h-4 w-4 text-[var(--color-primary-dark)]" />
         <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
@@ -74,12 +74,11 @@ function TripMeta({ trip }: TripMetaProps): React.JSX.Element {
 
 function TripStatus({ isPublic }: TripStatusProps): React.JSX.Element {
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold ${isPublic ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+    <span className={`rounded-full px-3 py-1 text-xs font-bold ${isPublic ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)]'}`}>
       {isPublic ? 'Công khai' : 'Riêng tư'}
     </span>
   );
 }
-
 function TripImage({ trip, variant }: TripImageProps): React.JSX.Element {
   const sizes = variant === 'horizontal'
     ? '180px'
@@ -88,7 +87,7 @@ function TripImage({ trip, variant }: TripImageProps): React.JSX.Element {
   return (
     <Image
       src={getTripImage(trip)}
-      alt={trip.title}
+      alt={`Ảnh bìa chuyến đi ${trip.title}`}
       fill
       sizes={sizes}
       className="object-cover transition duration-300 group-hover:scale-105"
@@ -97,7 +96,8 @@ function TripImage({ trip, variant }: TripImageProps): React.JSX.Element {
 }
 
 function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): React.JSX.Element {
-  const handleDelete = (event: MouseEvent<HTMLButtonElement>): void => {
+  const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
     event.stopPropagation();
     onDelete?.(trip._id);
   };
@@ -105,12 +105,12 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): Rea
   if (variant === 'horizontal') {
     return (
       <div className="grid grid-cols-[132px_minmax(0,1fr)] sm:grid-cols-[168px_minmax(0,1fr)]">
-        <div className="relative min-h-[176px] bg-slate-100">
+        <div className="relative min-h-[176px] bg-[var(--color-bg)]">
           <TripImage trip={trip} variant={variant} />
         </div>
         <div className="flex min-w-0 flex-col gap-3 p-4">
           <div className="min-w-0">
-            <div className="truncate text-lg font-bold text-slate-900">{trip.title}</div>
+            <div className="truncate text-lg font-bold text-[var(--color-text)]">{trip.title}</div>
             <div className="mt-1">
               <CityChips destination={trip.destination} />
             </div>
@@ -125,7 +125,7 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): Rea
                 id={`trip-card-delete-button-${trip._id}`}
                 type="button"
                 onClick={handleDelete}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-danger)] transition hover:bg-[var(--color-danger)]/10"
                 aria-label="Xóa chuyến đi"
                 title="Xóa chuyến đi"
               >
@@ -140,12 +140,12 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): Rea
 
   return (
     <>
-      <div className="relative h-48 bg-slate-100">
+      <div className="relative h-48 bg-[var(--color-bg)]">
         <TripImage trip={trip} variant={variant} />
       </div>
       <div className="space-y-3 p-4">
         <div>
-          <h2 className="truncate text-lg font-extrabold text-slate-950">{trip.title}</h2>
+          <h2 className="truncate text-lg font-extrabold text-[var(--color-text)]">{trip.title}</h2>
           <div className="mt-2">
             <CityChips destination={trip.destination} />
           </div>
@@ -161,14 +161,6 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
     onClick?.(trip);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (!onClick) return;
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onClick(trip);
-    }
-  };
-
   if (href) {
     return (
       <Link href={href} className={getCardClassName(selected)}>
@@ -182,7 +174,7 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
       <button
         type="button"
         onClick={handleClick}
-        className={`w-full ${getCardClassName(selected)}`}
+        className={`w-full text-left ${getCardClassName(selected)}`}
         aria-pressed={selected}
       >
         <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
@@ -190,8 +182,16 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
     );
   }
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>): void => {
+    if (!onClick) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick(trip);
+    }
+  };
+
   return (
-    <div
+    <article
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={onClick ? handleClick : undefined}
@@ -199,6 +199,6 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
       className={getCardClassName(selected)}
     >
       <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
-    </div>
+    </article>
   );
 }

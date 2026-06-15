@@ -77,9 +77,6 @@ export function useHomepageTripActions({
   const resetTripActionMessage = useCallback((): void => {
     setTripActionMessage('');
   }, []);
-
-  // TODO: Consider migrating to useTripList hook in a future refactor pass
-  // when homepage trip action state is extracted into a separate concern.
   const loadMyTrips = useCallback(async (): Promise<void> => {
     if (!userId) {
       setMyTrips([]);

@@ -1,10 +1,8 @@
 import { NextRequest } from 'next/server';
-import { getDb } from '@/lib/mongodb';
+import { getDb, type CollectionFilter, type Trip } from '@/lib/db';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { toTripResponse } from '@/lib/trip-utils';
-import type { CollectionFilter } from '@/lib/mongodb';
-import type { Trip } from '@/database/schema';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {

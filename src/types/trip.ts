@@ -5,4 +5,5 @@ export type {
   TripAccommodation,
   TripChecklist,
   TripShare,
-} from '@/database/schema';
+} from '@/lib/db';
+

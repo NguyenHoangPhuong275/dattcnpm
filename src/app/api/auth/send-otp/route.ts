@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getResend } from '@/lib/resend';
-import { getRedis } from '@/lib/redis';
-import { getDb, findUserByEmail } from '@/lib/mongodb';
+import { getRedis, getDb, findUserByEmail } from '@/lib/db';
 import { sendOtpSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 

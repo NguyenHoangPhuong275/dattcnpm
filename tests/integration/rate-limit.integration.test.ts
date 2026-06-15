@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { getRedis, disconnectRedis } from '@/lib/redis';
+import { getRedis, disconnectRedis } from '@/lib/db';
 
 const RL_KEY = 'it-test:rate:integration';
 

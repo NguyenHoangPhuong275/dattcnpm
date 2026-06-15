@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
-import { extractTrips, type TripsListResponse } from '@/lib/trip-formatters';
+import { useTripList } from '@/hooks/useTripList';
 import type { TripSummary } from '@/types/profile';
 
 type AddToTripStatus = 'idle' | 'loading-trips' | 'ready' | 'submitting' | 'success' | 'error';
@@ -10,9 +10,7 @@ type AddToTripStatus = 'idle' | 'loading-trips' | 'ready' | 'submitting' | 'succ
 type AddToTripEnvelope = {
   success?: boolean;
   message?: string;
-  error?: {
-    message?: string;
-  } | null;
+  error?: { message?: string } | null;
 };
 
 export interface UseAddToTripReturn {
@@ -25,44 +23,28 @@ export interface UseAddToTripReturn {
 }
 
 export function useAddToTrip(): UseAddToTripReturn {
-  const [status, setStatus] = useState<AddToTripStatus>('idle');
-  const [trips, setTrips] = useState<TripSummary[]>([]);
+  const [modalStatus, setModalStatus] = useState<AddToTripStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const { trips, status: tripListStatus, error: tripListError, loadTrips } = useTripList();
+
   const openModal = useCallback(async (): Promise<void> => {
-    setStatus('loading-trips');
+    setModalStatus('loading-trips');
     setErrorMessage(null);
-    try {
-      const { response, data } = await apiRequest<TripsListResponse>('/api/trips');
-
-      if (response.ok && data.success && data.data) {
-        setTrips(extractTrips(data));
-        setStatus('ready');
-        return;
-      }
-
-      setTrips([]);
-      setErrorMessage(getApiErrorMessage(data, 'Không thể tải danh sách chuyến đi. Vui lòng thử lại.'));
-      setStatus('error');
-    } catch (err) {
-      setTrips([]);
-      setErrorMessage(getApiErrorMessage(err, 'Không thể tải danh sách chuyến đi. Vui lòng thử lại.'));
-      setStatus('error');
-    }
-  }, []);
+    await loadTrips();
+  }, [loadTrips]);
 
   const closeModal = useCallback((): void => {
-    setStatus('idle');
-    setTrips([]);
+    setModalStatus('idle');
     setErrorMessage(null);
   }, []);
 
   const addToTrip = useCallback(async (
     tripId: string,
     day: number,
-    placeId: string
+    placeId: string,
   ): Promise<void> => {
-    setStatus('submitting');
+    setModalStatus('submitting');
     setErrorMessage(null);
     try {
       const { response, data } = await apiRequest<AddToTripEnvelope>(
@@ -71,21 +53,33 @@ export function useAddToTrip(): UseAddToTripReturn {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ placeId, day }),
-        }
+        },
       );
-
       if (!response.ok || !data.success) {
         setErrorMessage(getApiErrorMessage(data, 'Thêm địa điểm thất bại'));
-        setStatus('error');
+        setModalStatus('error');
         return;
       }
-
-      setStatus('success');
+      setModalStatus('success');
     } catch (err) {
       setErrorMessage(getApiErrorMessage(err, 'Thêm địa điểm thất bại'));
-      setStatus('error');
+      setModalStatus('error');
     }
   }, []);
 
-  return { status, trips, errorMessage, openModal, closeModal, addToTrip };
+  const effectiveStatus: AddToTripStatus =
+    modalStatus === 'submitting' || modalStatus === 'success' ? modalStatus
+    : tripListStatus === 'loading' ? 'loading-trips'
+    : tripListStatus === 'error' ? 'error'
+    : tripListStatus === 'success' ? 'ready'
+    : modalStatus;
+
+  return {
+    status: effectiveStatus,
+    trips,
+    errorMessage: errorMessage ?? tripListError,
+    openModal,
+    closeModal,
+    addToTrip,
+  };
 }

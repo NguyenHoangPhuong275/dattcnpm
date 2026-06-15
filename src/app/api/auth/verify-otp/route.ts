@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRedis } from '@/lib/redis';
-import { getDb, findUserByEmail } from '@/lib/mongodb';
+import { getRedis, getDb, findUserByEmail } from '@/lib/db';
 import { hash } from 'bcryptjs';
 import { verifyOtpSchema } from '@/lib/validations/auth';
 import { handleApiError, AppError } from '@/lib/api-response';

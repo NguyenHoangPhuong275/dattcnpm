@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import ProfileMenu from '@/components/profile/ProfileMenu';
 import PersonalInfoForm from '@/components/profile/PersonalInfoForm';
@@ -46,6 +46,7 @@ function ProfileLoading() {
 }
 
 function ProfilePageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const userHook = useCurrentUser({ redirectIfNone: true });
   const user = userHook.data;
@@ -117,9 +118,13 @@ function ProfilePageContent() {
   const { loadReviews } = reviewsHook.actions;
   const loadingReviews = reviewsStatus === 'loading';
 
+  const handleTabChange = useCallback((tab: ProfileTab) => {
+    router.push(`/profile?tab=${tab}`);
+  }, [router]);
+
   useEffect(() => {
-    const tabParam = searchParams.get('tab') as ProfileTab | null;
-    if (tabParam && tabParam !== activeTab) {
+    const tabParam = (searchParams.get('tab') as ProfileTab | null) || 'personal';
+    if (tabParam !== activeTab) {
       setActiveTab(tabParam);
     }
   }, [searchParams, activeTab]);
@@ -156,8 +161,9 @@ function ProfilePageContent() {
     try {
       await deleteTrip(id);
       showToast('Đã xóa chuyến đi');
-    } catch {
-      showToast('Xóa thất bại, vui lòng thử lại');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Không thể xóa chuyến đi. Vui lòng thử lại sau.';
+      showToast(msg);
     }
   }, [deleteTrip, showToast]);
 
@@ -250,21 +256,35 @@ function ProfilePageContent() {
     updateAvatar(url);
   }, [updateAvatar]);
 
-  const handleSavePersonal = useCallback(async (event: React.FormEvent) => {
+  const handleSavePersonal = useCallback(async (event: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
     try {
-      await savePersonal(event);
-      showToast('Đã lưu thông tin cá nhân');
+      const result = await savePersonal(event);
+      if (result.success) {
+        showToast('Đã lưu thông tin cá nhân');
+      } else {
+        showToast(result.error || 'Lưu thông tin cá nhân thất bại, vui lòng thử lại');
+      }
+      return result;
     } catch (error: unknown) {
-      showToast(getApiErrorMessage(error, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại'));
+      const errorMsg = getApiErrorMessage(error, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại');
+      showToast(errorMsg);
+      return { success: false, error: errorMsg };
     }
   }, [savePersonal, showToast]);
 
-  const handleSavePreferences = useCallback(async (event: React.FormEvent) => {
+  const handleSavePreferences = useCallback(async (event: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
     try {
-      await savePreferences(event);
-      showToast('Đã cập nhật sở thích du lịch');
+      const result = await savePreferences(event);
+      if (result.success) {
+        showToast('Đã cập nhật sở thích du lịch');
+      } else {
+        showToast(result.error || 'Lưu sở thích thất bại, vui lòng thử lại');
+      }
+      return result;
     } catch (error: unknown) {
-      showToast(getApiErrorMessage(error, 'Lưu sở thích thất bại, vui lòng thử lại'));
+      const errorMsg = getApiErrorMessage(error, 'Lưu sở thích thất bại, vui lòng thử lại');
+      showToast(errorMsg);
+      return { success: false, error: errorMsg };
     }
   }, [savePreferences, showToast]);
 
@@ -322,7 +342,7 @@ function ProfilePageContent() {
 
         <main className="w-full flex-1 py-8">
           <div className="flex w-full flex-col gap-6 px-4 lg:flex-row lg:gap-8 lg:px-8">
-            <ProfileMenu activeTab={activeTab} onTabChange={setActiveTab} />
+            <ProfileMenu activeTab={activeTab} onTabChange={handleTabChange} />
 
             <div className="min-w-0 flex-1">
               <div className="mb-6 flex items-center justify-between gap-4">

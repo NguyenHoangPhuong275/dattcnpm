@@ -11,7 +11,7 @@ import {
   type StoryCard,
   getLocalityBySlug,
   getLocalityGuideSections,
-} from '@/lib/localities';
+} from '@/data/localities';
 
 type LocalityDetailPageProps = {
   params: Promise<{ slug: string }>;

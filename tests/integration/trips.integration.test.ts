@@ -1,6 +1,5 @@
 import { describe, beforeAll, afterAll, expect, it } from 'vitest';
-import { connectMongo, disconnectMongo, getDb } from '@/lib/mongodb';
-import { connectRedis, disconnectRedis } from '@/lib/redis';
+import { connectMongo, disconnectMongo, getDb, connectRedis, disconnectRedis } from '@/lib/db';
 import mongoose from 'mongoose';
 
 beforeAll(async () => {

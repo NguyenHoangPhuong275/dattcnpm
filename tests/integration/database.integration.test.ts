@@ -1,6 +1,5 @@
 import { describe, beforeAll, afterAll, expect, it } from 'vitest';
-import { connectMongo, disconnectMongo, getDb } from '@/lib/mongodb';
-import { connectRedis, disconnectRedis, getRedis } from '@/lib/redis';
+import { connectMongo, disconnectMongo, getDb, connectRedis, disconnectRedis, getRedis } from '@/lib/db';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { signAuthToken, verifyAuthToken } from '@/lib/auth';
 

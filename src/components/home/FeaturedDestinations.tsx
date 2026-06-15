@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { FEATURED_DESTINATIONS } from '@/lib/home';
+import { FEATURED_DESTINATIONS } from '@/data/home';
 
 interface FeaturedDestinationsProps {
   onSelect: (title: string) => void;

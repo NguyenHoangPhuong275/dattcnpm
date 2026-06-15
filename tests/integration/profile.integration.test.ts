@@ -1,10 +1,10 @@
 import { describe, it, expect, afterAll, vi } from 'vitest';
 import { PATCH as profilePATCH, GET as profileGET } from '@/app/api/profile/route';
-import { disconnectMongo } from '@/lib/mongodb';
+import { disconnectMongo } from '@/lib/db';
 
 
-vi.mock('@/lib/mongodb', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/mongodb')>();
+vi.mock('@/lib/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/db')>();
   return {
     ...actual,
     getUserById: vi.fn().mockImplementation(async (userId: string) => {

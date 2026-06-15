@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getAuthUserFull } from '@/lib/auth';
-import { getDb } from '@/lib/mongodb';
+import { getDb } from '@/lib/db';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 

@@ -56,9 +56,16 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       const start = payload.startDate || getDefaultStartDate();
       const end = payload.endDate || getDefaultEndDate(3);
 
-      if (end < start) {
+      const startDateObj = start ? new Date(start) : null;
+      const endDateObj = end ? new Date(end) : null;
+
+      if (
+        startDateObj && endDateObj &&
+        !isNaN(startDateObj.getTime()) && !isNaN(endDateObj.getTime()) &&
+        endDateObj < startDateObj
+      ) {
         setCreateStatus('error');
-        return { success: false, message: 'Ngày kết thúc phải sau ngày bắt đầu' };
+        return { success: false, message: 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu' };
       }
 
       const { response, data } = await apiRequest<{ success?: boolean; data?: TripSummary; message?: string }>('/api/trips', {
@@ -107,10 +114,10 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
     try {
       const { response } = await apiRequest(`/api/trips/${id}`, { method: 'DELETE', userId });
 
-      if (!response.ok) throw new Error('Delete trip failed');
+      if (!response.ok) throw new Error('Không thể xóa chuyến đi. Vui lòng thử lại sau.');
     } catch (err) {
       setTrips(snapshot);
-      throw new Error('Delete trip failed');
+      throw new Error('Không thể xóa chuyến đi. Vui lòng thử lại sau.');
     }
   }, [setTrips, userId]);
 

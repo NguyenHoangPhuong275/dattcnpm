@@ -1,12 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { checkRateLimit, getClientIp } from './rate-limit';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
-vi.mock('@/lib/redis', () => ({
-  rateLimitIncr: vi.fn(async () => {
-    throw new Error('redis unavailable');
-  }),
-}));
+vi.mock('@/lib/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/db')>();
+  return {
+    ...actual,
+    rateLimitIncr: vi.fn(async () => {
+      throw new Error('redis unavailable');
+    }),
+  };
+});
 
 describe('rate limit helpers', () => {
   it('reads client ip from forwarded headers', () => {

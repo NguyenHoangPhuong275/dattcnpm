@@ -11,7 +11,7 @@ interface PersonalInfoFormProps {
   personal: PersonalInfo;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onFullNameChange: (value: string) => void;
-  onSave: (e: React.FormEvent) => void;
+  onSave: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }> | void;
   onAvatarChange?: (url: string) => void;
   saving?: boolean;
   onToast?: (msg: string) => void;
@@ -19,7 +19,7 @@ interface PersonalInfoFormProps {
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ACCEPTED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const fieldClass = 'w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-[var(--color-primary-dark)] focus:ring-4 focus:ring-[var(--color-primary-dark)]/10';
+const fieldClass = 'w-full rounded-lg border border-[var(--color-border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary-dark)] focus:ring-4 focus:ring-[var(--color-primary-dark)]/5';
 
 function initials(personal: PersonalInfo): string {
   const first = personal.firstName?.trim()[0] || 'U';
@@ -38,6 +38,20 @@ const PersonalInfoForm = memo(({
 }: PersonalInfoFormProps): React.JSX.Element => {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent): Promise<void> => {
+    event.preventDefault();
+    setFormError(null);
+    try {
+      const result = await onSave(event);
+      if (result && !result.success && result.error) {
+        setFormError(result.error);
+      }
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Không thể lưu thông tin lúc này');
+    }
+  };
 
   const handleAvatarFile = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
@@ -82,11 +96,11 @@ const PersonalInfoForm = memo(({
   };
 
   return (
-    <form onSubmit={onSave} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="flex flex-col items-center gap-3 border-b border-slate-100 pb-6">
-        <div className="relative h-28 w-28 overflow-hidden rounded-full bg-[var(--color-primary-dark)] text-white ring-4 ring-slate-100">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm sm:p-6">
+      <div className="flex flex-col items-center gap-3 border-b border-[var(--color-border)] pb-6">
+        <div className="relative h-28 w-28 overflow-hidden rounded-full bg-[var(--color-primary-dark)] text-white ring-4 ring-[var(--color-bg)]">
           {personal.avatarUrl ? (
-            <Image src={personal.avatarUrl} alt="Ảnh đại diện của người dùng" fill sizes="112px" className="object-cover" unoptimized />
+            <Image src={personal.avatarUrl} alt={`Ảnh đại diện của ${personal.firstName} ${personal.lastName}`.trim() || 'Ảnh đại diện'} fill sizes="112px" className="object-cover" unoptimized />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-3xl font-bold">{initials(personal)}</div>
           )}
@@ -95,7 +109,7 @@ const PersonalInfoForm = memo(({
           type="button"
           onClick={() => document.getElementById('avatar-file-input')?.click()}
           aria-label="Tải ảnh đại diện mới lên"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-[var(--color-primary-dark)] transition hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-primary-dark)] transition hover:bg-[var(--color-primary-lightest)]"
           disabled={avatarLoading}
         >
           {avatarLoading && <LoadingSpinner size="sm" />}
@@ -109,8 +123,8 @@ const PersonalInfoForm = memo(({
           onChange={handleAvatarFile}
           aria-describedby="avatar-help avatar-error"
         />
-        <p id="avatar-help" className="text-xs font-medium text-slate-500">JPG, PNG hoặc WebP. Tối đa 2MB.</p>
-        {avatarError && <p id="avatar-error" className="text-sm font-semibold text-red-600" role="alert">{avatarError}</p>}
+        <p id="avatar-help" className="text-xs font-medium text-[var(--color-text-muted)]">JPG, PNG hoặc WebP. Tối đa 2MB.</p>
+        {avatarError && <p id="avatar-error" className="text-sm font-semibold text-[var(--color-danger)]" role="alert">{avatarError}</p>}
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-5 lg:grid-cols-2">
@@ -131,7 +145,7 @@ const PersonalInfoForm = memo(({
             <div className="form-label">Giới tính</div>
             <div className="grid grid-cols-3 gap-2">
               {['Nam', 'Nữ', 'Khác'].map((gender) => (
-                <label key={gender} className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-3 text-sm font-semibold text-slate-700 transition has-[:checked]:border-[var(--color-primary-dark)] has-[:checked]:bg-[var(--color-primary-lightest)]">
+                <label key={gender} className="flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-3 text-sm font-semibold text-[var(--color-text-secondary)] transition has-[:checked]:border-[var(--color-primary-dark)] has-[:checked]:bg-[var(--color-primary-lightest)] cursor-pointer">
                   <input type="radio" name="gender" value={gender} checked={personal.gender === gender} onChange={onChange} className="h-4 w-4 accent-[var(--color-primary-dark)]" />
                   {gender}
                 </label>
@@ -154,7 +168,15 @@ const PersonalInfoForm = memo(({
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-3">
               <label htmlFor="profile-phone" className="form-label mb-0">Số điện thoại</label>
-              <button type="button" className="text-xs font-semibold text-[var(--color-primary-dark)] hover:underline">Liên kết số điện thoại</button>
+              <button
+                type="button"
+                className="text-xs font-semibold text-[var(--color-primary-dark)] hover:underline opacity-60 cursor-not-allowed"
+                disabled
+                title="Tính năng sắp ra mắt"
+                aria-label="Liên kết số điện thoại — tính năng đang phát triển"
+              >
+                Liên kết số điện thoại
+              </button>
             </div>
             <input id="profile-phone" type="text" name="phone" value={personal.phone} onChange={onChange} placeholder="0901 234 567" className={fieldClass} />
           </div>
@@ -166,11 +188,16 @@ const PersonalInfoForm = memo(({
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex flex-col items-center justify-center gap-3">
         <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-dark)] px-10 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[var(--color-primary-darker)] disabled:opacity-60">
           {saving && <LoadingSpinner size="sm" />}
           {saving ? 'ĐANG LƯU...' : 'LƯU CHỈNH SỬA'}
         </button>
+        {formError && (
+          <p role="alert" className="text-sm font-semibold text-[var(--color-danger)]">
+            {formError}
+          </p>
+        )}
       </div>
     </form>
   );

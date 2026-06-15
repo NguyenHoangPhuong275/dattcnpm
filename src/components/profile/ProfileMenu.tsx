@@ -16,7 +16,7 @@ const TabButton = memo(({ tab, label, isActive, onClick }: TabButtonProps) => (
     className={`w-full rounded-lg border-l-4 px-5 py-3 text-left text-sm font-semibold transition-colors ${
       isActive
         ? 'border-[var(--color-primary-darker)] bg-[var(--color-primary-light)]/60 text-[var(--color-primary-darker)]'
-        : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+        : 'border-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]'
     }`}
   >
     {label}

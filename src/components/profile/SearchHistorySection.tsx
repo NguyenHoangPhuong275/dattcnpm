@@ -117,12 +117,19 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
     setActiveTripSelectIdx(null);
 
     try {
-      const res = await fetch(`/api/places/search?q=${encodeURIComponent(item.query)}`, {
-        credentials: 'include',
-      });
-      const json = await res.json();
+      const { response, data: json } = await apiRequest<{
+        success?: boolean;
+        data?: { results?: Array<{ _id?: string; name: string; type?: string; address?: string | null }> };
+      }>(`/api/places/search?q=${encodeURIComponent(item.query)}`);
+
+      if (!response.ok || !json.success) {
+        setPreviewData({ results: [] });
+        showToast('Không tìm thấy kết quả cho từ khóa này');
+        return;
+      }
+
       const results = json.data?.results;
-      if (json.success && Array.isArray(results)) {
+      if (Array.isArray(results) && results.length > 0) {
         setPreviewData({ results: results.slice(0, 5) });
       } else {
         setPreviewData({ results: [] });
@@ -150,7 +157,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
         body: JSON.stringify({
           placeId: place._id,
           day: 1,
-          orderIndex: 0,
+          orderIndex: 999,
           note: place.name,
           currency: 'VND',
         }),
@@ -164,23 +171,24 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
       }
     } catch {
       showToast('Lỗi hệ thống khi thêm địa điểm');
+      setActiveTripSelectIdx(null);
     } finally {
       setAddingPlaceLoading(false);
     }
   };
 
-  const getTypeColor = (type?: string) => {
+  const getTypeColor = (type?: string): string => {
     const t = type?.toLowerCase() || '';
     if (t.includes('hotel') || t.includes('stay') || t.includes('accommodation')) {
-      return 'bg-blue-50 text-blue-600 border-blue-100';
+      return 'bg-[var(--color-primary-lightest)] text-[var(--color-primary-darker)] border-[var(--color-border)]';
     }
     if (t.includes('restaurant') || t.includes('food') || t.includes('cafe')) {
-      return 'bg-rose-50 text-rose-600 border-rose-100';
+      return 'bg-[var(--color-accent-warm)]/10 text-[var(--color-accent-warm)] border-[var(--color-border)]';
     }
     if (t.includes('attraction') || t.includes('sight') || t.includes('nature') || t.includes('museum')) {
-      return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      return 'bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-border)]';
     }
-    return 'bg-slate-50 text-slate-600 border-slate-100';
+    return 'bg-[var(--color-bg)] text-[var(--color-text-muted)] border-[var(--color-border)]';
   };
 
   const getTypeLabel = (type?: string) => {
@@ -193,11 +201,11 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 p-6">
+      <div className="rounded-2xl border border-[var(--color-border)] p-6">
         <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-slate-100 rounded w-1/3" />
-          <div className="h-4 bg-slate-100 rounded w-2/3" />
-          <div className="h-4 bg-slate-100 rounded w-1/2" />
+          <div className="h-4 bg-[var(--color-surface)] rounded w-1/3" />
+          <div className="h-4 bg-[var(--color-surface)] rounded w-2/3" />
+          <div className="h-4 bg-[var(--color-surface)] rounded w-1/2" />
         </div>
       </div>
     );
@@ -205,25 +213,25 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-sm text-red-600 flex items-center justify-between">
+      <div className="rounded-2xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 p-6 text-sm text-[var(--color-danger)] flex items-center justify-between">
         <span>{error}</span>
-        <button onClick={loadHistory} className="text-xs font-semibold underline text-red-700 hover:text-red-900">Thử lại</button>
+        <button onClick={loadHistory} className="text-xs font-semibold underline text-[var(--color-danger)] hover:underline">Thử lại</button>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 bg-slate-50/50">
+    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4 bg-[var(--color-bg)]/50">
         <div>
-          <div className="font-semibold text-slate-800">Lịch sử tìm kiếm</div>
-          <div className="text-xs text-slate-500">Các từ khóa bạn đã tìm kiếm gần đây (tối đa 50)</div>
+          <div className="font-semibold text-[var(--color-text)]">Lịch sử tìm kiếm</div>
+          <div className="text-xs text-[var(--color-text-muted)]">Các từ khóa bạn đã tìm kiếm gần đây (tối đa 50)</div>
         </div>
         {items.length > 0 && (
           <button
             onClick={handleClearAll}
             disabled={clearing}
-            className="text-xs font-bold rounded-xl border border-red-200 px-3.5 py-2 text-red-600 hover:bg-red-50 disabled:opacity-50 transition duration-200"
+            className="text-xs font-bold rounded-xl border border-[var(--color-danger)]/20 px-3.5 py-2 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/5 disabled:opacity-50 transition duration-200"
           >
             {clearing ? 'Đang xóa...' : 'Xóa tất cả'}
           </button>
@@ -232,40 +240,40 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
       {items.length === 0 ? (
         <div className="px-5 py-16 text-center flex flex-col items-center justify-center">
-          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-slate-300">
+          <div className="w-16 h-16 bg-[var(--color-bg)] rounded-full flex items-center justify-center mb-4 text-[var(--color-text-muted)]/40">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h4 className="font-semibold text-slate-700 mb-1">Chưa có lịch sử tìm kiếm</h4>
-          <p className="text-xs text-slate-500 max-w-sm">Các địa điểm hoặc khu vực bạn tìm kiếm ở trang chủ sẽ được lưu lại tại đây để dễ dàng xem lại.</p>
+          <h4 className="font-semibold text-[var(--color-text)] mb-1">Chưa có lịch sử tìm kiếm</h4>
+          <p className="text-xs text-[var(--color-text-muted)] max-w-sm">Các địa điểm hoặc khu vực bạn tìm kiếm ở trang chủ sẽ được lưu lại tại đây để dễ dàng xem lại.</p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-[var(--color-border)]">
           {items.map((item) => {
             const isPreviewOpen = previewFor === item._id;
             return (
-              <div key={item._id} className="px-5 py-4 hover:bg-slate-50/30 transition duration-200">
+              <div key={item._id} className="px-5 py-4 hover:bg-[var(--color-bg)]/30 transition duration-200">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <button
                       onClick={() => handleUseAgain(item)}
-                      className="font-semibold text-slate-800 hover:text-[var(--color-primary-darker)] transition-colors text-left text-sm"
+                      className="font-semibold text-[var(--color-text)] hover:text-[var(--color-primary-darker)] transition-colors text-left text-sm"
                       title="Xem kết quả tìm kiếm cho từ khóa này"
                     >
                       {item.query}
                     </button>
-                    <div className="mt-1 text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
+                    <div className="mt-1 text-xs text-[var(--color-text-muted)] flex items-center gap-1.5 flex-wrap">
                       <span className="flex items-center gap-1">
-                        <Icons.ClockIcon className="w-3.5 h-3.5 text-slate-400" />
+                        <Icons.ClockIcon className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                         {new Date(item.createdAt).toLocaleString('vi-VN')}
                       </span>
                       <span>•</span>
-                      <span className="font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">{item.resultCount ?? 0} kết quả</span>
+                      <span className="font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg)] px-1.5 py-0.5 rounded-md">{item.resultCount ?? 0} kết quả</span>
                       {item.lat != null && item.lng != null && !isNaN(Number(item.lat)) && (
                         <>
                           <span>•</span>
-                          <span className="text-xs text-slate-400 font-mono">Tọa độ: ({Number(item.lat).toFixed(2)}, {Number(item.lng).toFixed(2)})</span>
+                          <span className="text-xs text-[var(--color-text-muted)] font-mono">Tọa độ: ({Number(item.lat).toFixed(2)}, {Number(item.lng).toFixed(2)})</span>
                         </>
                       )}
                     </div>
@@ -275,7 +283,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                     <button
                       onClick={() => handleUseAgain(item)}
                       aria-label={`Tìm lại "${item.query}"`}
-                      className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition duration-200 shadow-sm"
+                      className="rounded-xl border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] bg-[var(--color-surface)] hover:bg-[var(--color-bg)] transition duration-200 shadow-sm"
                     >
                       Tìm lại
                     </button>
@@ -283,7 +291,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                       onClick={() => handleDelete(item._id)}
                       disabled={deletingId === item._id}
                       aria-label={`Xóa lịch sử tìm kiếm "${item.query}"`}
-                      className="rounded-xl border border-red-100 px-3 py-1.5 text-xs font-semibold text-red-600 bg-white hover:bg-red-50 disabled:opacity-50 transition duration-200 shadow-sm"
+                      className="rounded-xl border border-[var(--color-danger)]/20 px-3 py-1.5 text-xs font-semibold text-[var(--color-danger)] bg-[var(--color-surface)] hover:bg-[var(--color-danger)]/5 disabled:opacity-50 transition duration-200 shadow-sm"
                     >
                       {deletingId === item._id
                         ? <LoadingSpinner size="sm" />
@@ -293,12 +301,12 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                 </div>
 
                 {isPreviewOpen && (
-                  <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+                  <div className="mt-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Xem trước kết quả ({previewData?.results.length || 0})</span>
+                      <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Xem trước kết quả ({previewData?.results.length || 0})</span>
                       <button
                         onClick={() => { setPreviewFor(null); setPreviewData(null); setActiveTripSelectIdx(null); }}
-                        className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition"
+                        className="text-xs font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition"
                       >
                         Đóng xem trước
                       </button>
@@ -307,17 +315,17 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                     {previewLoading ? (
                       <div className="flex items-center justify-center py-4">
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
-                        <span className="ml-2 text-xs text-slate-500">Đang tải kết quả...</span>
+                        <span className="ml-2 text-xs text-[var(--color-text-muted)]">Đang tải kết quả...</span>
                       </div>
                     ) : previewData && previewData.results.length > 0 ? (
                       <div className="space-y-2">
                         {previewData.results.map((r, idx) => (
-                          <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-slate-100 rounded-xl hover:shadow-sm transition-all duration-200 relative">
+                          <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl hover:shadow-sm transition-all duration-200 relative">
                             <div className="flex items-start gap-2.5 min-w-0">
                               <Icons.MapPinIcon className="w-4 h-4 text-[var(--color-primary-dark)] shrink-0 mt-0.5" />
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-semibold text-slate-800 text-sm">{r.name}</span>
+                                  <span className="font-semibold text-[var(--color-text)] text-sm">{r.name}</span>
                                   {r.type && (
                                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getTypeColor(r.type)}`}>
                                       {getTypeLabel(r.type)}
@@ -325,7 +333,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                                   )}
                                 </div>
                                 {r.address && (
-                                  <p className="text-xs text-slate-400 truncate mt-0.5" title={r.address}>{r.address}</p>
+                                  <p className="text-xs text-[var(--color-text-muted)] truncate mt-0.5" title={r.address}>{r.address}</p>
                                 )}
                               </div>
                             </div>
@@ -339,15 +347,15 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                                     aria-haspopup="listbox"
                                     aria-expanded={activeTripSelectIdx === idx}
                                     aria-label="Thêm vào chuyến đi"
-                                    className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white hover:border-[var(--color-primary-dark)] hover:bg-[var(--color-primary-lightest)] px-3 py-1.5 text-xs font-bold text-slate-700 transition"
+                                    className="flex items-center gap-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary-dark)] hover:bg-[var(--color-primary-lightest)] px-3 py-1.5 text-xs font-bold text-[var(--color-text)] transition"
                                   >
                                     <Icons.PlusIcon className="w-3.5 h-3.5 text-[var(--color-primary-dark)]" />
                                     <span>Lập lịch</span>
                                   </button>
 
                                   {activeTripSelectIdx === idx && (
-                                    <div className="absolute right-0 bottom-full mb-2 z-20 w-56 bg-white border border-slate-150 rounded-2xl shadow-xl p-2.5 animate-fadeIn">
-                                      <div className="text-xs font-bold text-slate-400 px-2.5 py-1.5 border-b border-slate-50 uppercase tracking-wider">Thêm vào chuyến đi</div>
+                                    <div className="absolute right-0 bottom-full mb-2 z-20 w-56 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-xl p-2.5 animate-fadeIn">
+                                      <div className="text-xs font-bold text-[var(--color-text-muted)] px-2.5 py-1.5 border-b border-[var(--color-border)] uppercase tracking-wider">Thêm vào chuyến đi</div>
                                       <div className="max-h-40 overflow-y-auto space-y-1 mt-1 pr-1 custom-scrollbar">
                                         {trips.length > 0 ? (
                                           trips.map(trip => (
@@ -355,27 +363,27 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                                               key={trip._id}
                                               onClick={() => handleAddPlaceToTrip(trip._id, r)}
                                               disabled={addingPlaceLoading}
-                                              className="w-full text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 px-2.5 py-2 rounded-xl truncate transition"
+                                              className="w-full text-left text-xs font-semibold text-[var(--color-text)] hover:bg-[var(--color-bg)] px-2.5 py-2 rounded-xl truncate transition"
                                             >
                                               {trip.title}
                                             </button>
                                           ))
                                         ) : (
-                                          <div className="text-xs text-slate-400 px-2.5 py-2">Bạn chưa có chuyến đi nào</div>
+                                          <div className="text-xs text-[var(--color-text-muted)] px-2.5 py-2">Bạn chưa có chuyến đi nào</div>
                                         )}
                                       </div>
                                     </div>
                                   )}
                                 </>
                               ) : (
-                                <span className="text-xs text-slate-400 font-medium">Không thể lập lịch</span>
+                                <span className="text-xs text-[var(--color-text-muted)] font-medium">Không thể lập lịch</span>
                               )}
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-xs text-slate-500 py-2">Không tìm thấy địa điểm nào.</div>
+                      <div className="text-xs text-[var(--color-text-muted)] py-2">Không tìm thấy địa điểm nào.</div>
                     )}
                   </div>
                 )}
@@ -392,23 +400,23 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
           aria-labelledby="confirm-clear-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
         >
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 id="confirm-clear-title" className="mb-2 text-base font-semibold text-slate-900">
+          <div className="w-full max-w-sm rounded-2xl bg-[var(--color-surface)] p-6 shadow-xl">
+            <h3 id="confirm-clear-title" className="mb-2 text-base font-semibold text-[var(--color-text)]">
               Xóa toàn bộ lịch sử?
             </h3>
-            <p className="mb-6 text-sm text-slate-500">
+            <p className="mb-6 text-sm text-[var(--color-text-muted)]">
               Hành động này không thể hoàn tác.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowClearConfirm(false)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]"
               >
                 Hủy
               </button>
               <button
                 onClick={handleConfirmClear}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                className="rounded-lg bg-[var(--color-danger)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
               >
                 Xóa tất cả
               </button>

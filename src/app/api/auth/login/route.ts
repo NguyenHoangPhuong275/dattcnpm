@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { authCookieName, signAuthToken } from '@/lib/auth';
-import { getDb, findUserByEmail } from '@/lib/mongodb';
+import { getDb, findUserByEmail } from '@/lib/db';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { loginSchema } from '@/lib/validations/auth';
 import { handleApiError, AppError } from '@/lib/api-response';

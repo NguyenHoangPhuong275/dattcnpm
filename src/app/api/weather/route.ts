@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { cacheGet, cacheSet } from '@/lib/redis';
+import { cacheGet, cacheSet } from '@/lib/db';
 import { getWeatherDescription } from '@/lib/weather';
 import { weatherSchema } from '@/lib/validations/place';
 import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-response';

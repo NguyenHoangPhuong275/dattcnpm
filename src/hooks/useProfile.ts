@@ -57,8 +57,8 @@ export interface UseProfileReturn {
     setPersonal: React.Dispatch<React.SetStateAction<PersonalInfo>>;
     setPreferences: React.Dispatch<React.SetStateAction<TravelPreferences>>;
     setIs2FAEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-    savePersonal: (e: React.FormEvent) => Promise<void>;
-    savePreferences: (e: React.FormEvent) => Promise<void>;
+    savePersonal: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }>;
+    savePreferences: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }>;
     toggle2FA: () => Promise<{ success: boolean; error?: string }>;
     updateAvatar: (url: string) => void;
   };
@@ -155,18 +155,12 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     setPersonal((prev) => ({ ...prev, avatarUrl: url }));
   }, []);
 
-  const savePersonal = useCallback(async (e: React.FormEvent): Promise<void> => {
+  const savePersonal = useCallback(async (e: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
     e.preventDefault();
-    if (!userId) throw new Error('No user');
+    if (!userId) return { success: false, error: 'No user' };
 
     setSavePersonalStatus('loading');
     const fullName = `${personal.firstName} ${personal.lastName}`.trim();
-
-    updateStoredUser((current) => ({
-      ...current,
-      fullName,
-      email: personal.email,
-    }));
 
     try {
       const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
@@ -192,18 +186,29 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
       if (!response.ok || !data.success) {
         setSavePersonalStatus('error');
-        throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
+        return { success: false, error: getApiErrorMessage(data, 'Lưu thất bại') };
       }
+
+      updateStoredUser((current) => ({
+        ...current,
+        fullName,
+        email: personal.email,
+      }));
+
       setSavePersonalStatus('success');
+      return { success: true };
     } catch (err) {
       setSavePersonalStatus('error');
-      throw err;
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Không thể lưu thông tin lúc này',
+      };
     }
   }, [userId, personal]);
 
-  const savePreferences = useCallback(async (e: React.FormEvent): Promise<void> => {
+  const savePreferences = useCallback(async (e: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
     e.preventDefault();
-    if (!userId) throw new Error('No user');
+    if (!userId) return { success: false, error: 'No user' };
 
     setSavePreferencesStatus('loading');
 
@@ -222,12 +227,16 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
 
       if (!response.ok || !data.success) {
         setSavePreferencesStatus('error');
-        throw new Error(getApiErrorMessage(data, 'Lưu thất bại'));
+        return { success: false, error: getApiErrorMessage(data, 'Lưu thất bại') };
       }
       setSavePreferencesStatus('success');
+      return { success: true };
     } catch (err) {
       setSavePreferencesStatus('error');
-      throw err;
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Không thể lưu sở thích lúc này',
+      };
     }
   }, [userId, preferences]);
 

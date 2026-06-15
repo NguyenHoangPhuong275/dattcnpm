@@ -9,7 +9,7 @@ import {
   searchLocalities,
   type Locality,
   type RegionName,
-} from '@/lib/localities';
+} from '@/data/localities';
 
 function LocalitySearch({
   query,
@@ -20,7 +20,7 @@ function LocalitySearch({
 }) {
   return (
     <form
-      className="mx-auto mt-7 flex h-[60px] max-w-[750px] items-center rounded-full border border-slate-200 bg-white px-4"
+      className="mx-auto mt-7 flex h-[60px] max-w-[750px] items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4"
       onSubmit={(event) => event.preventDefault()}
     >
       <input
@@ -78,7 +78,7 @@ function LocalityCard({ locality }: { locality: Locality }) {
   return (
     <Link
       href={`/local/${locality.slug}`}
-      className="group relative aspect-[1.05/1] overflow-hidden rounded-[18px] bg-slate-100 text-left transition-all hover:-translate-y-1"
+      className="group relative aspect-[1.05/1] overflow-hidden rounded-[18px] bg-[var(--color-primary-lightest)] text-left transition-all hover:-translate-y-1"
     >
       <Image
         src={locality.image}
@@ -100,7 +100,7 @@ function LocalityCard({ locality }: { locality: Locality }) {
 function LocalityGrid({ localities }: { localities: Locality[] }) {
   if (localities.length === 0) {
     return (
-      <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-slate-50 px-6 text-center text-sm text-[var(--color-text-muted)]">
+      <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg)] px-6 text-center text-sm text-[var(--color-text-muted)]">
         Không tìm thấy địa phương phù hợp trong khu vực này.
       </div>
     );

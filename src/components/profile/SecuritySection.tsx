@@ -12,10 +12,10 @@ interface SecuritySectionProps {
 const SecuritySection = memo(({ is2FAEnabled, onToggle2FA, onChangePassword, saving }: SecuritySectionProps) => (
   <div className="space-y-4">
 
-    <div className="flex items-center justify-between rounded-2xl border border-slate-100 px-5 py-4">
+    <div className="flex items-center justify-between rounded-2xl border border-[var(--color-border)] px-5 py-4">
       <div>
         <div className="font-semibold">Mật khẩu</div>
-        <div className="text-xs text-slate-500">Cập nhật mật khẩu định kỳ để bảo vệ tài khoản</div>
+        <div className="text-xs text-[var(--color-text-muted)]">Cập nhật mật khẩu định kỳ để bảo vệ tài khoản</div>
       </div>
       <button
         onClick={onChangePassword}
@@ -26,17 +26,17 @@ const SecuritySection = memo(({ is2FAEnabled, onToggle2FA, onChangePassword, sav
       </button>
     </div>
 
-    <div className="flex items-center justify-between rounded-2xl border border-slate-100 px-5 py-4">
+    <div className="flex items-center justify-between rounded-2xl border border-[var(--color-border)] px-5 py-4">
       <div>
         <div className="font-semibold">Xác thực hai lớp (2FA)</div>
-        <div className="text-xs text-slate-500">Bảo vệ tài khoản bằng mã OTP qua email</div>
+        <div className="text-xs text-[var(--color-text-muted)]">Bảo vệ tài khoản bằng mã OTP qua email</div>
       </div>
       <button
         type="button"
         onClick={onToggle2FA}
         disabled={saving}
         className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-          is2FAEnabled ? 'bg-[var(--color-primary-dark)]' : 'bg-slate-200'
+          is2FAEnabled ? 'bg-[var(--color-primary-dark)]' : 'bg-[var(--color-border-strong)]'
         }`}
         role="switch"
         aria-checked={is2FAEnabled}

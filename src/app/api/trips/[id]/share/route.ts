@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb } from '@/lib/mongodb';
+import { getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
@@ -16,7 +16,7 @@ interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-export async function POST(request: NextRequest, ctx: RouteContext) {
+export async function POST(request: NextRequest, ctx: RouteContext): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
   }
 }
 
-export async function DELETE(request: NextRequest, ctx: RouteContext) {
+export async function DELETE(request: NextRequest, ctx: RouteContext): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {

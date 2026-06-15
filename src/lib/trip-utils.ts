@@ -1,6 +1,9 @@
-import type { Trip } from '@/database/schema';
-import type { AppDatabase } from './mongodb';
-import { LOCALITIES } from './localities';
+import type { Trip, AppDatabase } from '@/lib/db';
+import { LOCALITIES } from '@/data/localities';
+
+
+import { normalizeVietnameseText } from './string';
+import { parseValidDate } from './date';
 
 const DEFAULT_TRIP_IMAGE = '/images/hanoi_temple.jpg';
 const DAY_MS = 86_400_000;
@@ -19,18 +22,7 @@ export interface TripDuration {
 }
 
 export function normalizeText(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .toLowerCase();
-}
-
-function parseValidDate(value: string | null | undefined): Date | null {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+  return normalizeVietnameseText(value);
 }
 
 function calculateDuration(startDate?: string | null, endDate?: string | null): TripDuration {

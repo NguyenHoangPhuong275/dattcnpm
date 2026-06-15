@@ -183,6 +183,7 @@ export function usePlaceSearch(): UsePlaceSearchReturn {
       setSearchResults([]);
       setSearchError(null);
       setSearchStatus('idle');
+      setIsDropdownOpen(false);
       return;
     }
 

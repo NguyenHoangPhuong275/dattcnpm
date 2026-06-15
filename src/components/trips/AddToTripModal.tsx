@@ -7,7 +7,7 @@ import { ROUTES } from '@/lib/constants';
 import CardSkeleton from '@/components/ui/CardSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import TripCard from '@/components/trip/TripCard';
+import TripCard from '@/components/trips/TripCard';
 
 interface AddToTripModalProps {
   isOpen: boolean;
@@ -65,18 +65,18 @@ export default function AddToTripModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl"
+        className="w-full max-w-lg rounded-lg bg-[var(--color-surface)] p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-4">
-          <h2 id="add-to-trip-title" className="text-xl font-bold text-slate-900">
+          <h2 id="add-to-trip-title" className="text-xl font-bold text-[var(--color-text)]">
             Thêm {placeName} vào lịch trình
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Đóng"
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-lg p-2 text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg)] hover:text-[var(--color-text-secondary)]"
           >
             <svg
               width="16"
@@ -95,7 +95,7 @@ export default function AddToTripModal({
         </div>
 
         {showSuccess && (
-          <div className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700" role="status">
+          <div className="mt-4 rounded-lg bg-[var(--color-success)]/10 px-4 py-3 text-sm font-semibold text-[var(--color-success)]" role="status">
             Đã thêm {placeName} vào chuyến đi.
           </div>
         )}
@@ -107,16 +107,24 @@ export default function AddToTripModal({
           </div>
         )}
 
-        {status === 'error' && errorMessage && (
-          <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" role="alert">
-            {errorMessage}
+        {status === 'error' && (
+          <div className="rounded-lg border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 p-4 text-sm text-[var(--color-danger)]">
+            <p className="font-medium">Không thể tải danh sách chuyến đi</p>
+            <p className="mt-1 text-[var(--color-danger)]/80">{errorMessage ?? 'Vui lòng thử lại sau.'}</p>
+            <button
+              type="button"
+              onClick={openModal}
+              className="mt-3 text-xs font-semibold text-[var(--color-danger)] underline underline-offset-2 hover:no-underline"
+            >
+              Thử lại
+            </button>
           </div>
         )}
 
         {status === 'ready' && trips.length === 0 && (
           <div className="mt-6">
             <EmptyState
-              title="Bạn chưa có chuyến đi nào."
+              title="Bạn chưa có chuyến đi nào"
               description="Tạo một lịch trình trước khi thêm địa điểm này."
             />
             <Link
@@ -129,11 +137,11 @@ export default function AddToTripModal({
           </div>
         )}
 
-        {(status === 'ready' || status === 'error') && trips.length > 0 && !showSuccess && (
+        {status === 'ready' && trips.length > 0 && !showSuccess && (
           <>
             <div className="mt-4">
-              <label className="mb-1 block text-sm font-semibold text-slate-700">Chọn chuyến đi</label>
-              <div className="max-h-80 space-y-2 overflow-auto rounded-lg border border-slate-200 p-2">
+              <label className="mb-1 block text-sm font-semibold text-[var(--color-text)]">Chọn chuyến đi</label>
+              <div className="max-h-80 space-y-2 overflow-auto rounded-lg border border-[var(--color-border)] p-2">
                 {trips.map((trip) => (
                   <TripCard
                     key={trip._id}
@@ -147,7 +155,7 @@ export default function AddToTripModal({
             </div>
 
             <div className="mt-4">
-              <label htmlFor="day" className="mb-1 block text-sm font-semibold text-slate-700">
+              <label htmlFor="day" className="mb-1 block text-sm font-semibold text-[var(--color-text)]">
                 Ngày thứ
               </label>
               <input
@@ -157,20 +165,17 @@ export default function AddToTripModal({
                 max={30}
                 value={selectedDay}
                 onChange={(event) => setSelectedDay(Math.max(1, Math.min(30, parseInt(event.target.value, 10) || 1)))}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm"
                 aria-label="Ngày trong lịch trình"
               />
             </div>
 
-            {errorMessage && status === 'error' && (
-              <div className="mt-3 text-sm text-red-600" role="alert">{errorMessage}</div>
-            )}
 
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50"
+                className="flex-1 rounded-lg border border-[var(--color-border)] py-2 text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]"
               >
                 Hủy
               </button>
@@ -192,7 +197,7 @@ export default function AddToTripModal({
         )}
 
         {status === 'submitting' && (
-          <div className="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-slate-600">
+          <div className="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-[var(--color-text-secondary)]">
             <LoadingSpinner size="sm" />
             Đang thêm địa điểm...
           </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getWeatherDescription } from '../lib/weather';
+import { getWeatherDescription } from '@/lib/weather';
 
 describe('getWeatherDescription', () => {
   it('returns correct description for known codes', () => {

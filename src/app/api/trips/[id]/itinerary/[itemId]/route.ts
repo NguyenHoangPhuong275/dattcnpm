@@ -1,21 +1,14 @@
 import { NextRequest } from 'next/server';
-import { getDb, createAuditLog } from '@/lib/mongodb';
+import { getDb, createAuditLog, type ItineraryItem } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
-import type { ItineraryItem } from '@/database/schema';
+import { parseValidDate } from '@/lib/date';
 
 type RouteCtx = {
   params: Promise<{ id: string; itemId: string }>;
 };
-
-function toDateOrNull(value: unknown): Date | null {
-  if (!value) return null;
-  const date = new Date(String(value));
-  if (Number.isNaN(date.getTime())) return null;
-  return date;
-}
 
 function toItemResponse(item: ItineraryItem): Record<string, unknown> {
   return {
@@ -108,11 +101,11 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     }
 
     if (body.startTime !== undefined) {
-      updates.startTime = toDateOrNull(body.startTime);
+      updates.startTime = parseValidDate(body.startTime);
     }
 
     if (body.endTime !== undefined) {
-      updates.endTime = toDateOrNull(body.endTime);
+      updates.endTime = parseValidDate(body.endTime);
     }
 
     if (body.cost !== undefined) {

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import AppHeader from '@/components/AppHeader';
 import ProfileToast from '@/components/profile/ProfileToast';
 import CreateTripModal from '@/components/profile/CreateTripModal';
-import TripCard from '@/components/trip/TripCard';
+import TripCard from '@/components/trips/TripCard';
 import { PlusIcon } from '@/components/icons';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -91,8 +91,18 @@ export default function MyTripsPage(): React.JSX.Element {
 
   if (userLoading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <LoadingSpinner size="lg" className="text-[var(--color-primary-dark)]" />
+      <div className="min-h-dvh bg-white font-sans text-slate-800">
+        <AppHeader active="profile" />
+        <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="h-9 w-64 animate-pulse rounded-lg bg-slate-200" />
+              <div className="mt-2 h-5 w-96 animate-pulse rounded-lg bg-slate-100" />
+            </div>
+            <div className="h-11 w-40 animate-pulse rounded-lg bg-slate-200" />
+          </div>
+          <PageSkeleton count={6} />
+        </main>
       </div>
     );
   }

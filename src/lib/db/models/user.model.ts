@@ -1,6 +1,6 @@
 import mongoose, { Schema, model, models, type Document, type Model, type Types } from 'mongoose';
 
-import type { User as PlainUser } from '@/database/schema';
+import type { User as PlainUser } from '../schema';
 import { COLLECTIONS, toPlain } from '../collections';
 
 export interface IUser extends Document {

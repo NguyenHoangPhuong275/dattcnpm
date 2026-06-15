@@ -29,3 +29,10 @@ export function getDefaultTripDates(days: number = DEFAULT_TRIP_LENGTH_DAYS, bas
     endDate: getDefaultEndDate(days, baseDate),
   };
 }
+
+export function parseValidDate(value: unknown): Date | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+

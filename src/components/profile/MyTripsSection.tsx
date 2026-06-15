@@ -5,7 +5,7 @@ import { PlusIcon } from '@/components/icons';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PageSkeleton from '@/components/ui/PageSkeleton';
-import TripCard from '@/components/trip/TripCard';
+import TripCard from '@/components/trips/TripCard';
 import type { TripSummary } from '@/types/profile';
 
 interface MyTripsSectionProps {

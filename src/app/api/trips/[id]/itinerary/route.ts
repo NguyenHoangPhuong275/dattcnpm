@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getDb, createAuditLog } from '@/lib/mongodb';
+import { getDb, createAuditLog } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { parseValidDate } from '@/lib/date';
 import type { Trip, ItineraryItem } from '@/types/trip';
 
 type RouteCtx = {
@@ -11,10 +12,7 @@ type RouteCtx = {
 };
 
 function toDateOrNull(value: unknown): Date | null {
-  if (!value) return null;
-  const date = new Date(String(value));
-  if (Number.isNaN(date.getTime())) return null;
-  return date;
+  return parseValidDate(value);
 }
 
 function toNumber(value: unknown, fallback: number): number {

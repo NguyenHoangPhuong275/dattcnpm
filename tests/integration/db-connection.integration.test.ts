@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getDb, disconnectMongo } from '@/lib/mongodb';
-import { connectRedis, disconnectRedis, cacheGet, cacheSet, rateLimitIncr } from '@/lib/redis';
+import { getDb, disconnectMongo, connectRedis, disconnectRedis, cacheGet, cacheSet, rateLimitIncr } from '@/lib/db';
 
 describe('Integration: MongoDB & Redis connection (real)', () => {
   beforeAll(async () => {
@@ -42,7 +41,7 @@ describe('Integration: MongoDB & Redis connection (real)', () => {
     const count2 = await rateLimitIncr('it-test:rl:key', 60);
     expect(count2).toBeGreaterThanOrEqual(count1);
 
-    const client = (await import('@/lib/redis')).getRedis();
+    const client = (await import('@/lib/db')).getRedis();
     await client.del(key);
     await client.del('it-test:rl:key');
   });

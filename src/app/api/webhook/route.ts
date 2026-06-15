@@ -7,9 +7,9 @@ import {
   hardResetDatabase,
   checkDatabaseConsistency,
   createAllCollections,
-  MANAGED_COLLECTIONS 
-} from '@/lib/mongodb';
-import { getRedis } from '@/lib/redis';
+  MANAGED_COLLECTIONS,
+  getRedis
+} from '@/lib/db';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 

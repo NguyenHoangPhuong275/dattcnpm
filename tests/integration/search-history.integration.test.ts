@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
-import { getDb, disconnectMongo } from '@/lib/mongodb';
+import { getDb, disconnectMongo } from '@/lib/db';
 import { POST as searchHistoryPOST, GET as searchHistoryGET, DELETE as searchHistoryDELETEAll } from '@/app/api/search-history/route';
 
 const TEST_USER = '507f1f77bcf86cd799439019';
 
 
-vi.mock('@/lib/mongodb', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/mongodb')>();
+vi.mock('@/lib/db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/db')>();
   return {
     ...actual,
     getUserById: vi.fn().mockImplementation(async (userId: string) => {

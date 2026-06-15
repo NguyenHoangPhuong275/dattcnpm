@@ -1,7 +1,7 @@
 import { jwtVerify, SignJWT } from 'jose';
 import { NextRequest } from 'next/server';
-import type { User as PlainUser } from '@/database/schema';
-import { getUserById } from './mongodb';
+import type { User as PlainUser } from '@/lib/db';
+import { getUserById } from '@/lib/db';
 
 const AUTH_COOKIE = 'auth_token';
 
@@ -84,7 +84,7 @@ export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | 
   const cacheKey = `user:full:${userId}`;
 
   try {
-    const { getRedis } = await import('./redis');
+    const { getRedis } = await import('@/lib/db');
     const redis = await getRedis();
     const cached = await redis.get(cacheKey);
     if (cached) {
@@ -107,7 +107,7 @@ export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | 
   };
 
   try {
-    const { getRedis } = await import('./redis');
+    const { getRedis } = await import('@/lib/db');
     const redis = await getRedis();
     await redis.set(cacheKey, JSON.stringify(result), 'EX', 30);
   } catch {

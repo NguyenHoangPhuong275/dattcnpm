@@ -5,6 +5,19 @@ import { apiRequest } from '@/lib/api-client';
 import { FavoritePlaceSummary } from '@/types/profile';
 import { RequestStatus } from '@/types/common';
 
+interface FavoritesPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+interface FavoritesApiResponse {
+  success?: boolean;
+  data?: FavoritePlaceSummary[];
+  pagination?: FavoritesPagination;
+}
+
 interface UseFavoritesOptions {
   userId: string | null;
 }
@@ -13,7 +26,7 @@ export interface UseFavoritesReturn {
   data: FavoritePlaceSummary[];
   status: RequestStatus;
   error: string | null;
-  pagination: { page: number; total: number; totalPages: number } | null;
+  pagination: FavoritesPagination | null;
   removingIds: Set<string>;
   actions: {
     loadFavorites: (uid?: string, page?: number) => Promise<void>;
@@ -26,7 +39,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
   const [favorites, setFavorites] = useState<FavoritePlaceSummary[]>([]);
   const [status, setStatus] = useState<RequestStatus>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<{ page: number; total: number; totalPages: number } | null>(null);
+  const [pagination, setPagination] = useState<FavoritesPagination | null>(null);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
   const loadFavorites = useCallback(async (uid?: string, page: number = 1): Promise<void> => {
@@ -36,10 +49,12 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
     setStatus('loading');
     setError(null);
     try {
-      const { response, data } = await apiRequest<{ success?: boolean; data?: FavoritePlaceSummary[]; pagination?: any }>(`/api/favorites?page=${page}`, { userId: id });
+      const { response, data } = await apiRequest<FavoritesApiResponse>(`/api/favorites?page=${page}`, { userId: id });
       if (response.ok && data.success && Array.isArray(data.data)) {
         setFavorites(data.data);
-        if (data.pagination) setPagination(data.pagination);
+        if (data.pagination && typeof data.pagination.total === 'number') {
+          setPagination(data.pagination);
+        }
         setStatus('success');
       } else {
         setStatus('error');

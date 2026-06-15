@@ -176,9 +176,15 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           </div>
 
           <div className="flex justify-end">
-            <a href="#" className="text-xs font-bold text-slate-700 hover:text-[var(--color-primary-darker)] hover:underline transition-colors cursor-pointer">
+            <button
+              type="button"
+              className="text-xs font-bold text-[var(--color-primary-darker)] hover:text-[var(--color-primary-dark)] transition-colors"
+              onClick={() => {
+                alert('Tính năng đặt lại mật khẩu sẽ sớm có. Vui lòng liên hệ hỗ trợ.');
+              }}
+            >
               Quên mật khẩu?
-            </a>
+            </button>
           </div>
 
           {errors.password && <p className="text-sm text-red-600 mt-1 pl-1">{errors.password}</p>}

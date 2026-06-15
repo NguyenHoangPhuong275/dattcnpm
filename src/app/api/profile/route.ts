@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
-import { updateUserProfile, type IUser } from '@/lib/mongodb';
-import { storeAvatar, getAvatar } from '@/lib/redis';
+import { updateUserProfile, type IUser, storeAvatar, getAvatar } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';

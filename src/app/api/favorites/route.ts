@@ -1,10 +1,9 @@
 import { NextRequest } from 'next/server';
-import { getDb } from '@/lib/mongodb';
+import { getDb, type FavoritePlace } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { createFavoriteSchema } from '@/lib/validations/favorite';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
-import type { FavoritePlace } from '@/database/schema';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
@@ -25,27 +24,32 @@ export async function GET(request: NextRequest): Promise<Response> {
     const sortedFavs = allFavs
       .sort((a, b) => {
         const da = new Date(a.createdAt ?? 0).getTime();
-        const dbDate = new Date(b.createdAt ?? 0).getTime();
-        return dbDate - da;
+        const dateB = new Date(b.createdAt ?? 0).getTime();
+        return dateB - da;
       });
 
     const total = sortedFavs.length;
     const items = sortedFavs.slice(skip, skip + limit);
 
-    const data = await Promise.all(
-      items.map(async (f: FavoritePlace) => {
-        const place = f.placeId ? await db.places.findById(f.placeId) : null;
-        return {
-          _id: f._id,
-          placeId: f.placeId || null,
-          name: place?.name || 'Địa điểm đã lưu',
-          type: place?.type || 'custom',
-          address: place?.address || '',
-          lat: place?.lat ?? 0,
-          lng: place?.lng ?? 0,
-        };
-      })
-    );
+    const placeIds = items
+      .map((f) => f.placeId)
+      .filter((id): id is string => Boolean(id));
+
+    const places = await db.places.find({ _id: { $in: placeIds } });
+    const placeMap = new Map(places.map((p: any) => [String(p._id), p]));
+
+    const data = items.map((f: FavoritePlace) => {
+      const place = f.placeId ? placeMap.get(String(f.placeId)) : null;
+      return {
+        _id: f._id,
+        placeId: f.placeId || null,
+        name: place?.name || 'Địa điểm đã lưu',
+        type: place?.type || 'custom',
+        address: place?.address || '',
+        lat: place?.lat ?? 0,
+        lng: place?.lng ?? 0,
+      };
+    });
 
     return sendSuccess({
       data,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectMongo, checkDatabaseConsistency } from '@/lib/mongodb';
+import { connectMongo, checkDatabaseConsistency } from '@/lib/db';
 import { debugGuard } from '@/lib/debug-guard';
 
 export async function GET(request: NextRequest) {

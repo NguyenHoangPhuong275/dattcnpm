@@ -1,6 +1,5 @@
 import { describe, beforeAll, afterAll, expect, it } from 'vitest';
-import { connectMongo, disconnectMongo, getDb } from '@/lib/mongodb';
-import { connectRedis, disconnectRedis } from '@/lib/redis';
+import { connectMongo, disconnectMongo, getDb, connectRedis, disconnectRedis } from '@/lib/db';
 import { GET as publicTripsGET } from '@/app/api/trips/public/route';
 import mongoose from 'mongoose';
 

@@ -1,3 +1,5 @@
+import { normalizeVietnameseText } from '@/lib/string';
+
 export const REGIONS = [
   'Đồng Bằng Sông Hồng',
   'Đông Bắc Bộ',
@@ -432,9 +434,5 @@ export const LOCALITY_DISCOVERY: StoryCard[] = [
 ];
 
 function normalizeLocalityQuery(value: string) {
-  return value
-    .trim()
-    .toLocaleLowerCase('vi-VN')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  return normalizeVietnameseText(value);
 }

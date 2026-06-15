@@ -31,7 +31,10 @@ export function useCurrentUser(
     const controller = new AbortController();
 
     apiRequest<BasicUser>('/api/profile/me', { signal: controller.signal })
-      .then(({ data }) => {
+      .then(({ response, data }) => {
+        if (!response.ok) {
+          throw new Error('API request failed');
+        }
         setUserState(data);
         setStoredUser(data);
         setStatus('success');

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { cacheGet, cacheSet } from '@/lib/redis';
+import { cacheGet, cacheSet } from '@/lib/db';
 import { sendSuccess, handleApiError } from '@/lib/api-response';
 import { placesPoiSchema } from '@/lib/validations/place';
 import { getTourismDestinationsByRegion } from '@/lib/vietnam-tourism';

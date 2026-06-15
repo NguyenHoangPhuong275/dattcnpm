@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb, createAuditLog } from '@/lib/mongodb';
+import { getDb, createAuditLog } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { updateTripSchema } from '@/lib/validations/trip';
 import { objectIdSchema } from '@/lib/validations/common';

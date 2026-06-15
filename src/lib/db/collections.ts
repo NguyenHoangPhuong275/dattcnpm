@@ -1,6 +1,6 @@
 import mongoose, { type Model } from 'mongoose';
 
-import type { MongoId } from '@/database/schema';
+import type { MongoId } from './schema';
 
 export const COLLECTIONS = {
   users: 'users',

@@ -1,7 +1,7 @@
 process.env.JWT_SECRET = 'test-only-secret-must-be-32-chars!!';
 
 import { describe, expect, it } from 'vitest';
-import { signAuthToken, verifyAuthToken } from './auth';
+import { signAuthToken, verifyAuthToken } from '@/lib/auth';
 
 describe('auth token helpers', () => {
   it('signs and verifies an auth token', async () => {
