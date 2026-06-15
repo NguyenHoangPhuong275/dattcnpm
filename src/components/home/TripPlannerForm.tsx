@@ -1,7 +1,7 @@
 'use client';
-
 import * as Icons from '@/components/icons';
 import type { SearchResult, UsePlaceSearchReturn } from '@/hooks/usePlaceSearch';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface TripPlannerFormProps {
   search: UsePlaceSearchReturn;
@@ -94,7 +94,7 @@ export default function TripPlannerForm({
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                 {isSearching ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-primary-darker)] border-t-transparent" />
+                  <LoadingSpinner size="sm" className="text-[var(--color-primary-darker)]" />
                 ) : selectedPlace ? (
                   <button
                     type="button"

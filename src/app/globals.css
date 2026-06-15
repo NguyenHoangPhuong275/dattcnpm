@@ -53,6 +53,14 @@ select {
   font-family: var(--font-sans);
 }
 
+
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
 body {
   color: var(--color-text);
   font-size: 1rem;
@@ -144,6 +152,157 @@ html {
 
   .app-surface {
     @apply rounded-3xl border border-[var(--color-border)] bg-white shadow-[0_10px_45px_rgba(0,0,0,0.06)];
+  }
+
+  .app-toast {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.25rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    animation: toast-bubble-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    max-width: min(340px, calc(100vw - 1.5rem));
+    pointer-events: auto;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-card);
+  }
+
+  .app-toast.toast-exiting {
+    animation: toast-bubble-out 0.22s ease-in forwards;
+  }
+
+  .app-toast-icon {
+    width: 1rem;
+    height: 1rem;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-toast-message {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .app-toast-close {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: 0.125rem;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    opacity: 0.55;
+    cursor: pointer;
+    transition: background-color 0.15s, opacity 0.15s;
+  }
+
+  .app-toast-close:hover {
+    background: rgba(15, 23, 42, 0.08);
+    opacity: 1;
+  }
+
+  .toast-success {
+    background: color-mix(in srgb, var(--color-success) 20%, var(--color-surface-hover));
+    border-color: color-mix(in srgb, var(--color-success) 56%, var(--color-border));
+    color: var(--color-text);
+  }
+  .toast-success .app-toast-icon {
+    color: color-mix(in srgb, var(--color-success) 72%, #166534);
+  }
+
+  .toast-error {
+    background: color-mix(in srgb, var(--color-danger) 18%, var(--color-surface-hover));
+    border-color: color-mix(in srgb, var(--color-danger) 54%, var(--color-border));
+    color: var(--color-text);
+  }
+  .toast-error .app-toast-icon {
+    color: color-mix(in srgb, var(--color-danger) 76%, #7f1d1d);
+  }
+
+  .toast-warning {
+    background: color-mix(in srgb, var(--color-warning) 20%, var(--color-surface-hover));
+    border-color: color-mix(in srgb, var(--color-warning) 58%, var(--color-border));
+    color: var(--color-text);
+  }
+  .toast-warning .app-toast-icon {
+    color: color-mix(in srgb, var(--color-warning) 74%, #92400e);
+  }
+
+  .toast-info {
+    background: color-mix(in srgb, var(--color-primary-light) 52%, var(--color-surface-hover));
+    border-color: color-mix(in srgb, var(--color-primary-dark) 42%, var(--color-border));
+    color: var(--color-text);
+  }
+  .toast-info .app-toast-icon {
+    color: var(--color-primary-darker);
+  }
+}
+
+@keyframes toast-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.85) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+}
+
+@keyframes toast-bubble-out {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.85) translateY(-12px);
+  }
+}
+
+@media (max-width: 640px) {
+  .app-toast {
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    transform: none !important;
+    max-width: none;
+    padding: 0.625rem 0.75rem;
+  }
+
+  @keyframes toast-bubble-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes toast-bubble-out {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+    }
   }
 }
 

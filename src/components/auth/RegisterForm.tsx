@@ -2,42 +2,90 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { ROUTES } from '@/lib/constants';
+import { setStoredUser } from '@/lib/user';
 import { registerSchema } from '@/lib/validations/auth';
+import type { ToastHandler } from '@/hooks/useToast';
+import type { BasicUser } from '@/types/profile';
+import OtpStep from './OtpStep';
+import SuccessStep from './SuccessStep';
 
 type Step = 'form' | 'otp' | 'success';
 
-interface RegisterFormProps {
-  onSuccess?: () => void;
+type SendOtpResponse = {
+  success?: boolean;
+  data?: {
+    maskedEmail?: string;
+  };
+  maskedEmail?: string;
+};
+
+type VerifyOtpResponse = {
+  success?: boolean;
+  user?: BasicUser;
+};
+
+type RegisterErrors = {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  agreeTerms?: string;
+  form?: string;
+  otp?: string;
+};
+
+type SendOtpErrorField = 'form' | 'otp';
+
+type SendOtpOptions = {
+  errorField: SendOtpErrorField;
+  failureFallback: string;
+  connectionMessage: string;
+  successMessage: string;
+  goToOtpStep?: boolean;
+};
+
+const AUTH_SUCCESS_TOAST_MS = 2600;
+const OTP_LENGTH = 6;
+
+function createEmptyOtpDigits(): string[] {
+  return Array.from({ length: OTP_LENGTH }, () => '');
 }
 
-export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+function getSendOtpError(field: SendOtpErrorField, message: string): RegisterErrors {
+  return field === 'form' ? { form: message } : { otp: message };
+}
+
+function requestSendOtp(email: string, fullName: string): Promise<{ response: Response; data: SendOtpResponse }> {
+  return apiRequest<SendOtpResponse>('/api/auth/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim(), fullName: fullName.trim() }),
+  });
+}
+
+interface RegisterFormProps {
+  onSuccess?: () => void;
+  onAuthenticated?: (user: BasicUser) => void;
+  onToast?: ToastHandler;
+}
+
+export default function RegisterForm({ onSuccess, onAuthenticated, onToast }: RegisterFormProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>('form');
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otpDigits, setOtpDigits] = useState(createEmptyOtpDigits);
   const [maskedEmail, setMaskedEmail] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const [errors, setErrors] = useState<{
-    fullName?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-    agreeTerms?: string;
-    form?: string;
-    otp?: string;
-  }>({});
+  const [errors, setErrors] = useState<RegisterErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -58,13 +106,12 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       fullName,
       email,
       password,
-      confirmPassword,
     });
 
     if (!result.success) {
-      const tempErrors: typeof errors = {};
+      const tempErrors: RegisterErrors = {};
       result.error.issues.forEach(err => {
-        const key = err.path[0] as keyof typeof errors;
+        const key = err.path[0] as keyof RegisterErrors;
         if (!tempErrors[key]) tempErrors[key] = err.message;
       });
       setErrors(tempErrors);
@@ -75,43 +122,60 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     return true;
   };
 
-  const handleSendOTP = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!validate()) return;
-
+  const sendOtp = useCallback(async ({
+    errorField,
+    failureFallback,
+    connectionMessage,
+    successMessage,
+    goToOtpStep = false,
+  }: SendOtpOptions): Promise<void> => {
     setIsLoading(true);
     setErrors({});
 
     try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), fullName: fullName.trim() }),
-      });
+      const { response, data } = await requestSendOtp(email, fullName);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrors({ form: getApiErrorMessage(data, 'Không thể gửi mã xác minh') });
+      if (!response.ok) {
+        const message = getApiErrorMessage(data, failureFallback);
+        setErrors(getSendOtpError(errorField, message));
+        onToast?.(message, 'error');
         return;
       }
 
-      setMaskedEmail(data.maskedEmail || email);
-      setStep('otp');
+      setMaskedEmail(data.data?.maskedEmail || data.maskedEmail || email);
+      if (goToOtpStep) setStep('otp');
       setResendCooldown(60);
-      setOtpDigits(['', '', '', '', '', '']);
+      setOtpDigits(createEmptyOtpDigits());
+      onToast?.(successMessage, 'info');
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch {
-      setErrors({ form: 'Lỗi kết nối, vui lòng thử lại sau' });
+      const message = connectionMessage;
+      setErrors(getSendOtpError(errorField, message));
+      onToast?.(message, 'error');
     } finally {
       setIsLoading(false);
     }
+  }, [email, fullName, onToast]);
+
+  const handleSendOTP = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!validate()) return;
+
+    await sendOtp({
+      errorField: 'form',
+      failureFallback: 'Không thể gửi mã xác minh',
+      connectionMessage: 'Lỗi kết nối, vui lòng thử lại sau',
+      successMessage: 'Mã xác minh đã được gửi đến email của bạn.',
+      goToOtpStep: true,
+    });
   };
 
   const handleVerifyOTP = useCallback(async (digits?: string[]) => {
     const code = (digits || otpDigits).join('');
     if (code.length !== 6) {
-      setErrors({ otp: 'Vui lòng nhập đủ 6 chữ số' });
+      const message = 'Vui lòng nhập đủ 6 chữ số';
+      setErrors({ otp: message });
+      onToast?.(message, 'warning');
       return;
     }
 
@@ -119,7 +183,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     setErrors({});
 
     try {
-      const res = await fetch('/api/auth/verify-otp', {
+      const { response, data } = await apiRequest<VerifyOtpResponse>('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,24 +194,35 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrors({ otp: getApiErrorMessage(data, 'Xác minh thất bại') });
-        if (res.status === 400) {
-          setOtpDigits(['', '', '', '', '', '']);
+      if (!response.ok) {
+        const message = getApiErrorMessage(data, 'Xác minh thất bại');
+        setErrors({ otp: message });
+        onToast?.(message, 'error');
+        if (response.status === 400) {
+          setOtpDigits(createEmptyOtpDigits());
           setTimeout(() => otpRefs.current[0]?.focus(), 100);
         }
         return;
       }
 
+      await onToast?.('Đăng ký thành công. Chào mừng bạn đến với LOTUS TRAVEL.', 'success', AUTH_SUCCESS_TOAST_MS);
+
+      if (data.user) {
+        if (onAuthenticated) {
+          onAuthenticated(data.user);
+        } else {
+          setStoredUser(data.user);
+        }
+      }
       setStep('success');
     } catch {
-      setErrors({ otp: 'Lỗi kết nối, vui lòng thử lại sau' });
+      const message = 'Lỗi kết nối, vui lòng thử lại sau';
+      setErrors({ otp: message });
+      onToast?.(message, 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [otpDigits, email, fullName, password]);
+  }, [otpDigits, email, fullName, password, onAuthenticated, onToast]);
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -194,31 +269,12 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
   const handleResendOTP = async () => {
     if (resendCooldown > 0) return;
 
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), fullName: fullName.trim() }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrors({ otp: getApiErrorMessage(data, 'Không thể gửi lại mã') });
-        return;
-      }
-
-      setResendCooldown(60);
-      setOtpDigits(['', '', '', '', '', '']);
-      setTimeout(() => otpRefs.current[0]?.focus(), 100);
-    } catch {
-      setErrors({ otp: 'Lỗi kết nối' });
-    } finally {
-      setIsLoading(false);
-    }
+    await sendOtp({
+      errorField: 'otp',
+      failureFallback: 'Không thể gửi lại mã',
+      connectionMessage: 'Lỗi kết nối',
+      successMessage: 'Mã xác minh mới đã được gửi.',
+    });
   };
 
   const closeOnSuccess = () => {
@@ -230,108 +286,33 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
   };
 
   if (step === 'success') {
-    return (
-      <div className="text-center py-4 space-y-3 flex-1 flex flex-col justify-center">
-        <div className="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-[var(--color-primary-lightest)] border border-[var(--color-primary)] text-slate-800">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h2 className="text-lg font-bold text-slate-900">Đăng ký thành công!</h2>
-        <p className="text-slate-600 text-sm">Email đã được xác minh. Chào mừng bạn gia nhập LOTUS TRAVEL.</p>
-        <div className="pt-1">
-          <button
-            onClick={closeOnSuccess}
-            className="inline-flex justify-center w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] focus:ring-offset-white transition-all cursor-pointer min-h-[44px] items-center"
-          >
-            Đóng
-          </button>
-        </div>
-      </div>
-    );
+    return <SuccessStep onClose={closeOnSuccess} />;
   }
 
   if (step === 'otp') {
     return (
-      <div className="space-y-5 flex-1 flex flex-col justify-between py-1">
-        <div className="space-y-4">
-          <button
-            type="button"
-            onClick={() => { setStep('form'); setErrors({}); }}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
-          >
-            ← Quay lại
-          </button>
-
-          <div className="text-center space-y-1.5">
-            <div className="mx-auto flex items-center justify-center h-11 w-11 rounded-full bg-[var(--color-primary-lightest)] border border-[var(--color-primary)]">
-              <svg className="h-5 w-5 text-[var(--color-primary-dark)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-bold text-slate-900">Xác minh email</h2>
-            <p className="text-xs text-slate-500">
-              Mã 6 số đã gửi đến <span className="font-semibold text-slate-700">{maskedEmail}</span>
-            </p>
-          </div>
-
-          {errors.otp && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm text-center">
-              {errors.otp}
-            </div>
-          )}
-
-          <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
-            {otpDigits.map((digit, i) => (
-              <input
-                key={i}
-                ref={(el) => { otpRefs.current[i] = el; }}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleOtpChange(i, e.target.value)}
-                onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                className={`w-11 h-13 text-center text-lg font-bold rounded-xl border-0 bg-white ring-1 ring-slate-200 text-slate-900 focus:outline-none transition-all cursor-text ${errors.otp ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
-                autoComplete="one-time-code"
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-4 mt-auto pt-4">
-          <button
-            type="button"
-            onClick={() => handleVerifyOTP()}
-            disabled={isLoading || otpDigits.some((d) => !d)}
-          className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all min-h-[44px] cursor-pointer flex items-center justify-center"
-          >
-            {isLoading ? 'Đang xác minh...' : 'XÁC MINH'}
-          </button>
-
-          <div className="text-center text-xs">
-            <span className="text-slate-500">Không nhận mã? </span>
-            {resendCooldown > 0 ? (
-              <span className="text-slate-400">Gửi lại sau {resendCooldown}s</span>
-            ) : (
-              <button
-                type="button"
-                onClick={handleResendOTP}
-                disabled={isLoading}
-                className="font-bold text-slate-700 hover:text-[var(--color-primary-darker)] hover:underline transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Gửi lại mã
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      <OtpStep
+        otpDigits={otpDigits}
+        maskedEmail={maskedEmail}
+        resendCooldown={resendCooldown}
+        isLoading={isLoading}
+        error={errors.otp}
+        otpRefs={otpRefs}
+        onVerify={handleVerifyOTP}
+        onResend={handleResendOTP}
+        onBack={() => {
+          setStep('form');
+          setErrors({});
+        }}
+        onOtpChange={handleOtpChange}
+        onOtpKeyDown={handleOtpKeyDown}
+        onOtpPaste={handleOtpPaste}
+      />
     );
   }
 
   return (
     <form className="flex-1 flex flex-col justify-between py-1" onSubmit={handleSendOTP} noValidate>
-
       <div className="space-y-5">
         {errors.form && (
           <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs flex items-start space-x-1.5">
@@ -341,7 +322,6 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             <span>{errors.form}</span>
           </div>
         )}
-
 
         <div className="space-y-1.5">
           <label htmlFor="fullName" className="block text-xs font-semibold text-slate-800">Họ và tên</label>
@@ -356,7 +336,6 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
           {errors.fullName && <p className="text-xs text-red-600 mt-0.5">{errors.fullName}</p>}
         </div>
 
-
         <div className="space-y-1.5">
           <label htmlFor="email" className="block text-xs font-semibold text-slate-800">Địa chỉ Email</label>
           <input
@@ -370,80 +349,42 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
           {errors.email && <p className="text-xs text-red-600 mt-0.5">{errors.email}</p>}
         </div>
 
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <label htmlFor="password" className="block text-xs font-semibold text-slate-800">Mật khẩu</label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
-                placeholder="••••••••"
-              />
-              {password.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors min-w-[40px] justify-center cursor-pointer"
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                      <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                      <line x1="2" x2="22" y1="2" y2="22" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
-                </button>
-              )}
-            </div>
-            {errors.password && <p className="text-xs text-red-600 mt-0.5">{errors.password}</p>}
+        <div className="space-y-1.5">
+          <label htmlFor="password" className="block text-xs font-semibold text-slate-800">Mật khẩu</label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+              placeholder="Tối thiểu 6 ký tự"
+            />
+            {password.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors min-w-[44px] justify-center cursor-pointer"
+              >
+                {showPassword ? (
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                    <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                    <line x1="2" x2="22" y1="2" y2="22" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
-          <div className="space-y-1.5">
-            <label htmlFor="confirmPassword" className="block text-xs font-semibold text-slate-800">Xác nhận</label>
-            <div className="relative">
-              <input
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.confirmPassword ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
-                placeholder="••••••••"
-              />
-              {confirmPassword.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors min-w-[40px] justify-center cursor-pointer"
-                >
-                  {showConfirmPassword ? (
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                      <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                      <line x1="2" x2="22" y1="2" y2="22" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
-                </button>
-              )}
-            </div>
-            {errors.confirmPassword && <p className="text-xs text-red-600 mt-0.5">{errors.confirmPassword}</p>}
-          </div>
+          {errors.password && <p className="text-xs text-red-600 mt-0.5">{errors.password}</p>}
         </div>
-
 
         <div className="flex items-start gap-2 text-xs py-0.5">
           <input
@@ -460,9 +401,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         {errors.agreeTerms && <p className="text-xs text-red-600 -mt-1">{errors.agreeTerms}</p>}
       </div>
 
-
       <div className="space-y-4 mt-auto pt-6">
-
         <button
           type="submit"
           disabled={isLoading}
@@ -486,4 +425,3 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     </form>
   );
 }
-

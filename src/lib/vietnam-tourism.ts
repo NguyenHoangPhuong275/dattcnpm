@@ -1,4 +1,5 @@
 import tourismDestinations from '@/data/vietnam-tourism-destinations.json';
+import { normalizeVietnameseText } from '@/lib/string';
 
 export type TourismDestination = {
   id: string;
@@ -98,12 +99,7 @@ const PROVINCE_ALIASES: Record<string, string> = {
 };
 
 export function normalizeTourismText(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .toLowerCase()
+  return normalizeVietnameseText(value)
     .replace(/\bviet nam\b/g, '')
     .replace(/\b(thanh pho|tp)\b\.?/g, '')
     .replace(/[^a-z0-9]+/g, ' ')

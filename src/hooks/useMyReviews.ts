@@ -40,7 +40,7 @@ export function useMyReviews({ userId }: UseMyReviewsOptions): UseMyReviewsRetur
       } else {
         setStatus('error');
       }
-    } catch (err) {
+    } catch {
       setError('Không thể tải danh sách đánh giá');
       setStatus('error');
     }

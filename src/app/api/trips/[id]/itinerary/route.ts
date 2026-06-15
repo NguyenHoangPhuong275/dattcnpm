@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
-import { getDb, createAuditLog } from '@/lib/db';
+import { createAuditLog, findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { parseValidDate } from '@/lib/date';
+import { toItineraryItemResponse } from '@/lib/trip-formatters';
 import type { Trip, ItineraryItem } from '@/types/trip';
 
 type RouteCtx = {
@@ -46,29 +47,6 @@ function assertTripDayIsSchedulable(trip: Trip, day: number): void {
   }
 }
 
-function toItemResponse(item: ItineraryItem): Record<string, unknown> {
-  return {
-    _id: item._id,
-    tripId: item.tripId,
-    placeId: item.placeId,
-    day: item.day,
-    orderIndex: item.orderIndex,
-    note: item.note ?? '',
-    startTime: item.startTime ? item.startTime.toISOString() : null,
-    endTime: item.endTime ? item.endTime.toISOString() : null,
-    cost: item.cost ?? null,
-    currency: item.currency ?? null,
-    createdAt: item.createdAt ? item.createdAt.toISOString() : '',
-  };
-}
-
-async function findOwnedTrip(tripId: string, userId: string): Promise<Trip | null> {
-  const db = await getDb();
-  const trip = (await db.trips.findById(tripId)) as Trip | null;
-  if (!trip || String(trip.userId) !== userId) return null;
-  return trip;
-}
-
 export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
@@ -92,7 +70,7 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
       return a.orderIndex - b.orderIndex;
     });
 
-    return sendSuccess(items.map((item) => toItemResponse(item)));
+    return sendSuccess(items.map((item) => toItineraryItemResponse(item)));
   } catch (error) {
     return handleApiError(error);
   }
@@ -167,7 +145,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
       console.error('Lỗi khi ghi audit log CREATE_ITINERARY_ITEM:', err);
     }
 
-    return sendSuccess(toItemResponse(created), 201);
+    return sendSuccess(toItineraryItemResponse(created), 201);
   } catch (error) {
     return handleApiError(error);
   }
@@ -237,7 +215,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     if (!updated) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
     }
-    return sendSuccess(toItemResponse(updated));
+    return sendSuccess(toItineraryItemResponse(updated));
   } catch (error) {
     return handleApiError(error);
   }

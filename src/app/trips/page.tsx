@@ -2,12 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import AppHeader from '@/components/AppHeader';
-import ProfileToast from '@/components/profile/ProfileToast';
+import AppToast from '@/components/ui/AppToast';
 import CreateTripModal from '@/components/profile/CreateTripModal';
 import TripCard from '@/components/trips/TripCard';
 import { PlusIcon } from '@/components/icons';
 import EmptyState from '@/components/ui/EmptyState';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PageSkeleton from '@/components/ui/PageSkeleton';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMyTrips } from '@/hooks/useMyTrips';
@@ -22,12 +21,12 @@ export default function MyTripsPage(): React.JSX.Element {
 
   const myTripsHook = useMyTrips({ userId: user?.id ?? null });
   const trips = myTripsHook.data;
-  const loading = myTripsHook.status === 'loading';
+  const loading = !!user?.id && (myTripsHook.status === 'idle' || myTripsHook.status === 'loading');
   const { createTrip, loadTrips } = myTripsHook.actions;
 
   const toast = useToast();
   const toastMessage = toast.data.message;
-  const showToastVisible = toast.status === 'visible';
+  const showToastVisible = toast.status !== 'idle';
   const { showToast } = toast.actions;
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -60,12 +59,12 @@ export default function MyTripsPage(): React.JSX.Element {
 
   const handleCreate = async (): Promise<void> => {
     if (!newTitle.trim() || !newDest.trim()) {
-      showToast('Vui lòng nhập tiêu đề và điểm đến');
+      showToast('Vui lòng nhập tiêu đề và điểm đến', 'warning');
       return;
     }
 
     if (endDate < startDate) {
-      showToast('Ngày kết thúc phải sau ngày bắt đầu');
+      showToast('Ngày kết thúc phải sau ngày bắt đầu', 'warning');
       return;
     }
 
@@ -82,10 +81,10 @@ export default function MyTripsPage(): React.JSX.Element {
 
     if (result.success) {
       closeCreateModal();
-      showToast('Chuyến đi mới đã được tạo');
+      showToast('Chuyến đi mới đã được tạo', 'success');
       loadTrips();
     } else {
-      showToast(result.message || 'Tạo chuyến đi thất bại');
+      showToast(result.message || 'Tạo chuyến đi thất bại', 'error');
     }
   };
 
@@ -109,7 +108,13 @@ export default function MyTripsPage(): React.JSX.Element {
 
   return (
     <div className="min-h-dvh bg-white font-sans text-slate-800">
-      <ProfileToast message={toastMessage} visible={showToastVisible} />
+      <AppToast
+        message={toastMessage}
+        type={toast.data.type}
+        visible={showToastVisible}
+        leaving={toast.status === 'hiding'}
+        onClose={toast.actions.hideToast}
+      />
       <AppHeader active="profile" />
 
       <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8">

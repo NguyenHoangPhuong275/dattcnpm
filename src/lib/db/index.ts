@@ -125,4 +125,5 @@ export * from './models/index';
 export * from './audit';
 export * from './maintenance';
 export * from './users';
+export * from './trips';
 export * from './redis';

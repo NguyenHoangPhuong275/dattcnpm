@@ -4,15 +4,26 @@ import Image from 'next/image';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
 import type { AuthMode } from '@/hooks/useAuthModal';
+import type { ToastHandler } from '@/hooks/useToast';
+import type { BasicUser } from '@/types/profile';
 
 interface AuthModalProps {
   authMode: AuthMode;
   isClosing: boolean;
   onClose: () => void;
   onModeChange: (mode: 'login' | 'register') => void;
+  onAuthenticated?: (user: BasicUser) => void;
+  onToast?: ToastHandler;
 }
 
-export default function AuthModal({ authMode, isClosing, onClose, onModeChange }: AuthModalProps): React.JSX.Element | null {
+export default function AuthModal({
+  authMode,
+  isClosing,
+  onClose,
+  onModeChange,
+  onAuthenticated,
+  onToast,
+}: AuthModalProps): React.JSX.Element | null {
   if (!authMode) return null;
 
   return (
@@ -56,9 +67,9 @@ export default function AuthModal({ authMode, isClosing, onClose, onModeChange }
 
             <div className="flex flex-1 flex-col pr-1">
               {authMode === 'login' ? (
-                <LoginForm onSuccess={onClose} />
+                <LoginForm onSuccess={onClose} onAuthenticated={onAuthenticated} onToast={onToast} />
               ) : (
-                <RegisterForm onSuccess={onClose} />
+                <RegisterForm onSuccess={onClose} onAuthenticated={onAuthenticated} onToast={onToast} />
               )}
             </div>
 

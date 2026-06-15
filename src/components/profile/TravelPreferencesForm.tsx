@@ -1,6 +1,7 @@
 'use client';
 
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
+import { useFormSubmitError } from '@/hooks/useFormSubmitError';
 
 export interface TravelPreferences {
   travelStyles: string[];
@@ -24,20 +25,7 @@ const TravelPreferencesForm = memo(({
   onSave,
   saving
 }: TravelPreferencesFormProps) => {
-  const [formError, setFormError] = useState<string | null>(null);
-
-  const handleSubmit = async (event: React.FormEvent): Promise<void> => {
-    event.preventDefault();
-    setFormError(null);
-    try {
-      const result = await onSave(event);
-      if (result && !result.success && result.error) {
-        setFormError(result.error);
-      }
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Không thể lưu sở thích lúc này');
-    }
-  };
+  const { formError, handleSubmit } = useFormSubmitError(onSave, 'Không thể lưu sở thích lúc này');
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">

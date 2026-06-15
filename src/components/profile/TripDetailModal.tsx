@@ -3,8 +3,10 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import type { z } from 'zod';
 import { createItineraryItemSchema } from '@/lib/validations/trip';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { formatDateInputValue } from '@/lib/date';
 import { TripSummary } from '@/types/profile';
 import EmptyState from '@/components/ui/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface TripDetailModalProps {
   trip: TripSummary | null;
@@ -29,6 +31,7 @@ type ItineraryDraft = Omit<ItineraryItemInput, 'day' | 'orderIndex' | 'cost'> & 
   day: number | '';
   orderIndex: number | '';
   cost: string;
+  currency: string;
 };
 
 type TripEditDraft = {
@@ -54,13 +57,6 @@ const emptyDraft: ItineraryDraft = {
   cost: '',
   currency: 'VND',
 };
-
-function toDateInput(value?: string): string {
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toISOString().split('T')[0];
-}
 
 export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }: TripDetailModalProps): React.JSX.Element | null {
   const [items, setItems] = useState<ItineraryItem[]>([]);
@@ -207,8 +203,8 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setTripDraft({
       title: trip.title,
       destination: trip.destination,
-      startDate: toDateInput(trip.startDate),
-      endDate: toDateInput(trip.endDate),
+      startDate: formatDateInputValue(trip.startDate, { timeZone: 'utc' }),
+      endDate: formatDateInputValue(trip.endDate, { timeZone: 'utc' }),
       isPublic: trip.isPublic,
       description: '',
     });
@@ -394,8 +390,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             <div className="font-semibold text-sm text-[var(--color-text)]">Lịch trình</div>
             {loading && (
               <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
-                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2
-                  border-[var(--color-primary-dark)] border-t-transparent" />
+                <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />
                 Đang tải...
               </div>
             )}

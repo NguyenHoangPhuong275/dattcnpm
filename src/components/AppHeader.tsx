@@ -34,11 +34,12 @@ export default function AppHeader({
   onSearchSubmit,
   onAuthClick,
 }: AppHeaderProps): React.JSX.Element {
-  const { data: user } = useCurrentUser({ redirectIfNone: false });
+  const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: false });
   const pathname = usePathname();
   const [localSearch, setLocalSearch] = useState('');
   const currentSearch = searchValue ?? localSearch;
   const isLocalDetailPage = pathname.startsWith(`${ROUTES.local}/`);
+  const userLoading = userStatus === 'loading';
 
   const setSearch = (value: string): void => {
     if (onSearchChange) {
@@ -110,7 +111,9 @@ export default function AppHeader({
             </form>
           )}
 
-          {user ? (
+          {userLoading ? (
+            <div className="h-10 w-24 animate-pulse rounded-full bg-[var(--color-bg)]" aria-hidden="true" />
+          ) : user ? (
             <UserDropdown user={user} />
           ) : (
             <>

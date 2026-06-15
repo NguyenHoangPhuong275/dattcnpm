@@ -1,11 +1,4 @@
-export {
-  authCookieName,
-  getAuthUserFull,
-  getAuthUserId,
-  type AuthUser,
-  signAuthToken,
-  verifyAuthToken,
-} from './auth';
+export type { AuthUser } from './auth';
 
 export {
   getApiErrorMessage,
@@ -18,6 +11,7 @@ export {
 export {
   clearStoredUser,
   getStoredUser,
+  hasAuthCookie,
   setStoredUser,
   updateStoredUser,
 } from './user';

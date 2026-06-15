@@ -1,6 +1,6 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface PasswordChangeModalProps {
   open: boolean;
@@ -118,11 +118,7 @@ export default function PasswordChangeModal({
           >
             {saving ? (
               <>
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25"/>
-                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round"/>
-                </svg>
+                <LoadingSpinner size="sm" />
                 Đang lưu...
               </>
             ) : 'Đổi mật khẩu'}

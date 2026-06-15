@@ -1,17 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { setStoredUser } from '@/lib/user';
 import { loginSchema } from '@/lib/validations/auth';
 import { ROUTES } from '@/lib/constants';
+import type { ToastHandler } from '@/hooks/useToast';
+import type { BasicUser } from '@/types/profile';
+
+type LoginResponse = {
+  success?: boolean;
+  user?: BasicUser;
+};
+
+const AUTH_SUCCESS_TOAST_MS = 2600;
 
 interface LoginFormProps {
   onSuccess?: () => void;
+  onAuthenticated?: (user: BasicUser) => void;
+  onToast?: ToastHandler;
 }
 
-export default function LoginForm({ onSuccess }: LoginFormProps) {
+export default function LoginForm({ onSuccess, onAuthenticated, onToast }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,21 +30,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  useEffect(() => {
-    if (!isSuccess) return;
-
-    const timer = setTimeout(() => {
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        router.push(ROUTES.profile);
-      }
-    }, 1200);
-
-    return () => clearTimeout(timer);
-  }, [isSuccess, router, onSuccess]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,12 +41,10 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
     if (!result.success) {
       const fieldErrors = result.error.flatten().fieldErrors;
-
       setErrors({
         email: fieldErrors.email?.[0],
         password: fieldErrors.password?.[0],
       });
-
       return;
     }
 
@@ -58,41 +52,44 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     setErrors({});
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const { response, data } = await apiRequest<LoginResponse>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: result.data.email, password: result.data.password }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrors({ form: getApiErrorMessage(data, 'Email hoặc mật khẩu không chính xác') });
+      if (!response.ok) {
+        const message = getApiErrorMessage(data, 'Mật khẩu hoặc email không đúng, vui lòng thử lại');
+        setErrors({ form: message });
+        onToast?.(message, 'error');
         return;
       }
 
-      setIsSuccess(true);
-      setStoredUser(data.user);
+      if (!data.user) {
+        throw new Error('Missing authenticated user');
+      }
+
+      await onToast?.('Đăng nhập thành công, đang chuyển hướng...', 'success', AUTH_SUCCESS_TOAST_MS);
+
+      if (onAuthenticated) {
+        onAuthenticated(data.user);
+      } else {
+        setStoredUser(data.user);
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.replace(ROUTES.profile);
+      }
     } catch {
-      setErrors({ form: 'Lỗi kết nối, vui lòng thử lại sau' });
+      const message = 'Lỗi kết nối, vui lòng thử lại sau';
+      setErrors({ form: message });
+      onToast?.(message, 'error');
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (isSuccess) {
-    return (
-      <div className="text-center py-6 space-y-4 flex-1 flex flex-col justify-center">
-        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-slate-50 border border-slate-100">
-          <svg className="h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-bold text-slate-900">Đăng nhập thành công!</h2>
-        <p className="text-slate-600 text-sm">Đang chuyển hướng đến hồ sơ của bạn...</p>
-      </div>
-    );
-  }
 
   return (
     <form className="flex-1 flex flex-col justify-between py-1" onSubmit={handleSubmit} noValidate>
@@ -105,7 +102,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             <span>{errors.form}</span>
           </div>
         )}
-
 
         <div className="space-y-2">
           <label htmlFor="email" className="block text-sm font-semibold text-slate-800">
@@ -131,7 +127,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           {errors.email && <p className="text-sm text-red-600 mt-1 pl-1">{errors.email}</p>}
         </div>
 
-
         <div className="space-y-1.5">
           <label htmlFor="password" className="block text-sm font-semibold text-slate-800">
             Mật khẩu
@@ -156,6 +151,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors min-w-[44px] justify-center cursor-pointer"
               >
                 {showPassword ? (
@@ -180,7 +176,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
               type="button"
               className="text-xs font-bold text-[var(--color-primary-darker)] hover:text-[var(--color-primary-dark)] transition-colors"
               onClick={() => {
-                alert('Tính năng đặt lại mật khẩu sẽ sớm có. Vui lòng liên hệ hỗ trợ.');
+                onToast?.('Tính năng đặt lại mật khẩu sẽ sớm có. Vui lòng liên hệ hỗ trợ.', 'info');
               }}
             >
               Quên mật khẩu?
@@ -191,9 +187,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
       </div>
 
-
       <div className="space-y-4 mt-auto pt-7">
-
         <button
           type="submit"
           disabled={isLoading}
@@ -236,4 +230,3 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     </form>
   );
 }
-

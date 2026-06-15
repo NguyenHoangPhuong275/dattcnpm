@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { PersonalInfo, TravelPreferences } from '@/types/profile';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { updateStoredUser } from '@/lib/user';
+import { formatDateInputValue } from '@/lib/date';
 import { RequestStatus } from '@/types/common';
 
 interface UseProfileOptions {
@@ -32,14 +33,114 @@ type ProfileApiData = {
   twoFactorEnabled?: boolean | null;
 };
 
-function toBirthdayInput(value?: string | null): string {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+type ProfileFormData = {
+  personal: PersonalInfo;
+  preferences: TravelPreferences;
+  memberSince: string;
+  is2FAEnabled: boolean;
+};
+
+type ProfileCacheEntry = ProfileFormData & {
+  fetchedAt: number;
+};
+
+const PROFILE_CACHE_TTL_MS = 60_000;
+const profileCache = new Map<string, ProfileCacheEntry>();
+const profileRequests = new Map<string, Promise<ProfileFormData>>();
+
+const DEFAULT_PROFILE: ProfileFormData = {
+  personal: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  },
+  preferences: {
+    travelStyles: [],
+    interests: [],
+    budgetLevel: 'Trung bình',
+    preferredDestinations: [],
+  },
+  memberSince: '',
+  is2FAEnabled: false,
+};
+
+function cloneProfileData(data: ProfileFormData): ProfileFormData {
+  return {
+    personal: { ...data.personal },
+    preferences: {
+      travelStyles: [...data.preferences.travelStyles],
+      interests: [...data.preferences.interests],
+      budgetLevel: data.preferences.budgetLevel,
+      preferredDestinations: [...data.preferences.preferredDestinations],
+    },
+    memberSince: data.memberSince,
+    is2FAEnabled: data.is2FAEnabled,
+  };
+}
+
+function normalizeProfile(profile: ProfileApiData): ProfileFormData {
+  const names = profile.fullName ? profile.fullName.trim().split(/\s+/) : [];
+
+  return {
+    personal: {
+      firstName: names[0] || '',
+      lastName: names.slice(1).join(' ') || '',
+      email: profile.email || '',
+      phone: profile.phone || '',
+      dateOfBirth: formatDateInputValue(profile.dateOfBirth),
+      gender: profile.gender || '',
+      nationality: profile.nationality || 'Việt Nam',
+      preferredLanguage: profile.preferredLanguage || 'Tiếng Việt',
+      homeCity: profile.homeCity || '',
+      emergencyContactName: profile.emergencyContact?.name || '',
+      emergencyContactPhone: profile.emergencyContact?.phone || '',
+      avatarUrl: profile.avatarUrl || '',
+    },
+    preferences: {
+      travelStyles: profile.travelStyles || [],
+      interests: profile.interests || [],
+      budgetLevel: profile.budgetLevel || 'Trung bình',
+      preferredDestinations: profile.preferredDestinations || [],
+    },
+    memberSince: profile.createdAt || '',
+    is2FAEnabled: !!profile.twoFactorEnabled,
+  };
+}
+
+function readProfileCache(userId: string): ProfileCacheEntry | null {
+  return profileCache.get(userId) ?? null;
+}
+
+function writeProfileCache(userId: string, data: ProfileFormData): void {
+  profileCache.set(userId, {
+    ...cloneProfileData(data),
+    fetchedAt: Date.now(),
+  });
+}
+
+function isProfileCacheFresh(entry: ProfileCacheEntry): boolean {
+  return Date.now() - entry.fetchedAt < PROFILE_CACHE_TTL_MS;
+}
+
+function requestProfile(userId: string): Promise<ProfileFormData> {
+  let request = profileRequests.get(userId);
+  if (!request) {
+    request = apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', { userId })
+      .then(({ response, data }) => {
+        if (response.ok && data.success && data.profile) {
+          return normalizeProfile(data.profile);
+        }
+
+        throw new Error(getApiErrorMessage(data, 'Không thể tải thông tin hồ sơ'));
+      })
+      .finally(() => {
+        profileRequests.delete(userId);
+      });
+    profileRequests.set(userId, request);
+  }
+
+  return request;
 }
 
 export interface UseProfileReturn {
@@ -65,23 +166,11 @@ export interface UseProfileReturn {
 }
 
 export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
-  const [personal, setPersonal] = useState<PersonalInfo>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-  });
-
-  const [preferences, setPreferences] = useState<TravelPreferences>({
-    travelStyles: [],
-    interests: [],
-    budgetLevel: 'Trung bình',
-    preferredDestinations: [],
-  });
-
+  const [personal, setPersonal] = useState<PersonalInfo>(() => cloneProfileData(DEFAULT_PROFILE).personal);
+  const [preferences, setPreferences] = useState<TravelPreferences>(() => cloneProfileData(DEFAULT_PROFILE).preferences);
   const [memberSince, setMemberSince] = useState('');
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [status, setStatus] = useState<RequestStatus>('loading');
+  const [status, setStatus] = useState<RequestStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [savePersonalStatus, setSavePersonalStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [savePreferencesStatus, setSavePreferencesStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -89,67 +178,68 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
   const savingPersonal = savePersonalStatus === 'loading';
   const savingPreferences = savePreferencesStatus === 'loading';
 
+  const applyProfileData = useCallback((data: ProfileFormData): void => {
+    const nextData = cloneProfileData(data);
+    setPersonal(nextData.personal);
+    setPreferences(nextData.preferences);
+    setMemberSince(nextData.memberSince);
+    setIs2FAEnabled(nextData.is2FAEnabled);
+  }, []);
+
   useEffect(() => {
     if (!userId) {
       setStatus('idle');
       return;
     }
 
-    const controller = new AbortController();
+    let active = true;
+    const cached = readProfileCache(userId);
 
-    const load = async (): Promise<void> => {
+    if (cached) {
+      applyProfileData(cached);
+      setStatus('success');
+      setError(null);
+      if (isProfileCacheFresh(cached)) return;
+    } else {
       setStatus('loading');
       setError(null);
-      try {
-        const { response, data } = await apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', {
-          userId,
-          signal: controller.signal,
-        });
+    }
 
-        if (response.ok && data.success && data.profile) {
-          const profile = data.profile;
-          const names = profile.fullName ? profile.fullName.trim().split(/\s+/) : [];
-
-          setPersonal({
-            firstName: names[0] || '',
-            lastName: names.slice(1).join(' ') || '',
-            email: profile.email || '',
-            phone: profile.phone || '',
-            dateOfBirth: toBirthdayInput(profile.dateOfBirth),
-            gender: profile.gender || '',
-            nationality: profile.nationality || 'Việt Nam',
-            preferredLanguage: profile.preferredLanguage || 'Tiếng Việt',
-            homeCity: profile.homeCity || '',
-            emergencyContactName: profile.emergencyContact?.name || '',
-            emergencyContactPhone: profile.emergencyContact?.phone || '',
-            avatarUrl: profile.avatarUrl || '',
-          });
-
-          setPreferences({
-            travelStyles: profile.travelStyles || [],
-            interests: profile.interests || [],
-            budgetLevel: profile.budgetLevel || 'Trung bình',
-            preferredDestinations: profile.preferredDestinations || [],
-          });
-          setMemberSince(profile.createdAt || '');
-          setIs2FAEnabled(!!profile.twoFactorEnabled);
+    requestProfile(userId)
+      .then((data) => {
+        if (!active) return;
+        writeProfileCache(userId, data);
+        applyProfileData(data);
+        setStatus('success');
+        setError(null);
+      })
+      .catch((errorValue) => {
+        if (!active) return;
+        if (cached) {
           setStatus('success');
-        } else {
-          setStatus('error');
+          setError(null);
+          return;
         }
-      } catch (errorValue) {
-        if (errorValue instanceof Error && errorValue.name === 'AbortError') return;
-        setError('Không thể tải thông tin hồ sơ');
-        setStatus('error');
-      }
-    };
 
-    load();
+        setError(getApiErrorMessage(errorValue, 'Không thể tải thông tin hồ sơ'));
+        setStatus('error');
+      });
 
     return () => {
-      controller.abort();
+      active = false;
     };
-  }, [userId]);
+  }, [applyProfileData, userId]);
+
+  const updateProfileCache = useCallback((nextProfile: Partial<ProfileFormData>): void => {
+    if (!userId) return;
+    writeProfileCache(userId, {
+      personal,
+      preferences,
+      memberSince,
+      is2FAEnabled,
+      ...nextProfile,
+    });
+  }, [is2FAEnabled, memberSince, personal, preferences, userId]);
 
   const updateAvatar = useCallback((url: string): void => {
     setPersonal((prev) => ({ ...prev, avatarUrl: url }));
@@ -194,6 +284,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         fullName,
         email: personal.email,
       }));
+      updateProfileCache({ personal });
 
       setSavePersonalStatus('success');
       return { success: true };
@@ -204,7 +295,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         error: err instanceof Error ? err.message : 'Không thể lưu thông tin lúc này',
       };
     }
-  }, [userId, personal]);
+  }, [personal, updateProfileCache, userId]);
 
   const savePreferences = useCallback(async (e: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
     e.preventDefault();
@@ -229,6 +320,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         setSavePreferencesStatus('error');
         return { success: false, error: getApiErrorMessage(data, 'Lưu thất bại') };
       }
+      updateProfileCache({ preferences });
       setSavePreferencesStatus('success');
       return { success: true };
     } catch (err) {
@@ -238,7 +330,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         error: err instanceof Error ? err.message : 'Không thể lưu sở thích lúc này',
       };
     }
-  }, [userId, preferences]);
+  }, [preferences, updateProfileCache, userId]);
 
   const toggle2FA = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     if (!userId) return { success: false, error: 'No user' };
@@ -258,6 +350,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         setIs2FAEnabled(!nextValue);
         return { success: false, error: getApiErrorMessage(data, 'Cập nhật 2FA thất bại') };
       }
+      updateProfileCache({ is2FAEnabled: nextValue });
       return { success: true };
     } catch (errorValue) {
       setIs2FAEnabled(!nextValue);
@@ -266,7 +359,7 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
         error: errorValue instanceof Error ? errorValue.message : 'Không thể thay đổi cài đặt 2FA',
       };
     }
-  }, [userId, is2FAEnabled]);
+  }, [is2FAEnabled, updateProfileCache, userId]);
 
   return {
     data: {

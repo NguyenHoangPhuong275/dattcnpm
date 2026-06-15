@@ -19,6 +19,26 @@ const updateReviewSchema = z.object({
   message: 'Không có trường hợp lệ để cập nhật',
 });
 
+type AppDb = Awaited<ReturnType<typeof getDb>>;
+
+async function findOwnedReviewOrThrow(
+  db: AppDb,
+  reviewId: string,
+  userId: string,
+  forbiddenMessage: string
+) {
+  const review = await db.reviews.findById(reviewId);
+  if (!review || review.deletedAt) {
+    throw new AppError('NOT_FOUND', 'Không tìm thấy đánh giá', 404);
+  }
+
+  if (String(review.userId) !== userId) {
+    throw new AppError('FORBIDDEN', forbiddenMessage, 403);
+  }
+
+  return review;
+}
+
 export async function PATCH(request: NextRequest, ctx: RouteCtx) {
   try {
     const user = await getAuthUserFull(request);
@@ -40,14 +60,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
     }
 
     const db = await getDb();
-    const review = await db.reviews.findById(id);
-    if (!review || review.deletedAt) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy đánh giá', 404);
-    }
-
-    if (String(review.userId) !== userId) {
-      throw new AppError('FORBIDDEN', 'Bạn không có quyền sửa đánh giá này', 403);
-    }
+    const review = await findOwnedReviewOrThrow(db, id, userId, 'Bạn không có quyền sửa đánh giá này');
 
     const body = await request.json().catch(() => ({}));
     const parsed = updateReviewSchema.parse(body);
@@ -98,14 +111,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     }
 
     const db = await getDb();
-    const review = await db.reviews.findById(id);
-    if (!review || review.deletedAt) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy đánh giá', 404);
-    }
-
-    if (String(review.userId) !== userId) {
-      throw new AppError('FORBIDDEN', 'Bạn không có quyền xóa đánh giá này', 403);
-    }
+    const review = await findOwnedReviewOrThrow(db, id, userId, 'Bạn không có quyền xóa đánh giá này');
 
     
     await db.reviews.updateOne(id, { $set: { deletedAt: new Date() } });

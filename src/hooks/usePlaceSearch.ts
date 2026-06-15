@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { getApiErrorMessage } from '@/lib/api-client';
+import { getApiErrorMessage, isAbortError } from '@/lib/api-client';
 
 export type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -46,10 +46,6 @@ const MIN_QUERY_LENGTH = 2;
 const SEARCH_DEBOUNCE_MS = 350;
 const EMPTY_RESULTS_MESSAGE = 'Không tìm thấy địa điểm phù hợp. Thử từ khóa khác, ví dụ: Hà Nội, Đà Lạt, Hội An.';
 const CONNECTION_ERROR_MESSAGE = 'Lỗi kết nối. Vui lòng thử lại.';
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof Error && error.name === 'AbortError';
-}
 
 function getResultsFromResponse(json: PlacesSearchResponse): SearchResult[] {
   const payload = json.data || json;

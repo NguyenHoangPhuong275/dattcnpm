@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import type { KeyboardEvent, MouseEvent } from 'react';
 import { CalendarIcon, TrashIcon } from '@/components/icons';
 import { formatDateRange, getTripCities, getTripImage } from '@/lib/trip-utils';
 import type { TripSummary } from '@/types/profile';

@@ -12,6 +12,21 @@ function toLocalIsoDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+export function formatDateInputValue(
+  value?: string | null,
+  options: { timeZone?: 'local' | 'utc' } = {}
+): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  if (options.timeZone === 'utc') {
+    return formatUtcDateOnly(value, value);
+  }
+
+  return toLocalIsoDate(date);
+}
+
 export function getDefaultStartDate(baseDate: Date = new Date()): string {
   return toLocalIsoDate(baseDate);
 }
@@ -36,3 +51,26 @@ export function parseValidDate(value: unknown): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+export function formatUtcDateOnly(
+  value: unknown,
+  fallback = '',
+  onError?: (error: unknown) => void
+): string {
+  try {
+    const date = parseValidDate(value);
+    return date ? date.toISOString().split('T')[0] : fallback;
+  } catch (error) {
+    onError?.(error);
+    return fallback;
+  }
+}
+
+export function formatDate(value?: string | Date | null): string {
+  const date = parseValidDate(value);
+  if (!date) return '—';
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}

@@ -17,6 +17,10 @@ export function getApiErrorMessage(payload: unknown, fallback: string): string {
   return fallback;
 }
 
+export function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
 export async function readJson<T = unknown>(response: Response): Promise<T> {
   return response.json().catch(() => ({} as T));
 }

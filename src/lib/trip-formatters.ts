@@ -1,4 +1,5 @@
 import type { TripSummary } from '@/types/profile';
+import type { ItineraryItem } from '@/types/trip';
 
 export interface TripsPagination {
   page?: number;
@@ -71,4 +72,29 @@ export function extractTripsPagination(payload: TripsListResponse | unknown): Tr
   }
 
   return null;
+}
+
+export function toItineraryItemResponse(
+  item: ItineraryItem,
+  options: { includeUpdatedAt?: boolean } = {}
+): Record<string, unknown> {
+  const response: Record<string, unknown> = {
+    _id: item._id,
+    tripId: item.tripId,
+    placeId: item.placeId,
+    day: item.day,
+    orderIndex: item.orderIndex,
+    note: item.note ?? '',
+    startTime: item.startTime ? item.startTime.toISOString() : null,
+    endTime: item.endTime ? item.endTime.toISOString() : null,
+    cost: item.cost ?? null,
+    currency: item.currency ?? null,
+    createdAt: item.createdAt ? item.createdAt.toISOString() : '',
+  };
+
+  if (options.includeUpdatedAt) {
+    response.updatedAt = item.updatedAt ? item.updatedAt.toISOString() : '';
+  }
+
+  return response;
 }

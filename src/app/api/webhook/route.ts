@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import mongoose from 'mongoose';
 import { 
   getDb, 
   dropAllManagedCollections, 
@@ -130,11 +129,9 @@ export async function POST(request: NextRequest) {
       }
 
       case 'db.listCollections': {
-        const mongoDb = mongoose.connection.db;
+        const report = await checkDatabaseConsistency();
         const managedCollections = new Set<string>(MANAGED_COLLECTIONS);
-        const current: string[] = mongoDb 
-          ? (await mongoDb.listCollections().toArray()).map((collection) => collection.name)
-          : [];
+        const current = report.actual;
 
         return sendSuccess({
           managed: MANAGED_COLLECTIONS,

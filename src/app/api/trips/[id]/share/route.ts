@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb } from '@/lib/db';
+import { findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
@@ -25,13 +25,12 @@ export async function POST(request: NextRequest, ctx: RouteContext): Promise<Res
     const userId = String(user._id ?? user.id);
 
     const { id: tripId } = await ctx.params;
-    const db = await getDb();
-
-    const trip = await db.trips.findById(tripId);
-    if (!trip || String(trip.userId) !== userId) {
+    const trip = await findOwnedTrip(tripId, userId);
+    if (!trip) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền chia sẻ chuyến đi này', 403);
     }
 
+    const db = await getDb();
     const shareCode = generateShareCode();
     const now = new Date();
     const expiresInHours = 30 * 24;
@@ -64,13 +63,12 @@ export async function DELETE(request: NextRequest, ctx: RouteContext): Promise<R
     const userId = String(user._id ?? user.id);
 
     const { id: tripId } = await ctx.params;
-    const db = await getDb();
-
-    const trip = await db.trips.findById(tripId);
-    if (!trip || String(trip.userId) !== userId) {
+    const trip = await findOwnedTrip(tripId, userId);
+    if (!trip) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền thu hồi chia sẻ', 403);
     }
 
+    const db = await getDb();
     const shares = await db.tripShares.find({ tripId, isActive: true });
     if (shares.length > 0) {
       await db.tripShares.updateOne(shares[0]._id, { isActive: false });

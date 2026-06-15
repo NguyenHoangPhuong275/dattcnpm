@@ -3,6 +3,7 @@
 import React, { memo, useState } from 'react';
 import Image from 'next/image';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useFormSubmitError } from '@/hooks/useFormSubmitError';
 import { PersonalInfo } from '@/types/profile';
 
 export type { PersonalInfo };
@@ -38,20 +39,7 @@ const PersonalInfoForm = memo(({
 }: PersonalInfoFormProps): React.JSX.Element => {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  const handleSubmit = async (event: React.FormEvent): Promise<void> => {
-    event.preventDefault();
-    setFormError(null);
-    try {
-      const result = await onSave(event);
-      if (result && !result.success && result.error) {
-        setFormError(result.error);
-      }
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Không thể lưu thông tin lúc này');
-    }
-  };
+  const { formError, handleSubmit } = useFormSubmitError(onSave, 'Không thể lưu thông tin lúc này');
 
   const handleAvatarFile = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];

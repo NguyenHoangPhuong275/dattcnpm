@@ -3,7 +3,7 @@ import { LOCALITIES } from '@/data/localities';
 
 
 import { normalizeVietnameseText } from './string';
-import { parseValidDate } from './date';
+import { formatUtcDateOnly, parseValidDate } from './date';
 
 const DEFAULT_TRIP_IMAGE = '/images/hanoi_temple.jpg';
 const DAY_MS = 86_400_000;
@@ -137,20 +137,13 @@ export function toTripResponse(
   trip: Trip,
   options?: { omitUserId?: boolean }
 ): Record<string, unknown> {
-  const toDateOnly = (value: unknown): string => {
-    if (!value) return '';
-    const date = value instanceof Date ? value : new Date(String(value));
-    if (Number.isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
-  };
-
   const response: Record<string, unknown> = {
     _id: String(trip._id || ''),
     userId: String(trip.userId || ''),
     title: String(trip.title || ''),
     destination: String(trip.destination || ''),
-    startDate: toDateOnly(trip.startDate),
-    endDate: toDateOnly(trip.endDate),
+    startDate: formatUtcDateOnly(trip.startDate),
+    endDate: formatUtcDateOnly(trip.endDate),
     isPublic: trip.isPublic === true,
     description: trip.description ? String(trip.description) : '',
     coverImage: trip.coverImage ? String(trip.coverImage) : null,

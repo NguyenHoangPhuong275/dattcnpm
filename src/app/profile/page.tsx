@@ -14,7 +14,8 @@ import SecuritySection from '@/components/profile/SecuritySection';
 import CreateTripModal from '@/components/profile/CreateTripModal';
 import PasswordChangeModal from '@/components/profile/PasswordChangeModal';
 import TripDetailModal from '@/components/profile/TripDetailModal';
-import ProfileToast from '@/components/profile/ProfileToast';
+import ProfileLoading from '@/components/profile/ProfileLoading';
+import AppToast from '@/components/ui/AppToast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 import { useProfile } from '@/hooks/useProfile';
@@ -33,13 +34,17 @@ export default function ProfilePage() {
   );
 }
 
-function ProfileLoading() {
+function ProfileSectionSkeleton() {
   return (
-    <div className="relative flex min-h-dvh items-center justify-center bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: "url('/images/profile_hero.png')" }}>
-      <div className="absolute inset-0 z-0 bg-white/70 backdrop-blur-[2px]" />
-      <div className="relative z-10 text-center">
-        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary-dark)] border-t-transparent" />
-        <p className="mt-4 text-sm font-semibold text-slate-500">Đang tải thông tin...</p>
+    <div className="rounded-lg border border-[var(--color-border)] bg-white p-6" role="status" aria-label="Đang tải nội dung">
+      <div className="mb-6 h-5 w-44 animate-pulse rounded bg-slate-200" />
+      <div className="grid gap-4 md:grid-cols-2">
+        {[1, 2, 3, 4, 5, 6].map((item) => (
+          <div key={item} className="space-y-2">
+            <div className="h-3 w-24 animate-pulse rounded bg-slate-100" />
+            <div className="h-11 animate-pulse rounded-lg bg-slate-100" />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -55,15 +60,20 @@ function ProfilePageContent() {
   const toastHook = useToast();
   const toastMessage = toastHook.data.message;
   const toastStatus = toastHook.status;
-  const showToastVisible = toastStatus === 'visible';
+  const showToastVisible = toastStatus !== 'idle';
   const { showToast } = toastHook.actions;
-  const profile = useProfile({ userId: user?.id ?? null });
-  const myTripsHook = useMyTrips({ userId: user?.id ?? null });
-  const favoritesHook = useFavorites({ userId: user?.id ?? null });
-  const reviewsHook = useMyReviews({ userId: user?.id ?? null });
 
   const initialTab = (searchParams.get('tab') as ProfileTab) || 'personal';
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
+  const shouldLoadProfile = activeTab === 'personal' || activeTab === 'preferences' || activeTab === 'security';
+  const shouldLoadTrips = activeTab === 'trips' || activeTab === 'search-history';
+  const shouldLoadFavorites = activeTab === 'favorites';
+  const shouldLoadReviews = activeTab === 'reviews';
+
+  const profile = useProfile({ userId: shouldLoadProfile ? user?.id ?? null : null });
+  const myTripsHook = useMyTrips({ userId: shouldLoadTrips ? user?.id ?? null : null });
+  const favoritesHook = useFavorites({ userId: shouldLoadFavorites ? user?.id ?? null : null });
+  const reviewsHook = useMyReviews({ userId: shouldLoadReviews ? user?.id ?? null : null });
 
   const [showCreateTripModal, setShowCreateTripModal] = useState(false);
   const [newTripTitle, setNewTripTitle] = useState('');
@@ -99,24 +109,24 @@ function ProfilePageContent() {
     toggle2FA,
     updateAvatar,
   } = profile.actions;
-  const profileLoading = profileStatus === 'loading';
+  const profileLoading = !!user?.id && shouldLoadProfile && (profileStatus === 'idle' || profileStatus === 'loading');
 
   const myTrips = myTripsHook.data;
   const tripsStatus = myTripsHook.status;
   const creatingTrip = myTripsHook.creating;
   const { createTrip, deleteTrip, loadTrips } = myTripsHook.actions;
-  const loadingTrips = tripsStatus === 'loading';
+  const loadingTrips = !!user?.id && shouldLoadTrips && (tripsStatus === 'idle' || tripsStatus === 'loading');
 
   const favorites = favoritesHook.data;
   const favsStatus = favoritesHook.status;
   const { removeFavorite, loadFavorites } = favoritesHook.actions;
-  const loadingFavorites = favsStatus === 'loading';
+  const loadingFavorites = !!user?.id && shouldLoadFavorites && (favsStatus === 'idle' || favsStatus === 'loading');
   const removingIds = favoritesHook.removingIds;
 
   const myReviews = reviewsHook.data;
   const reviewsStatus = reviewsHook.status;
   const { loadReviews } = reviewsHook.actions;
-  const loadingReviews = reviewsStatus === 'loading';
+  const loadingReviews = !!user?.id && shouldLoadReviews && (reviewsStatus === 'idle' || reviewsStatus === 'loading');
 
   const handleTabChange = useCallback((tab: ProfileTab) => {
     router.push(`/profile?tab=${tab}`);
@@ -160,10 +170,10 @@ function ProfilePageContent() {
   const handleDeleteTrip = useCallback(async (id: string) => {
     try {
       await deleteTrip(id);
-      showToast('Đã xóa chuyến đi');
+      showToast('Đã xóa chuyến đi', 'success');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Không thể xóa chuyến đi. Vui lòng thử lại sau.';
-      showToast(msg);
+      showToast(msg, 'error');
     }
   }, [deleteTrip, showToast]);
 
@@ -174,9 +184,9 @@ function ProfilePageContent() {
   const handleRemoveFavorite = useCallback(async (id: string) => {
     try {
       await removeFavorite(id);
-      showToast('Đã xóa khỏi yêu thích');
+      showToast('Đã xóa khỏi yêu thích', 'success');
     } catch {
-      showToast('Xóa thất bại, vui lòng thử lại');
+      showToast('Xóa thất bại, vui lòng thử lại', 'error');
     }
   }, [removeFavorite, showToast]);
 
@@ -194,7 +204,7 @@ function ProfilePageContent() {
   const handleCreateNewTrip = useCallback(async () => {
     if (creatingTrip) return;
     if (!newTripTitle.trim() || !newTripDest.trim()) {
-      showToast('Vui lòng nhập tiêu đề và điểm đến');
+      showToast('Vui lòng nhập tiêu đề và điểm đến', 'warning');
       return;
     }
 
@@ -208,10 +218,10 @@ function ProfilePageContent() {
     });
     if (result.success) {
       resetCreateTripForm();
-      showToast('Chuyến đi mới đã được tạo');
+      showToast('Chuyến đi mới đã được tạo', 'success');
       loadTrips();
     } else {
-      showToast(result.message || 'Tạo chuyến đi thất bại');
+      showToast(result.message || 'Tạo chuyến đi thất bại', 'error');
     }
   }, [newTripTitle, newTripDest, newTripStartDate, newTripEndDate, newTripDescription, newTripIsPublic, createTrip, showToast, creatingTrip, loadTrips, resetCreateTripForm]);
 
@@ -228,13 +238,13 @@ function ProfilePageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: oldPass, newPassword: newPass, confirmPassword: confirmPass }),
       });
-      
+
       if (data.success) {
         setShowPasswordModal(false);
         setOldPass('');
         setNewPass('');
         setConfirmPass('');
-        showToast('Đổi mật khẩu thành công');
+        showToast('Đổi mật khẩu thành công', 'success');
       } else {
         setPasswordError(data.message || 'Đổi mật khẩu thất bại');
       }
@@ -248,7 +258,7 @@ function ProfilePageContent() {
   const handleToggle2FA = useCallback(async () => {
     const result = await toggle2FA();
     if (!result.success) {
-      showToast(result.error ?? 'Cập nhật bảo mật thất bại');
+      showToast(result.error ?? 'Cập nhật bảo mật thất bại', 'error');
     }
   }, [toggle2FA, showToast]);
 
@@ -260,14 +270,14 @@ function ProfilePageContent() {
     try {
       const result = await savePersonal(event);
       if (result.success) {
-        showToast('Đã lưu thông tin cá nhân');
+        showToast('Đã lưu thông tin cá nhân', 'success');
       } else {
-        showToast(result.error || 'Lưu thông tin cá nhân thất bại, vui lòng thử lại');
+        showToast(result.error || 'Lưu thông tin cá nhân thất bại, vui lòng thử lại', 'error');
       }
       return result;
     } catch (error: unknown) {
       const errorMsg = getApiErrorMessage(error, 'Lưu thông tin cá nhân thất bại, vui lòng thử lại');
-      showToast(errorMsg);
+      showToast(errorMsg, 'error');
       return { success: false, error: errorMsg };
     }
   }, [savePersonal, showToast]);
@@ -276,25 +286,40 @@ function ProfilePageContent() {
     try {
       const result = await savePreferences(event);
       if (result.success) {
-        showToast('Đã cập nhật sở thích du lịch');
+        showToast('Đã cập nhật sở thích du lịch', 'success');
       } else {
-        showToast(result.error || 'Lưu sở thích thất bại, vui lòng thử lại');
+        showToast(result.error || 'Lưu sở thích thất bại, vui lòng thử lại', 'error');
       }
       return result;
     } catch (error: unknown) {
       const errorMsg = getApiErrorMessage(error, 'Lưu sở thích thất bại, vui lòng thử lại');
-      showToast(errorMsg);
+      showToast(errorMsg, 'error');
       return { success: false, error: errorMsg };
     }
   }, [savePreferences, showToast]);
 
   useEffect(() => {
-    if (user?.id) {
+    if (!user?.id) return;
+
+    if (shouldLoadTrips && tripsStatus === 'idle') {
       loadTrips();
+    } else if (shouldLoadFavorites && favsStatus === 'idle') {
       loadFavorites();
+    } else if (shouldLoadReviews && reviewsStatus === 'idle') {
       loadReviews();
     }
-  }, [user?.id, loadTrips, loadFavorites, loadReviews]);
+  }, [
+    user?.id,
+    shouldLoadTrips,
+    shouldLoadFavorites,
+    shouldLoadReviews,
+    tripsStatus,
+    favsStatus,
+    reviewsStatus,
+    loadTrips,
+    loadFavorites,
+    loadReviews,
+  ]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -320,24 +345,22 @@ function ProfilePageContent() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [showCreateTripModal, showPasswordModal, viewingTrip, resetCreateTripForm]);
 
-  const isLoading = userLoading || profileLoading;
+  const isLoading = userLoading;
 
   if (isLoading || !user) {
-    return (
-      <div className="relative flex min-h-dvh items-center justify-center bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: "url('/images/profile_hero.png')" }}>
-        <div className="absolute inset-0 z-0 bg-white/70 backdrop-blur-[2px]" />
-        <div className="relative z-10 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary-dark)] border-t-transparent" />
-          <p className="mt-4 text-sm font-semibold text-slate-500">Đang tải thông tin...</p>
-        </div>
-      </div>
-    );
+    return <ProfileLoading />;
   }
 
   return (
     <div className="min-h-dvh bg-white font-sans text-slate-800 antialiased">
       <div className="flex min-h-dvh flex-col">
-        <ProfileToast message={toastMessage} visible={showToastVisible} />
+        <AppToast
+          message={toastMessage}
+          type={toastHook.data.type}
+          visible={showToastVisible}
+          leaving={toastStatus === 'hiding'}
+          onClose={toastHook.actions.hideToast}
+        />
         <AppHeader active="profile" />
 
         <main className="w-full flex-1 py-8">
@@ -361,25 +384,33 @@ function ProfilePageContent() {
               </div>
 
               {activeTab === 'personal' && (
-                <PersonalInfoForm
-                  personal={personal}
-                  onChange={handlePersonalChange}
-                  onFullNameChange={handleFullNameChange}
-                  onSave={handleSavePersonal}
-                  onAvatarChange={handleAvatarChange}
-                  saving={savingPersonal}
-                  onToast={showToast}
-                />
+                profileLoading ? (
+                  <ProfileSectionSkeleton />
+                ) : (
+                  <PersonalInfoForm
+                    personal={personal}
+                    onChange={handlePersonalChange}
+                    onFullNameChange={handleFullNameChange}
+                    onSave={handleSavePersonal}
+                    onAvatarChange={handleAvatarChange}
+                    saving={savingPersonal}
+                    onToast={showToast}
+                  />
+                )
               )}
 
               {activeTab === 'preferences' && (
-                <TravelPreferencesForm
-                  preferences={preferences}
-                  onPreferenceChange={handlePreferenceChange}
-                  onToggleInterest={toggleInterest}
-                  onSave={handleSavePreferences}
-                  saving={savingPreferences}
-                />
+                profileLoading ? (
+                  <ProfileSectionSkeleton />
+                ) : (
+                  <TravelPreferencesForm
+                    preferences={preferences}
+                    onPreferenceChange={handlePreferenceChange}
+                    onToggleInterest={toggleInterest}
+                    onSave={handleSavePreferences}
+                    saving={savingPreferences}
+                  />
+                )
               )}
 
               {activeTab === 'trips' && (
@@ -405,12 +436,16 @@ function ProfilePageContent() {
               )}
 
               {activeTab === 'security' && (
-                <SecuritySection
-                  is2FAEnabled={is2FAEnabled}
-                  onToggle2FA={handleToggle2FA}
-                  onChangePassword={() => setShowPasswordModal(true)}
-                  saving={savingPersonal || savingPreferences}
-                />
+                profileLoading ? (
+                  <ProfileSectionSkeleton />
+                ) : (
+                  <SecuritySection
+                    is2FAEnabled={is2FAEnabled}
+                    onToggle2FA={handleToggle2FA}
+                    onChangePassword={() => setShowPasswordModal(true)}
+                    saving={savingPersonal || savingPreferences}
+                  />
+                )
               )}
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb, createAuditLog } from '@/lib/db';
+import { createAuditLog, findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { updateTripSchema } from '@/lib/validations/trip';
 import { objectIdSchema } from '@/lib/validations/common';
@@ -11,13 +11,6 @@ import type { Trip } from '@/types/trip';
 type RouteCtx = {
   params: Promise<{ id: string }>;
 };
-
-async function findOwnedTrip(id: string, userId: string): Promise<Trip | null> {
-  const db = await getDb();
-  const trip = (await db.trips.findById(id)) as Trip | null;
-  if (!trip || String(trip.userId) !== userId) return null;
-  return trip;
-}
 
 export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {

@@ -2,6 +2,8 @@
 import React, { memo } from 'react';
 import { MyReview } from '@/types/profile';
 import EmptyState from '@/components/ui/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { formatDate } from '@/lib/date';
 
 export type { MyReview }; 
 
@@ -14,8 +16,7 @@ const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
   <div>
     {loading ? (
       <div className="flex items-center justify-center gap-2 py-8 text-sm text-[var(--color-text-muted)]">
-        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2
-          border-[var(--color-primary-dark)] border-t-transparent" />
+        <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />
         Đang tải đánh giá...
       </div>
     ) : reviews.length > 0 ? (
@@ -25,13 +26,7 @@ const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
             <div className="flex items-center gap-2">
               <span className="font-bold text-[var(--color-primary-dark)]">★ {r.rating}/5</span>
               <span className="text-sm text-[var(--color-text-muted)]">
-                {r.createdAt
-                  ? new Date(r.createdAt).toLocaleDateString('vi-VN', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })
-                  : '—'}
+                {formatDate(r.createdAt)}
               </span>
             </div>
             <div className="mt-1 text-sm">{r.comment || '(Không có bình luận)'}</div>
@@ -51,4 +46,3 @@ const ReviewsSection = memo(({ reviews, loading }: ReviewsSectionProps) => (
 ReviewsSection.displayName = 'ReviewsSection';
 
 export default ReviewsSection;
-

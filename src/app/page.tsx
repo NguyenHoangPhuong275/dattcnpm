@@ -9,13 +9,16 @@ import PlaceDetailPanel from '@/components/home/PlaceDetailPanel';
 import FeaturedDestinations from '@/components/home/FeaturedDestinations';
 import TravelNewsSection from '@/components/home/TravelNewsSection';
 import AuthModal from '@/components/auth/AuthModal';
+import AppToast from '@/components/ui/AppToast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePlaceSearch } from '@/hooks/usePlaceSearch';
 import { usePlaceDetails } from '@/hooks/usePlaceDetails';
 import { useAuthModal } from '@/hooks/useAuthModal';
+import { useToast } from '@/hooks/useToast';
 import { useHomepageTripActions } from '@/hooks/useHomepageTripActions';
 import AddToTripModal from '@/components/trips/AddToTripModal';
 import type { SearchResult } from '@/hooks/usePlaceSearch';
+import type { BasicUser } from '@/types/profile';
 
 export default function HomePage(): React.JSX.Element {
   return (
@@ -30,10 +33,16 @@ function HomePageContent(): React.JSX.Element {
   const userHook = useCurrentUser({ redirectIfNone: false });
   const user = userHook.data;
   const userLoading = userHook.status === 'loading';
+  const { setUser } = userHook.actions;
   const search = usePlaceSearch();
   const details = usePlaceDetails(search.selectedPlace);
 
   const { authMode, isClosing, openAuth, closeAuth } = useAuthModal();
+  const toast = useToast();
+
+  const handleAuthenticated = useCallback((authUser: BasicUser) => {
+    setUser(authUser);
+  }, [setUser]);
 
   const destinationInputRef = useRef<HTMLInputElement>(null);
 
@@ -135,6 +144,7 @@ function HomePageContent(): React.JSX.Element {
             details={details}
             myTrips={tripActions.myTrips}
             isLoggedIn={!!user}
+            isTripsLoading={tripActions.isLoadingTrips}
             isTripActionLoading={tripActions.isTripActionLoading}
             tripActionMessage={tripActions.tripActionMessage}
             onAddToTrip={tripActions.addSelectedPlaceToTrip}
@@ -159,7 +169,21 @@ function HomePageContent(): React.JSX.Element {
 
       <FeaturedDestinations onSelect={handleQuickSelect} />
       <TravelNewsSection />
-      <AuthModal authMode={authMode} isClosing={isClosing} onClose={closeAuth} onModeChange={openAuth} />
+      <AuthModal
+        authMode={authMode}
+        isClosing={isClosing}
+        onClose={closeAuth}
+        onModeChange={openAuth}
+        onAuthenticated={handleAuthenticated}
+        onToast={toast.actions.showToast}
+      />
+      <AppToast
+        message={toast.data.message}
+        type={toast.data.type}
+        visible={toast.status !== 'idle'}
+        leaving={toast.status === 'hiding'}
+        onClose={toast.actions.hideToast}
+      />
     </div>
   );
 }

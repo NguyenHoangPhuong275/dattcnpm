@@ -96,7 +96,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
 
       setCreateStatus('error');
       return { success: false, message: getApiErrorMessage(data, 'Tạo chuyến đi thất bại') };
-    } catch (err) {
+    } catch {
       setCreateStatus('error');
       return { success: false, message: 'Không thể tạo chuyến đi lúc này' };
     }
@@ -115,7 +115,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
       const { response } = await apiRequest(`/api/trips/${id}`, { method: 'DELETE', userId });
 
       if (!response.ok) throw new Error('Không thể xóa chuyến đi. Vui lòng thử lại sau.');
-    } catch (err) {
+    } catch {
       setTrips(snapshot);
       throw new Error('Không thể xóa chuyến đi. Vui lòng thử lại sau.');
     }

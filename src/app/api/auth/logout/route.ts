@@ -7,9 +7,18 @@ export async function POST() {
     message: 'Logged out',
   });
 
-  response.cookies.set('token', '', { maxAge: 0, path: '/' });
-  response.cookies.set('session', '', { maxAge: 0, path: '/' });
-  response.cookies.set(authCookieName, '', { maxAge: 0, path: '/' });
+  const cookieOptions = {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  };
+
+  response.cookies.set('token', '', cookieOptions);
+  response.cookies.set('session', '', cookieOptions);
+  response.cookies.set(authCookieName, '', cookieOptions);
 
   return response;
 }

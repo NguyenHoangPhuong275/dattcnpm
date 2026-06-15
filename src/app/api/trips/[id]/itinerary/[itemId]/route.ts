@@ -1,38 +1,15 @@
 import { NextRequest } from 'next/server';
-import { getDb, createAuditLog, type ItineraryItem } from '@/lib/db';
+import { createAuditLog, findOwnedTrip, getDb, type ItineraryItem } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { parseValidDate } from '@/lib/date';
+import { toItineraryItemResponse } from '@/lib/trip-formatters';
 
 type RouteCtx = {
   params: Promise<{ id: string; itemId: string }>;
 };
-
-function toItemResponse(item: ItineraryItem): Record<string, unknown> {
-  return {
-    _id: item._id,
-    tripId: item.tripId,
-    placeId: item.placeId,
-    day: item.day,
-    orderIndex: item.orderIndex,
-    note: item.note ?? '',
-    startTime: item.startTime ? item.startTime.toISOString() : null,
-    endTime: item.endTime ? item.endTime.toISOString() : null,
-    cost: item.cost ?? null,
-    currency: item.currency ?? null,
-    createdAt: item.createdAt ? item.createdAt.toISOString() : '',
-    updatedAt: item.updatedAt ? item.updatedAt.toISOString() : '',
-  };
-}
-
-async function validateOwnedTrip(tripId: string, userId: string): Promise<boolean> {
-  const db = await getDb();
-  const trip = await db.trips.findById(tripId);
-  if (!trip || String(trip.userId) !== userId) return false;
-  return true;
-}
 
 export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
@@ -55,8 +32,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    const tripOk = await validateOwnedTrip(id, userId);
-    if (!tripOk) {
+    if (!(await findOwnedTrip(id, userId))) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
 
@@ -137,7 +113,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
       fields: Object.keys(updates),
     }).catch((err) => console.error('Lỗi khi ghi audit log UPDATE_ITINERARY_ITEM:', err));
 
-    return sendSuccess(toItemResponse(updated));
+    return sendSuccess(toItineraryItemResponse(updated, { includeUpdatedAt: true }));
   } catch (error) {
     return handleApiError(error);
   }
@@ -164,8 +140,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    const tripOk = await validateOwnedTrip(id, userId);
-    if (!tripOk) {
+    if (!(await findOwnedTrip(id, userId))) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
 

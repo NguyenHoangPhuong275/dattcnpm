@@ -11,6 +11,7 @@ interface PlaceDetailPanelProps {
   details: UsePlaceDetailsReturn;
   myTrips: TripSummary[];
   isLoggedIn: boolean;
+  isTripsLoading?: boolean;
   isTripActionLoading: boolean;
   tripActionMessage: string;
   onAddToTrip: (tripId: string) => void;
@@ -22,6 +23,7 @@ interface PlaceDetailPanelProps {
 interface TripActionsProps {
   trips: TripSummary[];
   loading: boolean;
+  listLoading: boolean;
   onAddToTrip: (tripId: string) => void;
   onCreateTripFromPlace?: () => void;
 }
@@ -41,6 +43,7 @@ export default function PlaceDetailPanel({
   details,
   myTrips,
   isLoggedIn,
+  isTripsLoading = false,
   isTripActionLoading,
   tripActionMessage,
   onAddToTrip,
@@ -82,7 +85,8 @@ export default function PlaceDetailPanel({
           {isLoggedIn ? (
             <TripActions
               trips={myTrips}
-              loading={isTripActionLoading}
+              loading={isTripActionLoading || isTripsLoading}
+              listLoading={isTripsLoading}
               onAddToTrip={onAddToTrip}
               onCreateTripFromPlace={onCreateTripFromPlace}
             />
@@ -110,12 +114,20 @@ export default function PlaceDetailPanel({
 function TripActions({
   trips,
   loading,
+  listLoading,
   onAddToTrip,
   onCreateTripFromPlace,
 }: TripActionsProps) {
   return (
     <div className="space-y-4 border-t border-[var(--color-border)] pt-6">
-      {trips.length > 0 ? (
+      {listLoading ? (
+        <div className="space-y-3" role="status" aria-label="Đang tải chuyến đi">
+          <div className="h-4 w-40 animate-pulse rounded bg-[var(--color-bg)]" />
+          {[1, 2].map((item) => (
+            <div key={item} className="h-14 animate-pulse rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]" />
+          ))}
+        </div>
+      ) : trips.length > 0 ? (
         <>
           <h4 className="flex items-center gap-2 text-sm font-bold text-[var(--color-text)]">
             <Icons.PlusIcon className="h-4 w-4 text-[var(--color-primary-darker)]" />

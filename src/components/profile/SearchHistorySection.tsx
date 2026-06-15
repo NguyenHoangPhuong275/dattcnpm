@@ -314,7 +314,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
                     {previewLoading ? (
                       <div className="flex items-center justify-center py-4">
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
+                        <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />
                         <span className="ml-2 text-xs text-[var(--color-text-muted)]">Đang tải kết quả...</span>
                       </div>
                     ) : previewData && previewData.results.length > 0 ? (

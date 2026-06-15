@@ -5,8 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
-import ProfileToast from '@/components/profile/ProfileToast';
+import AppToast from '@/components/ui/AppToast';
 import EmptyState from '@/components/ui/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, ShareIcon, TrashIcon, UsersIcon } from '@/components/icons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
@@ -65,7 +66,7 @@ function displayName(item: ItineraryItem, index: number): string {
 
 function parseTravelerCount(description?: string): string | null {
   if (!description) return null;
-  const match = description.match(/^(\d+)\s*(?:người|nguoi|ngÆ°á»i)/i);
+  const match = description.match(/^(\d+)\s*(?:người|nguoi)/i);
   return match ? `${match[1]} người` : null;
 }
 
@@ -79,11 +80,8 @@ function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlac
     name,
     address: trip.destination || 'Việt Nam',
     image,
-    // TODO(real-data): fetch real rating from place API
     rating: '10 Tuyệt vời',
-    // TODO(real-data): fetch real hours from place API
     hours: '07:00 - 22:00',
-    // TODO(real-data): compute real distance from user location
     distance: `${(2 + index * 0.4).toFixed(1)} km tới trung tâm`,
     status: open ? 'Đang mở cửa' : 'Đang đóng cửa',
     tags: ['tham quan', 'địa phương'],
@@ -101,7 +99,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const toast = useToast();
   const toastMessage = toast.data.message;
   const toastStatus = toast.status;
-  const showToastVisible = toastStatus === 'visible';
+  const showToastVisible = toastStatus !== 'idle';
   const { showToast } = toast.actions;
 
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -172,10 +170,10 @@ export default function ItineraryDetailPage(): React.JSX.Element {
     try {
       const { response } = await apiRequest(`/api/trips/${tripId}`, { method: 'DELETE', userId: user.id });
       if (!response.ok) throw new Error('Delete failed');
-      showToast('Đã xóa chuyến đi');
+      showToast('Đã xóa chuyến đi', 'success');
       router.push(ROUTES.profile);
     } catch {
-      showToast('Xóa thất bại, vui lòng thử lại');
+      showToast('Xóa thất bại, vui lòng thử lại', 'error');
     }
   };
 
@@ -189,17 +187,17 @@ export default function ItineraryDetailPage(): React.JSX.Element {
         await navigator.share({ title: trip?.title, url: window.location.href });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        showToast('Đã sao chép liên kết trang này');
+        showToast('Đã sao chép liên kết trang này', 'success');
       }
     } catch {
-      showToast('Không thể chia sẻ lúc này');
+      showToast('Không thể chia sẻ lúc này', 'error');
     }
   };
 
   if (loading || userLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--color-primary-dark)] border-t-transparent" />
+        <LoadingSpinner size="lg" className="text-[var(--color-primary-dark)]" />
       </div>
     );
   }
@@ -217,7 +215,13 @@ export default function ItineraryDetailPage(): React.JSX.Element {
 
   return (
     <div className="min-h-dvh bg-slate-50 font-sans text-slate-900">
-      <ProfileToast message={toastMessage} visible={showToastVisible} />
+      <AppToast
+        message={toastMessage}
+        type={toast.data.type}
+        visible={showToastVisible}
+        leaving={toastStatus === 'hiding'}
+        onClose={toast.actions.hideToast}
+      />
       <AppHeader active="profile" />
 
       {showDeleteConfirm && (
@@ -226,7 +230,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="delete-trip-confirm-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
         >
           <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
             <h3 id="delete-trip-confirm-title" className="text-base font-semibold text-slate-900">
@@ -319,14 +323,14 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               <button
                 id="tab-button-itinerary"
                 onClick={() => setActiveTab('itinerary')}
-                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'itinerary' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'itinerary' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
                 Chi tiết lịch trình
               </button>
               <button
                 id="tab-button-budget"
                 onClick={() => setActiveTab('budget')}
-                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'budget' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'budget' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
                 Chi phí dự tính
               </button>
@@ -342,7 +346,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                       <div className="absolute left-2 top-8 bottom-0 w-px bg-slate-200" />
                       <div className="mb-4 flex items-baseline gap-2">
                         <span className="absolute left-0 mt-1 h-4 w-4 rounded-full border-4 border-white bg-[var(--color-primary-dark)] shadow" />
-                        <h2 className="text-base font-extrabold text-slate-950">Ngày {day}</h2>
+                        <h2 className="text-base font-extrabold text-slate-955">Ngày {day}</h2>
                         <span className="text-sm font-semibold text-slate-500">{formatTripDayDate(trip.startDate, day)}</span>
                       </div>
 
@@ -360,7 +364,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                             >
                               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div className="min-w-0">
-                                  <div className="text-base font-bold text-slate-950">{place.name}</div>
+                                  <div className="text-base font-bold text-slate-955">{place.name}</div>
                                   <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                                     <MapPinIcon className="h-4 w-4 shrink-0" />
                                     <span className="truncate">{place.address}</span>
@@ -399,7 +403,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               <div className="rounded-lg border border-slate-200 bg-white p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-extrabold text-slate-950">Chi phí dự tính</h2>
+                    <h2 className="text-lg font-extrabold text-slate-955">Chi phí dự tính</h2>
                     <p className="text-sm text-slate-500">{items.length} hạng mục trong lịch trình</p>
                   </div>
                   <div className="text-right">
@@ -413,7 +417,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                     <div key={item._id} className="flex items-center justify-between gap-4 py-3 text-sm">
                       <div>
                         <div className="font-bold text-slate-800">{displayName(item, index)}</div>
-                        <div className="text-xs text-slate-500">Ngày {item.day}</div>
+                        <div className="text-xs text-slate-555">Ngày {item.day}</div>
                       </div>
                       <div className="font-bold text-slate-900">{formatMoney(Number(item.cost) || 0)}</div>
                     </div>
@@ -431,15 +435,15 @@ export default function ItineraryDetailPage(): React.JSX.Element {
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
               <div className="relative aspect-[4/3] bg-slate-200">
                 <Image src={selectedPlace.image} alt={selectedPlace.name} fill sizes="430px" className="object-cover" />
-                <span className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold shadow-sm ${selectedPlace.status === 'Đang mở cửa' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-900/80 text-white'}`}>
+                <span className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold shadow-sm ${selectedPlace.status === 'Đang mở cửa' ? 'bg-emerald-50 text-emerald-707' : 'bg-slate-900/80 text-white'}`}>
                   {selectedPlace.status}
                 </span>
               </div>
 
               <div className="space-y-5 p-5">
                 <div>
-                  <h2 className="text-xl font-extrabold text-slate-950">{selectedPlace.name}</h2>
-                  <div className="mt-1 text-sm font-bold text-emerald-700">{selectedPlace.rating}</div>
+                  <h2 className="text-xl font-extrabold text-slate-955">{selectedPlace.name}</h2>
+                  <div className="mt-1 text-sm font-bold text-emerald-707">{selectedPlace.rating}</div>
                 </div>
 
                 <div className="space-y-3 text-sm text-slate-700">

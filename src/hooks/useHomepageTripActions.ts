@@ -1,11 +1,13 @@
+'use client';
+
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { getDefaultTripDates } from '@/lib/date';
-import { extractTrips, type TripsListResponse } from '@/lib/trip-formatters';
 import type { TripSummary } from '@/types/profile';
 import { ROUTES } from '@/lib/constants';
 import { RequestStatus } from '@/types/common';
+import { useTripList } from './useTripList';
 
 interface SelectedTripPlace {
   _id: string;
@@ -63,9 +65,8 @@ export function useHomepageTripActions({
   onMissingPlace,
 }: UseHomepageTripActionsProps): UseHomepageTripActionsReturn {
   const router = useRouter();
+  const { trips: myTrips, status: tripsStatus, loadTrips } = useTripList({ userId });
 
-  const [myTrips, setMyTrips] = useState<TripSummary[]>([]);
-  const [tripsStatus, setTripsStatus] = useState<RequestStatus>('idle');
   const [tripActionStatus, setTripActionStatus] = useState<RequestStatus>('idle');
   const [tripActionMessage, setTripActionMessage] = useState('');
 
@@ -77,34 +78,17 @@ export function useHomepageTripActions({
   const resetTripActionMessage = useCallback((): void => {
     setTripActionMessage('');
   }, []);
+
   const loadMyTrips = useCallback(async (): Promise<void> => {
-    if (!userId) {
-      setMyTrips([]);
-      setTripsStatus('idle');
-      return;
-    }
-
-    setTripsStatus('loading');
-
-    try {
-      const { response, data } = await apiRequest<TripsListResponse>('/api/trips', { userId });
-      if (response.ok && data.success && data.data) {
-        setMyTrips(extractTrips(data));
-        setTripsStatus('success');
-        return;
-      }
-
-      setMyTrips([]);
-      setTripsStatus('error');
-    } catch {
-      setMyTrips([]);
-      setTripsStatus('error');
-    }
-  }, [userId]);
+    if (!userId) return;
+    await loadTrips(userId);
+  }, [loadTrips, userId]);
 
   useEffect(() => {
-    loadMyTrips();
-  }, [loadMyTrips]);
+    if (selectedPlace && userId) {
+      loadMyTrips();
+    }
+  }, [loadMyTrips, selectedPlace, userId]);
 
   const addSelectedPlaceToTrip = useCallback(async (tripId: string): Promise<boolean> => {
     if (!userId || !selectedPlace) return false;
@@ -197,7 +181,7 @@ export function useHomepageTripActions({
     myTrips,
     tripsStatus,
     tripActionStatus,
-    isLoadingTrips: tripsStatus === 'loading',
+    isLoadingTrips: !!selectedPlace && !!userId && (tripsStatus === 'idle' || tripsStatus === 'loading'),
     isTripActionLoading: tripActionStatus === 'loading',
     tripActionMessage,
     startDate,

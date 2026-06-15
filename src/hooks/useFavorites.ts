@@ -59,7 +59,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
       } else {
         setStatus('error');
       }
-    } catch (err) {
+    } catch {
       setError('Không thể tải danh sách địa điểm yêu thích');
       setStatus('error');
     }
@@ -75,7 +75,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
     try {
       const { response } = await apiRequest(`/api/favorites/${id}`, { method: 'DELETE', userId });
       if (!response.ok) throw new Error();
-    } catch (err) {
+    } catch {
       setFavorites(previous);
       throw new Error('Remove favorite failed');
     } finally {

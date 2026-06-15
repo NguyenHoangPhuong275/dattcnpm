@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { SearchResult } from '@/hooks/usePlaceSearch';
+import { isAbortError } from '@/lib/api-client';
 import { normalizeText } from '@/lib/trip-utils';
 
 export type FetchStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -57,10 +58,6 @@ function isLargeArea(place: SearchResult): boolean {
 
 function getPlaceRegion(place: SearchResult): string {
   return place.address || place.name;
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof Error && error.name === 'AbortError';
 }
 
 async function readJson<T>(response: Response): Promise<T> {
