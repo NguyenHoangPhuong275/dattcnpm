@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAddToTrip } from '@/hooks/useAddToTrip';
+import { useToast } from '@/hooks/useToast';
 import { ROUTES } from '@/lib/constants';
 import CardSkeleton from '@/components/ui/CardSkeleton';
 import EmptyState from '@/components/ui/EmptyState';
@@ -23,8 +24,10 @@ export default function AddToTripModal({
   onClose,
 }: AddToTripModalProps): React.JSX.Element | null {
   const { status, trips, errorMessage, openModal, closeModal, addToTrip } = useAddToTrip();
+  const { actions: { showToast } } = useToast();
   const [selectedTripId, setSelectedTripId] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<number>(1);
+  const previousStatusRef = useRef(status);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,6 +38,18 @@ export default function AddToTripModal({
       closeModal();
     }
   }, [isOpen, openModal, closeModal]);
+
+  useEffect(() => {
+    const previousStatus = previousStatusRef.current;
+    previousStatusRef.current = status;
+
+    if (status === 'success' && previousStatus !== 'success') {
+      showToast(`Đã thêm ${placeName} vào chuyến đi`, 'success');
+    }
+    if (status === 'error' && previousStatus !== 'error' && errorMessage) {
+      showToast(errorMessage, 'error');
+    }
+  }, [errorMessage, placeName, showToast, status]);
 
   useEffect(() => {
     if (status === 'success') {

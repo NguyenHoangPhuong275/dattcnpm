@@ -1,5 +1,6 @@
-'use client';
+﻿'use client';
 
+import { useState } from 'react';
 import * as Icons from '@/components/icons';
 import { SearchResult } from '@/hooks/usePlaceSearch';
 import { UsePlaceDetailsReturn } from '@/hooks/usePlaceDetails';
@@ -18,6 +19,10 @@ interface PlaceDetailPanelProps {
   onCreateTripFromPlace?: () => void;
   onLogin: () => void;
   onOpenAddToTripModal?: (place?: SearchResult) => void;
+  onSaveFavorite?: (place: SearchResult) => Promise<void>;
+  favoriteSaving?: boolean;
+  onCreateReview?: (payload: { placeId: string; rating: number; comment?: string }) => Promise<void>;
+  reviewSaving?: boolean;
 }
 
 interface TripActionsProps {
@@ -50,8 +55,25 @@ export default function PlaceDetailPanel({
   onCreateTripFromPlace,
   onLogin,
   onOpenAddToTripModal,
+  onSaveFavorite,
+  favoriteSaving = false,
+  onCreateReview,
+  reviewSaving = false,
 }: PlaceDetailPanelProps) {
   const { weather, pois, isWeatherLoading, isPoisLoading } = details;
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+
+  const submitReview = async (): Promise<void> => {
+    if (!onCreateReview) return;
+    await onCreateReview({
+      placeId: selectedPlace._id,
+      rating: reviewRating,
+      comment: reviewComment.trim() || undefined,
+    });
+    setReviewRating(5);
+    setReviewComment('');
+  };
 
   return (
     <div className="app-surface mx-auto mb-12 mt-2 max-w-7xl p-4 sm:p-6 lg:p-8">
@@ -63,17 +85,29 @@ export default function PlaceDetailPanel({
             {selectedPlace.address && (
               <p className="mt-1 text-sm font-medium text-[var(--color-text-muted)]">{selectedPlace.address}</p>
             )}
-
-            {onOpenAddToTripModal && (
-              <button
-                type="button"
-                aria-label={`Thêm ${selectedPlace.name} vào lịch trình`}
-                onClick={() => onOpenAddToTripModal(selectedPlace)}
-                className="mt-3 inline-flex min-h-10 items-center rounded-2xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]"
-              >
-                + Thêm vào lịch trình
-              </button>
-            )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {onOpenAddToTripModal && (
+                <button
+                  type="button"
+                  aria-label={`Thêm ${selectedPlace.name} vào lịch trình`}
+                  onClick={() => onOpenAddToTripModal(selectedPlace)}
+                  className="inline-flex min-h-10 items-center rounded-2xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]"
+                >
+                  + Thêm vào lịch trình
+                </button>
+              )}
+              {onSaveFavorite && (
+                <button
+                  type="button"
+                  aria-label={`Lưu ${selectedPlace.name} vào yêu thích`}
+                  onClick={() => (isLoggedIn ? onSaveFavorite(selectedPlace) : onLogin())}
+                  disabled={favoriteSaving}
+                  className="inline-flex min-h-10 items-center rounded-2xl border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-bold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-lightest)] disabled:opacity-60"
+                >
+                  {favoriteSaving ? 'Đang lưu...' : 'Lưu yêu thích'}
+                </button>
+              )}
+            </div>
           </div>
 
           {tripActionMessage && (
@@ -103,6 +137,39 @@ export default function PlaceDetailPanel({
           )}
 
           <WeatherCard weather={weather} loading={isWeatherLoading} />
+
+          {isLoggedIn && onCreateReview && (
+            <div className="border-t border-[var(--color-border)] pt-6">
+              <h4 className="mb-3 text-sm font-bold text-[var(--color-text)]">Đánh giá địa điểm</h4>
+              <div className="space-y-3 rounded-2xl border border-[var(--color-border)] p-4">
+                <select
+                  value={reviewRating}
+                  onChange={(event) => setReviewRating(Number(event.target.value))}
+                  className="w-full rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
+                  aria-label="Điểm đánh giá"
+                >
+                  {[5, 4, 3, 2, 1].map((rating) => (
+                    <option key={rating} value={rating}>{rating}/5</option>
+                  ))}
+                </select>
+                <textarea
+                  value={reviewComment}
+                  onChange={(event) => setReviewComment(event.target.value)}
+                  rows={3}
+                  placeholder="Chia sẻ cảm nhận của bạn"
+                  className="w-full rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={submitReview}
+                  disabled={reviewSaving}
+                  className="min-h-10 w-full rounded-xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)] disabled:opacity-60"
+                >
+                  {reviewSaving ? 'Đang gửi...' : 'Gửi đánh giá'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <PoiGrid pois={pois} loading={isPoisLoading} />
@@ -241,7 +308,7 @@ function PoiGrid({ pois, loading }: PoiGridProps) {
               {poi.address && poi.address !== 'Xung quanh khu vực này' && (
                 <div className="mt-2 truncate text-xs font-medium text-[var(--color-text-muted)]">{poi.address}</div>
               )}
-              {poi.rating && <div className="mt-2 text-xs font-bold text-[var(--color-warning)]">{​poi.rating}</div>}
+              {poi.rating && <div className="mt-2 text-xs font-bold text-[var(--color-warning)]">{poi.rating}</div>}
             </div>
           ))}
         </div>

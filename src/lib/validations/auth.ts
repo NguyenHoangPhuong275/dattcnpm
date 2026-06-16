@@ -8,14 +8,14 @@ export const sendOtpSchema = z.object({
 export const verifyOtpSchema = z.object({
   email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),
   otp: z.string().length(6, 'Mã OTP phải gồm 6 chữ số'),
-  password: z.string().min(6, 'Mật khẩu phải từ 6 ký tự trở lên'),
+  password: z.string().min(8, 'Mật khẩu phải từ 8 ký tự trở lên'),
   fullName: z.string().trim().min(2, 'Họ và tên tối thiểu 2 ký tự').max(100),
 });
 
 export const registerSchema = z.object({
   fullName: z.string().trim().min(2, 'Họ và tên tối thiểu 2 ký tự').max(100),
   email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),
-  password: z.string().min(6, 'Mật khẩu phải từ 6 ký tự trở lên'),
+  password: z.string().min(8, 'Mật khẩu phải từ 8 ký tự trở lên'),
 });
 
 export const loginSchema = z.object({
@@ -26,7 +26,7 @@ export const loginSchema = z.object({
 export const passwordChangeSchema = z
   .object({
     currentPassword: z.string().min(1, 'Vui lòng nhập mật khẩu hiện tại'),
-    newPassword: z.string().min(6, 'Mật khẩu mới phải có ít nhất 6 ký tự'),
+    newPassword: z.string().min(8, 'Mật khẩu mới phải có ít nhất 8 ký tự'),
     confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu mới'),
   })
   .refine((data) => !data.confirmPassword || data.newPassword === data.confirmPassword, {

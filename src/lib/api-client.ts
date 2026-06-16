@@ -3,6 +3,13 @@ export type ApiErrorPayload = {
   message?: string;
 };
 
+export type ApiEnvelope<T = unknown> = {
+  success?: boolean;
+  data?: T;
+  message?: string;
+  error?: string | { message?: string } | null;
+};
+
 export function getApiErrorMessage(payload: unknown, fallback: string): string {
   if (!payload) return fallback;
   if (payload instanceof Error) return payload.message || fallback;
@@ -19,6 +26,16 @@ export function getApiErrorMessage(payload: unknown, fallback: string): string {
 
 export function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === 'AbortError';
+}
+
+export function ensureApiSuccess<T extends ApiEnvelope>(
+  response: Response,
+  data: T,
+  fallbackMessage: string,
+): void {
+  if (!response.ok || data.success !== true) {
+    throw new Error(getApiErrorMessage(data, fallbackMessage));
+  }
 }
 
 export async function readJson<T = unknown>(response: Response): Promise<T> {

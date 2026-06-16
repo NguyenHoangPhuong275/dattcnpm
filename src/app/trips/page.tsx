@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import AppHeader from '@/components/AppHeader';
-import AppToast from '@/components/ui/AppToast';
 import CreateTripModal from '@/components/profile/CreateTripModal';
 import TripCard from '@/components/trips/TripCard';
 import { PlusIcon } from '@/components/icons';
@@ -25,8 +24,6 @@ export default function MyTripsPage(): React.JSX.Element {
   const { createTrip, loadTrips } = myTripsHook.actions;
 
   const toast = useToast();
-  const toastMessage = toast.data.message;
-  const showToastVisible = toast.status !== 'idle';
   const { showToast } = toast.actions;
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -108,13 +105,6 @@ export default function MyTripsPage(): React.JSX.Element {
 
   return (
     <div className="min-h-dvh bg-white font-sans text-slate-800">
-      <AppToast
-        message={toastMessage}
-        type={toast.data.type}
-        visible={showToastVisible}
-        leaving={toast.status === 'hiding'}
-        onClose={toast.actions.hideToast}
-      />
       <AppHeader active="profile" />
 
       <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8">

@@ -115,6 +115,26 @@ export function createCollection<T extends { _id: MongoId }>(mongooseModel: Mode
       const res = await mongooseModel.deleteMany(filter);
       return res.deletedCount || 0;
     },
+    async updateMany(filter: CollectionFilter, update: Record<string, unknown>): Promise<number> {
+      const res = await mongooseModel.updateMany(filter, update);
+      return res.modifiedCount || 0;
+    },
+    async bulkWrite(ops: Record<string, unknown>[]): Promise<{ upsertedCount: number; modifiedCount: number; matchedCount: number }> {
+      if (!ops.length) return { upsertedCount: 0, modifiedCount: 0, matchedCount: 0 };
+      type BulkOps = Parameters<typeof mongooseModel.bulkWrite>[0];
+      const batchSize = 1000;
+      let upsertedCount = 0;
+      let modifiedCount = 0;
+      let matchedCount = 0;
+      for (let i = 0; i < ops.length; i += batchSize) {
+        const batch = ops.slice(i, i + batchSize) as unknown as BulkOps;
+        const res = await mongooseModel.bulkWrite(batch);
+        upsertedCount += res.upsertedCount || 0;
+        modifiedCount += res.modifiedCount || 0;
+        matchedCount += res.matchedCount || 0;
+      }
+      return { upsertedCount, modifiedCount, matchedCount };
+    },
     async reset(): Promise<void> {
       try {
         await mongooseModel.collection.drop();

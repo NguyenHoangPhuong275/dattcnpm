@@ -102,28 +102,35 @@ export async function POST(request: NextRequest): Promise<Response> {
       placeId = createdPlace._id;
     }
 
-    const existing = await db.favorites.find({ userId, placeId: placeId! });
-    if (existing.length > 0) {
-      throw new AppError('CONFLICT', 'Địa điểm đã được lưu', 409);
-    }
-
-    const created = await db.favorites.insertOne({
-      userId,
-      placeId: placeId!,
-    });
-
     const place = await db.places.findById(placeId!);
-    const fav = {
-      _id: created._id,
+    const buildFav = (favId: unknown) => ({
+      _id: favId,
       placeId: placeId!,
       name: place?.name || parsed.name || 'Địa điểm đã lưu',
       type: place?.type || 'custom',
       address: place?.address || parsed.address || '',
       lat: place?.lat ?? parsed.lat ?? 0,
       lng: place?.lng ?? parsed.lng ?? 0,
-    };
+    });
 
-    return sendSuccess(fav, undefined, 201);
+    const existing = await db.favorites.findOne({ userId, placeId: placeId! });
+    if (existing) {
+      return sendSuccess(buildFav(existing._id), 'Địa điểm đã được lưu');
+    }
+
+    try {
+      const created = await db.favorites.insertOne({
+        userId,
+        placeId: placeId!,
+      });
+      return sendSuccess(buildFav(created._id), undefined, 201);
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'code' in err && (err as { code: number }).code === 11000) {
+        const dup = await db.favorites.findOne({ userId, placeId: placeId! });
+        return sendSuccess(buildFav(dup?._id), 'Địa điểm đã được lưu');
+      }
+      throw err;
+    }
   } catch (error) {
     return handleApiError(error);
   }

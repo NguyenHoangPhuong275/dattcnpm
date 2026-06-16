@@ -15,8 +15,8 @@ import CreateTripModal from '@/components/profile/CreateTripModal';
 import PasswordChangeModal from '@/components/profile/PasswordChangeModal';
 import TripDetailModal from '@/components/profile/TripDetailModal';
 import ProfileLoading from '@/components/profile/ProfileLoading';
-import AppToast from '@/components/ui/AppToast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useFeedback } from '@/hooks/useFeedback';
 import { useToast } from '@/hooks/useToast';
 import { useProfile } from '@/hooks/useProfile';
 import { useMyTrips } from '@/hooks/useMyTrips';
@@ -58,10 +58,8 @@ function ProfilePageContent() {
   const userStatus = userHook.status;
   const userLoading = userStatus === 'loading';
   const toastHook = useToast();
-  const toastMessage = toastHook.data.message;
-  const toastStatus = toastHook.status;
-  const showToastVisible = toastStatus !== 'idle';
   const { showToast } = toastHook.actions;
+  const { actions: feedback } = useFeedback();
 
   const initialTab = (searchParams.get('tab') as ProfileTab) || 'personal';
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
@@ -123,7 +121,9 @@ function ProfilePageContent() {
 
   const myReviews = reviewsHook.data;
   const reviewsStatus = reviewsHook.status;
-  const { loadReviews } = reviewsHook.actions;
+  const reviewsSavingId = reviewsHook.savingId;
+  const reviewDeletingIds = reviewsHook.deletingIds;
+  const { loadReviews, updateReview, deleteReview } = reviewsHook.actions;
   const loadingReviews = !!user?.id && shouldLoadReviews && (reviewsStatus === 'idle' || reviewsStatus === 'loading');
 
   const handleTabChange = useCallback((tab: ProfileTab) => {
@@ -166,27 +166,61 @@ function ProfilePageContent() {
   }, [setPreferences]);
 
   const handleDeleteTrip = useCallback(async (id: string) => {
-    try {
-      await deleteTrip(id);
-      showToast('Đã xóa chuyến đi', 'success');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Không thể xóa chuyến đi. Vui lòng thử lại sau.';
-      showToast(msg, 'error');
-    }
-  }, [deleteTrip, showToast]);
+    await feedback.confirmAction({
+      confirm: {
+        title: 'Xóa chuyến đi?',
+        description: 'Chuyến đi và lịch trình liên quan sẽ bị xóa khỏi tài khoản của bạn.',
+        confirmLabel: 'Xóa',
+        tone: 'danger',
+      },
+      action: () => deleteTrip(id),
+      success: 'Đã xóa chuyến đi',
+      error: 'Không thể xóa chuyến đi. Vui lòng thử lại sau.',
+    });
+  }, [deleteTrip, feedback]);
 
   const handleViewTrip = useCallback((trip: TripSummary) => {
     setViewingTrip(trip);
   }, []);
 
   const handleRemoveFavorite = useCallback(async (id: string) => {
-    try {
-      await removeFavorite(id);
-      showToast('Đã xóa khỏi yêu thích', 'success');
-    } catch {
-      showToast('Xóa thất bại, vui lòng thử lại', 'error');
-    }
-  }, [removeFavorite, showToast]);
+    await feedback.confirmAction({
+      confirm: {
+        title: 'Xóa địa điểm yêu thích?',
+        description: 'Địa điểm này sẽ bị xóa khỏi danh sách yêu thích của bạn.',
+        confirmLabel: 'Xóa',
+        tone: 'danger',
+      },
+      action: () => removeFavorite(id),
+      success: 'Đã xóa khỏi yêu thích',
+      error: 'Xóa thất bại, vui lòng thử lại',
+    });
+  }, [feedback, removeFavorite]);
+
+  const handleUpdateReview = useCallback(async (
+    reviewId: string,
+    payload: { rating: number; comment?: string },
+  ) => {
+    await feedback.runAction({
+      action: () => updateReview(reviewId, payload),
+      success: 'Đã cập nhật đánh giá',
+      error: 'Không thể cập nhật đánh giá',
+    });
+  }, [feedback, updateReview]);
+
+  const handleDeleteReview = useCallback(async (reviewId: string) => {
+    await feedback.confirmAction({
+      confirm: {
+        title: 'Xóa đánh giá?',
+        description: 'Đánh giá này sẽ bị xóa khỏi hồ sơ của bạn.',
+        confirmLabel: 'Xóa',
+        tone: 'danger',
+      },
+      action: () => deleteReview(reviewId),
+      success: 'Đã xóa đánh giá',
+      error: 'Không thể xóa đánh giá',
+    });
+  }, [deleteReview, feedback]);
 
   const resetCreateTripForm = useCallback(() => {
     setShowCreateTripModal(false);
@@ -225,6 +259,7 @@ function ProfilePageContent() {
 
   const handleChangePassword = useCallback(async () => {
     if (!user?.id) return;
+    if (passwordSaving) return;
 
     setPasswordSaving(true);
     setPasswordError(null);
@@ -251,7 +286,7 @@ function ProfilePageContent() {
     } finally {
       setPasswordSaving(false);
     }
-  }, [oldPass, newPass, confirmPass, user?.id, showToast]);
+  }, [oldPass, newPass, confirmPass, user?.id, showToast, passwordSaving]);
 
   const handleAvatarChange = useCallback((url: string) => {
     updateAvatar(url);
@@ -345,13 +380,6 @@ function ProfilePageContent() {
   return (
     <div className="min-h-dvh bg-white font-sans text-slate-800 antialiased">
       <div className="flex min-h-dvh flex-col">
-        <AppToast
-          message={toastMessage}
-          type={toastHook.data.type}
-          visible={showToastVisible}
-          leaving={toastStatus === 'hiding'}
-          onClose={toastHook.actions.hideToast}
-        />
         <AppHeader active="profile" />
 
         <main className="w-full flex-1 py-8">
@@ -419,7 +447,14 @@ function ProfilePageContent() {
               )}
 
               {activeTab === 'reviews' && (
-                <ReviewsSection reviews={myReviews} loading={loadingReviews} />
+                <ReviewsSection
+                  reviews={myReviews}
+                  loading={loadingReviews}
+                  savingId={reviewsSavingId}
+                  deletingIds={reviewDeletingIds}
+                  onUpdate={handleUpdateReview}
+                  onDelete={handleDeleteReview}
+                />
               )}
 
               {activeTab === 'search-history' && (

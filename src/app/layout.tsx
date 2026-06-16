@@ -1,18 +1,12 @@
 import type { Metadata } from 'next';
-import { Be_Vietnam_Pro, Inter } from 'next/font/google';
+import { Be_Vietnam_Pro } from 'next/font/google';
+import AppProviders from '@/components/AppProviders';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-body',
-  display: 'swap',
-});
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin', 'vietnamese'],
   weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-display',
+  variable: '--font-be-vietnam-pro',
   display: 'swap',
 });
 
@@ -29,12 +23,12 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${inter.variable} ${beVietnamPro.variable}`}
+      className={beVietnamPro.variable}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body className="font-sans bg-[var(--color-bg)] text-[var(--color-text)] antialiased min-h-screen selection:bg-[var(--color-primary-darker)] selection:text-white">
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

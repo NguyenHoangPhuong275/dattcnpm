@@ -60,11 +60,14 @@ export async function POST(request: NextRequest) {
     });
 
     const histories = await db.searchHistories.find({ userId });
-    const excess = histories
+    const excessIds = histories
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(50);
+      .slice(50)
+      .map((item) => item._id);
 
-    await Promise.all(excess.map((item) => db.searchHistories.deleteOne(item._id)));
+    if (excessIds.length > 0) {
+      await db.searchHistories.deleteMany({ _id: { $in: excessIds } });
+    }
 
     return sendSuccess(toHistoryResponse(created as unknown as Record<string, unknown>), 201);
   } catch (error) {
@@ -81,8 +84,7 @@ export async function DELETE(request: NextRequest) {
     const userId = String(user._id ?? user.id);
 
     const db = await getDb();
-    const histories = await db.searchHistories.find({ userId });
-    await Promise.all(histories.map((item) => db.searchHistories.deleteOne(item._id)));
+    await db.searchHistories.deleteMany({ userId });
 
     return sendSuccess({ message: 'Search history cleared' });
   } catch (error) {

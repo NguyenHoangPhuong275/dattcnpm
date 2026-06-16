@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useFeedback } from '@/hooks/useFeedback';
 import { useToast } from '@/hooks/useToast';
-import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import * as Icons from '@/components/icons';
 import { TripSummary } from '@/types/profile';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -41,9 +42,9 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
   const [previewLoading, setPreviewLoading] = useState(false);
   const [activeTripSelectIdx, setActiveTripSelectIdx] = useState<number | null>(null);
   const [addingPlaceLoading, setAddingPlaceLoading] = useState(false);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const { actions: { showToast } } = useToast();
+  const { actions: feedback } = useFeedback();
 
   const loadHistory = useCallback(async () => {
     setLoading(true);
@@ -67,47 +68,56 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
   const handleDelete = async (id: string) => {
     if (deletingId) return;
-    setDeletingId(id);
-    try {
-      const { response, data } = await apiRequest<ApiMutationResponse>(`/api/search-history/${id}`, { method: 'DELETE' });
-      if (!response.ok || !data?.success) {
-        throw new Error('Xóa thất bại');
-      }
-      setItems((prev) => prev.filter((i) => i._id !== id));
-      showToast('Đã xóa mục lịch sử');
-      if (previewFor === id) {
-        setPreviewFor(null);
-        setPreviewData(null);
-      }
-    } catch (e: unknown) {
-      showToast(getApiErrorMessage(e, 'Không thể xóa mục này'));
-    } finally {
-      setDeletingId(null);
-    }
+    await feedback.confirmAction({
+      confirm: {
+        title: 'Xóa mục lịch sử?',
+        description: 'Mục này sẽ bị xóa khỏi lịch sử tìm kiếm của bạn.',
+        confirmLabel: 'Xóa',
+        tone: 'danger',
+      },
+      action: async () => {
+        setDeletingId(id);
+        try {
+          const { response, data } = await apiRequest<ApiMutationResponse>(`/api/search-history/${id}`, { method: 'DELETE' });
+          ensureApiSuccess(response, data, 'Xóa thất bại');
+          setItems((prev) => prev.filter((i) => i._id !== id));
+          if (previewFor === id) {
+            setPreviewFor(null);
+            setPreviewData(null);
+          }
+        } finally {
+          setDeletingId(null);
+        }
+      },
+      success: 'Đã xóa mục lịch sử',
+      error: 'Không thể xóa mục này',
+    });
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (clearing || items.length === 0) return;
-    setShowClearConfirm(true);
-  };
-
-  const handleConfirmClear = async () => {
-    setShowClearConfirm(false);
-    setClearing(true);
-    try {
-      const { response, data } = await apiRequest<ApiMutationResponse>('/api/search-history', { method: 'DELETE' });
-      if (!response.ok || !data?.success) {
-        throw new Error('Xóa thất bại');
-      }
-      setItems([]);
-      setPreviewFor(null);
-      setPreviewData(null);
-      showToast('Đã xóa toàn bộ lịch sử');
-    } catch (e: unknown) {
-      showToast(getApiErrorMessage(e, 'Không thể xóa lịch sử'));
-    } finally {
-      setClearing(false);
-    }
+    await feedback.confirmAction({
+      confirm: {
+        title: 'Xóa toàn bộ lịch sử?',
+        description: 'Hành động này không thể hoàn tác.',
+        confirmLabel: 'Xóa tất cả',
+        tone: 'danger',
+      },
+      action: async () => {
+        setClearing(true);
+        try {
+          const { response, data } = await apiRequest<ApiMutationResponse>('/api/search-history', { method: 'DELETE' });
+          ensureApiSuccess(response, data, 'Xóa thất bại');
+          setItems([]);
+          setPreviewFor(null);
+          setPreviewData(null);
+        } finally {
+          setClearing(false);
+        }
+      },
+      success: 'Đã xóa toàn bộ lịch sử',
+      error: 'Không thể xóa lịch sử',
+    });
   };
 
   const handleUseAgain = async (item: SearchHistoryItem) => {
@@ -145,7 +155,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
   const handleAddPlaceToTrip = async (tripId: string, place: { _id?: string; name: string }) => {
     if (!place._id) {
-      showToast('Không thể thêm địa điểm này (thiếu ID)');
+      showToast('Không thể thêm địa điểm này (thiếu ID)', 'error');
       return;
     }
     setAddingPlaceLoading(true);
@@ -167,10 +177,10 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
         showToast(`Đã thêm "${place.name}" vào chuyến đi`);
         setActiveTripSelectIdx(null);
       } else {
-        showToast(getApiErrorMessage(data, 'Thêm thất bại'));
+        showToast(getApiErrorMessage(data, 'Thêm thất bại'), 'error');
       }
     } catch {
-      showToast('Lỗi hệ thống khi thêm địa điểm');
+      showToast('Lỗi hệ thống khi thêm địa điểm', 'error');
       setActiveTripSelectIdx(null);
     } finally {
       setAddingPlaceLoading(false);
@@ -400,39 +410,6 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
         </div>
       )}
 
-      {showClearConfirm && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-clear-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-        >
-          <div className="w-full max-w-sm rounded-2xl bg-[var(--color-surface)] p-6 shadow-xl">
-            <h3 id="confirm-clear-title" className="mb-2 text-base font-semibold text-[var(--color-text)]">
-              Xóa toàn bộ lịch sử?
-            </h3>
-            <p className="mb-6 text-sm text-[var(--color-text-muted)]">
-              Hành động này không thể hoàn tác.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowClearConfirm(false)}
-                className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmClear}
-                className="rounded-lg bg-[var(--color-danger)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-              >
-                Xóa tất cả
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

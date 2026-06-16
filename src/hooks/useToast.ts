@@ -1,22 +1,31 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 const DEFAULT_TOAST_DURATION_MS = 2800;
 const TOAST_EXIT_MS = 220;
 
 export type ToastStatus = 'idle' | 'visible' | 'hiding';
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastVariant = 'default' | 'auth';
 export type ShowToastOptions = {
   type?: ToastType;
   duration?: number;
+  title?: string;
+  variant?: ToastVariant;
 };
-export type ToastHandler = (message: string, type?: ToastType, duration?: number) => Promise<void> | void;
+export type ToastHandler = (
+  message: string,
+  typeOrOptions?: ToastType | number | ShowToastOptions,
+  duration?: number,
+) => Promise<void> | void;
 
 export interface UseToastReturn {
   data: {
     message: string;
     type: ToastType;
+    title?: string;
+    variant: ToastVariant;
   };
   status: ToastStatus;
   error: null;
@@ -26,9 +35,13 @@ export interface UseToastReturn {
   };
 }
 
-export function useToast(): UseToastReturn {
+export const ToastContext = createContext<UseToastReturn | null>(null);
+
+export function useToastController(): UseToastReturn {
   const [message, setMessage] = useState('');
   const [type, setType] = useState<ToastType>('success');
+  const [title, setTitle] = useState<string | undefined>(undefined);
+  const [variant, setVariant] = useState<ToastVariant>('default');
   const [status, setStatus] = useState<ToastStatus>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,6 +85,8 @@ export function useToast(): UseToastReturn {
     resolvePendingToast();
     setMessage(msg);
     setType(toastType);
+    setTitle(typeof typeOrOptions === 'object' ? typeOrOptions.title : undefined);
+    setVariant(typeof typeOrOptions === 'object' ? typeOrOptions.variant ?? 'default' : 'default');
     setStatus('visible');
 
     return new Promise<void>((resolve) => {
@@ -105,6 +120,8 @@ export function useToast(): UseToastReturn {
     data: {
       message,
       type,
+      title,
+      variant,
     },
     status,
     error: null,
@@ -113,4 +130,12 @@ export function useToast(): UseToastReturn {
       hideToast,
     },
   };
+}
+
+export function useToast(): UseToastReturn {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within AppProviders');
+  }
+  return context;
 }

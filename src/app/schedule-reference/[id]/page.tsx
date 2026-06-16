@@ -1,17 +1,17 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
-import AppToast from '@/components/ui/AppToast';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, ShareIcon, TrashIcon, UsersIcon } from '@/components/icons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useFeedback } from '@/hooks/useFeedback';
 import { useToast } from '@/hooks/useToast';
-import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, ensureApiSuccess, getApiErrorMessage, type ApiEnvelope } from '@/lib/api-client';
 import { formatMoney, formatTripDayDate, getDuration, getTripImage } from '@/lib/trip-utils';
 import { ROUTES } from '@/lib/constants';
 
@@ -97,10 +97,8 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const userLoading = userHook.status === 'loading';
 
   const toast = useToast();
-  const toastMessage = toast.data.message;
-  const toastStatus = toast.status;
-  const showToastVisible = toastStatus !== 'idle';
   const { showToast } = toast.actions;
+  const { actions: feedback } = useFeedback();
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<ItineraryItem[]>([]);
@@ -108,7 +106,6 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'itinerary' | 'budget'>('itinerary');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const tripId = params?.id;
 
   const loadData = useCallback(async (): Promise<void> => {
@@ -165,20 +162,23 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const travelerLabel = parseTravelerCount(trip?.description);
   const totalCost = items.reduce((total, item) => total + (Number(item.cost) || 0), 0);
 
-  const doDeleteTrip = async (): Promise<void> => {
+  const handleDeleteTrip = async (): Promise<void> => {
     if (!tripId || !user?.id) return;
-    try {
-      const { response } = await apiRequest(`/api/trips/${tripId}`, { method: 'DELETE', userId: user.id });
-      if (!response.ok) throw new Error('Delete failed');
-      showToast('Đã xóa chuyến đi', 'success');
-      router.push(ROUTES.profile);
-    } catch {
-      showToast('Xóa thất bại, vui lòng thử lại', 'error');
-    }
-  };
-
-  const handleDeleteTrip = (): void => {
-    setShowDeleteConfirm(true);
+    await feedback.confirmAction({
+      confirm: {
+        title: 'Xóa chuyến đi?',
+        description: 'Hành động này không thể hoàn tác.',
+        confirmLabel: 'Xóa',
+        tone: 'danger',
+      },
+      action: async () => {
+        const { response, data } = await apiRequest<ApiEnvelope>(`/api/trips/${tripId}`, { method: 'DELETE', userId: user.id });
+        ensureApiSuccess(response, data, 'Xóa thất bại, vui lòng thử lại');
+        router.push(ROUTES.profile);
+      },
+      success: 'Đã xóa chuyến đi',
+      error: 'Xóa thất bại, vui lòng thử lại',
+    });
   };
 
   const handleShare = async (): Promise<void> => {
@@ -215,52 +215,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
 
   return (
     <div className="min-h-dvh bg-slate-50 font-sans text-slate-900">
-      <AppToast
-        message={toastMessage}
-        type={toast.data.type}
-        visible={showToastVisible}
-        leaving={toastStatus === 'hiding'}
-        onClose={toast.actions.hideToast}
-      />
       <AppHeader active="profile" />
-
-      {showDeleteConfirm && (
-        <div
-          id="delete-trip-confirm-dialog"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="delete-trip-confirm-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
-        >
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-            <h3 id="delete-trip-confirm-title" className="text-base font-semibold text-slate-900">
-              Xóa chuyến đi?
-            </h3>
-            <p className="mt-1 text-sm text-slate-500">Hành động này không thể hoàn tác.</p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                id="delete-trip-confirm-cancel"
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-              >
-                Hủy
-              </button>
-              <button
-                id="delete-trip-confirm-ok"
-                type="button"
-                onClick={async () => {
-                  setShowDeleteConfirm(false);
-                  await doDeleteTrip();
-                }}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
-              >
-                Xóa
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <main className="grid min-h-[calc(100dvh-72px)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px]">
         <section className="min-w-0 border-r border-slate-200 bg-white">

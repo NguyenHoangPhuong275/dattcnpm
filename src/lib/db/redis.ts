@@ -52,14 +52,18 @@ export async function cacheSet(key: string, value: string, ttlSeconds = 3600): P
   return 'OK';
 }
 
+const RATE_LIMIT_INCR_LUA = `
+local current = redis.call('INCR', KEYS[1])
+if current == 1 then
+  redis.call('EXPIRE', KEYS[1], tonumber(ARGV[1]))
+end
+return current
+`;
+
 export async function rateLimitIncr(key: string, windowSeconds = 900): Promise<number> {
   const client = getRedisClient();
-  const count = await client.incr(key);
-
-  if (count === 1) {
-    await client.expire(key, windowSeconds);
-  }
-  return count;
+  const count = await client.eval(RATE_LIMIT_INCR_LUA, 1, key, String(windowSeconds));
+  return typeof count === 'number' ? count : Number(count ?? 0);
 }
 
 export async function blacklistToken(jti: string, ttlSeconds: number): Promise<'OK'> {

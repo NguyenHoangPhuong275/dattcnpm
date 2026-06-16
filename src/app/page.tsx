@@ -9,7 +9,6 @@ import PlaceDetailPanel from '@/components/home/PlaceDetailPanel';
 import FeaturedDestinations from '@/components/home/FeaturedDestinations';
 import TravelNewsSection from '@/components/home/TravelNewsSection';
 import AuthModal from '@/components/auth/AuthModal';
-import AppToast from '@/components/ui/AppToast';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePlaceSearch } from '@/hooks/usePlaceSearch';
 import { usePlaceDetails } from '@/hooks/usePlaceDetails';
@@ -17,6 +16,7 @@ import { useAuthModal } from '@/hooks/useAuthModal';
 import { useToast } from '@/hooks/useToast';
 import { useHomepageTripActions } from '@/hooks/useHomepageTripActions';
 import AddToTripModal from '@/components/trips/AddToTripModal';
+import { apiRequest, ensureApiSuccess, type ApiEnvelope } from '@/lib/api-client';
 import type { SearchResult } from '@/hooks/usePlaceSearch';
 import type { BasicUser } from '@/types/profile';
 
@@ -39,6 +39,7 @@ function HomePageContent(): React.JSX.Element {
 
   const { authMode, isClosing, openAuth, closeAuth } = useAuthModal();
   const toast = useToast();
+  const { showToast } = toast.actions;
 
   const handleAuthenticated = useCallback((authUser: BasicUser) => {
     setUser(authUser);
@@ -57,11 +58,19 @@ function HomePageContent(): React.JSX.Element {
     onMissingPlace: handleMissingPlace,
   });
 
+  useEffect(() => {
+    if (tripActions.tripActionStatus === 'error' && tripActions.tripActionMessage) {
+      showToast(tripActions.tripActionMessage, 'error');
+    }
+  }, [showToast, tripActions.tripActionMessage, tripActions.tripActionStatus]);
+
   const [activeSection, setActiveSection] = useState<'destinations' | 'news' | 'local' | undefined>(undefined);
   const { handleSearch, searchFor, setSearchQuery } = search;
 
   const [addToTripOpen, setAddToTripOpen] = useState(false);
   const [addToTripPlace, setAddToTripPlace] = useState<SearchResult | null>(null);
+  const [favoriteSaving, setFavoriteSaving] = useState(false);
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   const handleOpenAddToTripModal = (place?: SearchResult): void => {
     const p = place || search.selectedPlace;
@@ -70,6 +79,67 @@ function HomePageContent(): React.JSX.Element {
       setAddToTripOpen(true);
     }
   };
+
+  const handleSaveFavorite = useCallback(async (place: SearchResult): Promise<void> => {
+    if (!user) {
+      openAuth('login');
+      return;
+    }
+    if (favoriteSaving) return;
+
+    setFavoriteSaving(true);
+    try {
+      const { response, data } = await apiRequest<ApiEnvelope>('/api/favorites', {
+        method: 'POST',
+        userId: user.id,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          placeId: place._id,
+          name: place.name,
+          lat: place.lat,
+          lng: place.lng,
+          address: place.address || undefined,
+        }),
+      });
+
+      ensureApiSuccess(response, data, 'Không thể lưu địa điểm yêu thích');
+
+      showToast('Đã lưu địa điểm yêu thích', 'success');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Không thể lưu địa điểm yêu thích';
+      showToast(message, 'error');
+    } finally {
+      setFavoriteSaving(false);
+    }
+  }, [favoriteSaving, openAuth, showToast, user]);
+
+  const handleCreateReview = useCallback(async (payload: { placeId: string; rating: number; comment?: string }): Promise<void> => {
+    if (!user) {
+      openAuth('login');
+      return;
+    }
+    if (reviewSaving) return;
+
+    setReviewSaving(true);
+    try {
+      const { response, data } = await apiRequest<ApiEnvelope>('/api/reviews', {
+        method: 'POST',
+        userId: user.id,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      ensureApiSuccess(response, data, 'Không thể gửi đánh giá');
+
+      showToast('Đã gửi đánh giá', 'success');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Không thể gửi đánh giá';
+      showToast(message, 'error');
+      throw error;
+    } finally {
+      setReviewSaving(false);
+    }
+  }, [openAuth, reviewSaving, showToast, user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -151,6 +221,10 @@ function HomePageContent(): React.JSX.Element {
             onCreateTripFromPlace={tripActions.createTripFromSelectedPlace}
             onLogin={() => openAuth('login')}
             onOpenAddToTripModal={handleOpenAddToTripModal}
+            onSaveFavorite={handleSaveFavorite}
+            favoriteSaving={favoriteSaving}
+            onCreateReview={handleCreateReview}
+            reviewSaving={reviewSaving}
           />
         </section>
       )}
@@ -175,14 +249,7 @@ function HomePageContent(): React.JSX.Element {
         onClose={closeAuth}
         onModeChange={openAuth}
         onAuthenticated={handleAuthenticated}
-        onToast={toast.actions.showToast}
-      />
-      <AppToast
-        message={toast.data.message}
-        type={toast.data.type}
-        visible={toast.status !== 'idle'}
-        leaving={toast.status === 'hiding'}
-        onClose={toast.actions.hideToast}
+        onToast={showToast}
       />
     </div>
   );

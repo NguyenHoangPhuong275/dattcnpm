@@ -95,6 +95,11 @@ export const TripShareSchema = new Schema<ITripShare>({
   expiresAt: { type: Date, default: null },
 }, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.tripShares, strict: false });
 
+TripShareSchema.index(
+  { shareCode: 1 },
+  { unique: true, partialFilterExpression: { shareCode: { $type: 'string' } } }
+);
+
 export const TripShare: Model<ITripShare> = models.TripShare || model<ITripShare>('TripShare', TripShareSchema);
 
 export interface INotification extends Document {

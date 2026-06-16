@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { 
+import { createHmac, timingSafeEqual } from 'crypto';
+import {
   getDb, 
   dropAllManagedCollections, 
   dropUnknownCollections, 
@@ -21,12 +22,27 @@ function getWebhookSecret() {
   return secret;
 }
 
+function timingSafeEqualString(a: string, b: string): boolean {
+  const key = 'webhook-secret-compare';
+  const ha = createHmac('sha256', key).update(a).digest();
+  const hb = createHmac('sha256', key).update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
+function isIpAllowedForDestructive(ip: string): boolean {
+  const raw = process.env.WEBHOOK_IP_ALLOWLIST;
+  if (!raw || !raw.trim()) return true;
+  const allowed = raw.split(',').map((entry) => entry.trim()).filter(Boolean);
+  if (allowed.length === 0) return true;
+  return allowed.includes(ip);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('x-webhook-secret');
     const webhookSecret = getWebhookSecret();
 
-    if (authHeader !== webhookSecret) {
+    if (!authHeader || !timingSafeEqualString(authHeader, webhookSecret)) {
       throw new AppError('UNAUTHORIZED', 'Unauthorized admin access', 401);
     }
 
@@ -61,6 +77,10 @@ export async function POST(request: NextRequest) {
       'db.nuke',
       'places.clear-cache',
     ]);
+
+    if (destructiveEvents.has(event) && !isIpAllowedForDestructive(ip)) {
+      throw new AppError('FORBIDDEN', 'IP không được phép thực hiện thao tác phá hủy này', 403);
+    }
 
     if (destructiveEvents.has(event) && data?.confirm !== true) {
       throw new AppError(
@@ -323,34 +343,14 @@ export async function POST(request: NextRequest) {
 
         const vnData = (await fetchRes.json()) as Record<string, VnProvince>;
 
-        let inserted = 0;
-        let updated = 0;
+        const drafts: AdminLocationDraft[] = [];
 
-        const upsertAdminLocation = async (doc: AdminLocationDraft) => {
-          const existing = await db.places.findOne({ osmId: doc.osmId });
-          if (existing) {
-            await db.places.updateOne(existing._id, {
-              name: doc.name,
-              address: doc.address,
-              osmTags: doc.osmTags,
-              tags: doc.tags,
-              type: doc.type,
-            });
-            updated++;
-          } else {
-            await db.places.insertOne({
-              ...doc,
-              ratingAvg: 0,
-              ratingCount: 0,
-              createdAt: now,
-              updatedAt: now,
-            });
-            inserted++;
-          }
+        const queueAdminLocation = (doc: AdminLocationDraft) => {
+          drafts.push(doc);
         };
 
         for (const [provCode, prov] of Object.entries(vnData)) {
-          await upsertAdminLocation({
+          queueAdminLocation({
             osmId: `vn:${provCode}`,
             name: prov.name_with_type || prov.name,
             type: 'province',
@@ -368,7 +368,7 @@ export async function POST(request: NextRequest) {
 
           const districts = prov.districts || {};
           for (const [distCode, dist] of Object.entries(districts)) {
-            await upsertAdminLocation({
+            queueAdminLocation({
               osmId: `vn:${provCode}-${distCode}`,
               name: dist.name_with_type || dist.name,
               type: 'district',
@@ -387,7 +387,7 @@ export async function POST(request: NextRequest) {
 
             const wards = dist.wards || {};
             for (const [wardCode, ward] of Object.entries(wards)) {
-              await upsertAdminLocation({
+              queueAdminLocation({
                 osmId: `vn:${provCode}-${distCode}-${wardCode}`,
                 name: ward.name_with_type || ward.name,
                 type: 'ward',
@@ -407,6 +407,34 @@ export async function POST(request: NextRequest) {
             }
           }
         }
+
+        const bulkOps = drafts.map((doc) => ({
+          updateOne: {
+            filter: { osmId: doc.osmId },
+            update: {
+              $set: {
+                name: doc.name,
+                address: doc.address,
+                osmTags: doc.osmTags,
+                tags: doc.tags,
+                type: doc.type,
+                updatedAt: now,
+              },
+              $setOnInsert: {
+                lat: doc.lat,
+                lng: doc.lng,
+                ratingAvg: 0,
+                ratingCount: 0,
+                createdAt: now,
+              },
+            },
+            upsert: true,
+          },
+        }));
+
+        const bulkResult = await db.places.bulkWrite(bulkOps);
+        const inserted = bulkResult.upsertedCount;
+        const updated = bulkResult.modifiedCount;
 
         await db.auditLogs.insertOne({
           userId: null,

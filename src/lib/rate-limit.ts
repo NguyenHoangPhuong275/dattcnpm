@@ -14,6 +14,23 @@ type MemoryEntry = {
 
 const memoryLimits = new Map<string, MemoryEntry>();
 
+const PRUNE_INTERVAL_MS = 60_000;
+
+function pruneMemoryLimits() {
+  const now = Date.now();
+  for (const [key, entry] of memoryLimits) {
+    if (entry.resetAt <= now) {
+      memoryLimits.delete(key);
+    }
+  }
+}
+
+const g = globalThis as unknown as { __rlPruneTimer?: NodeJS.Timeout };
+if (!g.__rlPruneTimer) {
+  g.__rlPruneTimer = setInterval(pruneMemoryLimits, PRUNE_INTERVAL_MS);
+  g.__rlPruneTimer.unref?.();
+}
+
 export function getClientIp(request: NextRequest): string {
   return request.headers.get('x-forwarded-for')?.split(',')[0].trim()
     || request.headers.get('x-real-ip')

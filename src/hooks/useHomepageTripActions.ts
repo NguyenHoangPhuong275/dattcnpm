@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import { getDefaultTripDates } from '@/lib/date';
 import type { TripSummary } from '@/types/profile';
 import { ROUTES } from '@/lib/constants';
@@ -113,7 +113,9 @@ export function useHomepageTripActions({
         }
       );
 
-      if (!response.ok || !data.success) {
+      try {
+        ensureApiSuccess(response, data, 'Không thể thêm địa điểm vào chuyến đi');
+      } catch {
         setTripActionMessage(getApiErrorMessage(data, 'Không thể thêm địa điểm vào chuyến đi'));
         setTripActionStatus('error');
         return false;
@@ -155,8 +157,15 @@ export function useHomepageTripActions({
         }
       );
 
-      if (!response.ok || !data.success || !data.data) {
+      try {
+        ensureApiSuccess(response, data, 'Không thể tạo lịch trình');
+      } catch {
         setTripActionMessage(getApiErrorMessage(data, 'Không thể tạo lịch trình'));
+        setTripActionStatus('error');
+        return;
+      }
+      if (!data.data) {
+        setTripActionMessage('Không thể tạo lịch trình');
         setTripActionStatus('error');
         return;
       }

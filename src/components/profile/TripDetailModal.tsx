@@ -2,11 +2,13 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import type { z } from 'zod';
 import { createItineraryItemSchema } from '@/lib/validations/trip';
-import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import { formatDateInputValue } from '@/lib/date';
 import { TripSummary } from '@/types/profile';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useFeedback } from '@/hooks/useFeedback';
+import { useToast } from '@/hooks/useToast';
 
 interface TripDetailModalProps {
   trip: TripSummary | null;
@@ -65,10 +67,13 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   const [error, setError] = useState('');
   const [draft, setDraft] = useState<ItineraryDraft>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   const [isEditingTrip, setIsEditingTrip] = useState(false);
   const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false, description: '' });
   const [savingTrip, setSavingTrip] = useState(false);
+  const { actions: feedback } = useFeedback();
+  const { actions: { showToast } } = useToast();
 
   const groupedItems = useMemo(() => {
     const groups = new Map<number, ItineraryItem[]>();
@@ -92,7 +97,9 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setError('');
     try {
       const { response, data } = await apiRequest<ApiListResponse<ItineraryItem[]>>(`/api/trips/${trip._id}/itinerary`, { userId });
-      if (!response.ok || !data.success) {
+      try {
+        ensureApiSuccess(response, data, 'Không thể tải lịch trình');
+      } catch {
         setError(getApiErrorMessage(data, 'Không thể tải lịch trình'));
         return;
       }
@@ -127,7 +134,9 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setError('');
 
     if (draft.day === '' || draft.day < 1) {
-      setError('Vui lòng nhập số ngày hợp lệ (>= 1)');
+      const message = 'Vui lòng nhập số ngày hợp lệ (>= 1)';
+      setError(message);
+      showToast(message, 'warning');
       setSaving(false);
       return;
     }
@@ -153,14 +162,21 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok || !data.success) {
-        setError(getApiErrorMessage(data, 'Không thể lưu lịch trình'));
+      try {
+        ensureApiSuccess(response, data, 'Không thể lưu lịch trình');
+      } catch {
+        const message = getApiErrorMessage(data, 'Không thể lưu lịch trình');
+        setError(message);
+        showToast(message, 'error');
         return;
       }
+      showToast(editingId ? 'Đã cập nhật điểm dừng' : 'Đã thêm điểm dừng', 'success');
       resetForm();
       await loadItinerary();
     } catch {
-      setError('Không thể lưu lịch trình');
+      const message = 'Không thể lưu lịch trình';
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setSaving(false);
     }
@@ -180,22 +196,38 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
 
   const handleDelete = async (itemId: string): Promise<void> => {
     if (!trip || !userId) return;
-    setError('');
-    try {
-      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/itinerary/${itemId}`, {
-        method: 'DELETE',
-        userId,
-      });
+    await feedback.confirmAction({
+      confirm: {
+        title: 'Xóa điểm dừng?',
+        description: 'Điểm dừng này sẽ bị xóa khỏi lịch trình.',
+        confirmLabel: 'Xóa',
+        tone: 'danger',
+      },
+      action: async () => {
+        setError('');
+        setDeletingItemId(itemId);
+        try {
+          const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/itinerary/${itemId}`, {
+            method: 'DELETE',
+            userId,
+          });
 
-      if (!response.ok || !data.success) {
-        setError(getApiErrorMessage(data, 'Không thể xóa điểm dừng'));
-        return;
-      }
-      if (editingId === itemId) resetForm();
-      await loadItinerary();
-    } catch {
-      setError('Không thể xóa điểm dừng');
-    }
+          try {
+            ensureApiSuccess(response, data, 'Không thể xóa điểm dừng');
+          } catch {
+            const message = getApiErrorMessage(data, 'Không thể xóa điểm dừng');
+            setError(message);
+            throw new Error(message);
+          }
+          if (editingId === itemId) resetForm();
+          await loadItinerary();
+        } finally {
+          setDeletingItemId(null);
+        }
+      },
+      success: 'Đã xóa điểm dừng',
+      error: 'Không thể xóa điểm dừng',
+    });
   };
 
   const startEditTrip = () => {
@@ -221,7 +253,9 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setError('');
 
     if (tripDraft.endDate && tripDraft.startDate && tripDraft.endDate < tripDraft.startDate) {
-      setError('Ngày kết thúc phải sau ngày bắt đầu');
+      const message = 'Ngày kết thúc phải sau ngày bắt đầu';
+      setError(message);
+      showToast(message, 'warning');
       setSavingTrip(false);
       return;
     }
@@ -240,14 +274,21 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
         }),
       });
 
-      if (!response.ok || !data.success) {
-        setError(getApiErrorMessage(data, 'Không thể cập nhật chuyến đi'));
+      try {
+        ensureApiSuccess(response, data, 'Không thể cập nhật chuyến đi');
+      } catch {
+        const message = getApiErrorMessage(data, 'Không thể cập nhật chuyến đi');
+        setError(message);
+        showToast(message, 'error');
         return;
       }
       setIsEditingTrip(false);
+      showToast('Đã cập nhật chuyến đi', 'success');
       onTripUpdated?.();
     } catch {
-      setError('Không thể cập nhật chuyến đi');
+      const message = 'Không thể cập nhật chuyến đi';
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setSavingTrip(false);
     }
@@ -441,9 +482,10 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                         <button
                           type="button"
                           onClick={() => handleDelete(item._id)}
+                          disabled={deletingItemId === item._id}
                           className="text-xs px-2 py-1 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
                         >
-                          Xóa
+                          {deletingItemId === item._id ? 'Đang xóa...' : 'Xóa'}
                         </button>
                       </div>
                     </div>

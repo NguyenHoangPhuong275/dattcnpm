@@ -61,7 +61,11 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
       if (!response.ok) {
         const message = getApiErrorMessage(data, 'Mật khẩu hoặc email không đúng, vui lòng thử lại');
         setErrors({ form: message });
-        onToast?.(message, 'error');
+        onToast?.(message, {
+          type: 'error',
+          title: 'Không thể đăng nhập',
+          variant: 'auth',
+        });
         return;
       }
 
@@ -70,13 +74,20 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
         throw new Error('Missing authenticated user');
       }
 
-      await onToast?.('Đăng nhập thành công, đang chuyển hướng...', 'success', AUTH_SUCCESS_TOAST_MS);
+      await onToast?.('Phiên đăng nhập đã sẵn sàng. Chào mừng bạn quay lại LOTUS TRAVEL.', {
+        type: 'success',
+        title: 'Đăng nhập thành công',
+        variant: 'auth',
+        duration: AUTH_SUCCESS_TOAST_MS,
+      });
 
       if (onAuthenticated) {
         onAuthenticated(authedUser);
       } else {
         setStoredUser(authedUser);
       }
+
+      router.refresh();
 
       if (onSuccess) {
         onSuccess();
@@ -86,7 +97,11 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
     } catch {
       const message = 'Lỗi kết nối, vui lòng thử lại sau';
       setErrors({ form: message });
-      onToast?.(message, 'error');
+      onToast?.(message, {
+        type: 'error',
+        title: 'Không thể đăng nhập',
+        variant: 'auth',
+      });
     } finally {
       setIsLoading(false);
     }

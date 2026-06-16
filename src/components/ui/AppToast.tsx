@@ -1,11 +1,13 @@
 'use client';
 
 import React from 'react';
-import type { ToastType } from '@/hooks/useToast';
+import type { ToastType, ToastVariant } from '@/hooks/useToast';
 
 interface AppToastProps {
   message: string;
+  title?: string;
   type?: ToastType;
+  variant?: ToastVariant;
   visible: boolean;
   leaving?: boolean;
   onClose?: () => void;
@@ -41,17 +43,28 @@ const VARIANT_STYLES: Record<ToastType, string> = {
   info: 'toast-info',
 };
 
-export default function AppToast({ message, type = 'success', visible, leaving = false, onClose }: AppToastProps) {
+export default function AppToast({
+  message,
+  title,
+  type = 'success',
+  variant = 'default',
+  visible,
+  leaving = false,
+  onClose,
+}: AppToastProps) {
   if (!visible || !message) return null;
 
   return (
     <div
-      className={`app-toast ${VARIANT_STYLES[type]} ${leaving ? 'toast-exiting' : ''}`}
+      className={`app-toast ${VARIANT_STYLES[type]} ${variant === 'auth' ? 'toast-auth' : ''} ${leaving ? 'toast-exiting' : ''}`}
       role="alert"
       aria-live="assertive"
     >
       <span className="app-toast-icon">{ICON_MAP[type]}</span>
-      <span className="app-toast-message">{message}</span>
+      <span className="app-toast-content">
+        {title && <span className="app-toast-title">{title}</span>}
+        <span className="app-toast-message">{message}</span>
+      </span>
       {onClose && (
         <button
           type="button"

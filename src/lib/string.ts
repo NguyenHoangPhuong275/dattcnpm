@@ -20,6 +20,11 @@ export function removeVietnameseTones(str: string): string {
   return result;
 }
 
+export function escapeRegex(value: string, maxLength = 100): string {
+  if (!value) return '';
+  return value.slice(0, maxLength).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export function normalizeVietnameseText(value: string): string {
   if (!value) return '';
   return removeVietnameseTones(value)

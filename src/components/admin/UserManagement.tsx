@@ -1,6 +1,7 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 
 interface UserManagementProps {
   userEmail: string;
@@ -15,6 +16,20 @@ export default function UserManagement({
   onAction,
   actionLoading,
 }: UserManagementProps) {
+  const { confirm } = useConfirm();
+
+  const handleHardDelete = async (): Promise<void> => {
+    const confirmed = await confirm({
+      title: 'Xóa vĩnh viễn tài khoản?',
+      description: `Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản ${userEmail}?`,
+      confirmLabel: 'Xóa vĩnh viễn',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
+
+    onAction('harddelete', 'user.delete', { email: userEmail, hard: true, confirm: true });
+  };
+
   return (
     <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-3xl p-6 shadow-lg shadow-slate-950/35 space-y-6">
       <h2 className="text-lg font-bold text-indigo-300 flex items-center gap-2 border-b border-slate-800 pb-3">
@@ -66,11 +81,7 @@ export default function UserManagement({
 
           <button
             type="button"
-            onClick={() => {
-              if (confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản ${userEmail}?`)) {
-                onAction('harddelete', 'user.delete', { email: userEmail, hard: true, confirm: true });
-              }
-            }}
+            onClick={handleHardDelete}
             disabled={actionLoading !== null || !userEmail}
             className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all cursor-pointer min-h-[40px] disabled:opacity-40 disabled:cursor-not-allowed"
           >

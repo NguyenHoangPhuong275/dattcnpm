@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import UserManagement from '@/components/admin/UserManagement';
 import BroadcastForm from '@/components/admin/BroadcastForm';
 import DatabaseActions from '@/components/admin/DatabaseActions';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
+import { useConfirm } from '@/hooks/useConfirm';
 import { apiRequestStrictJson, getApiErrorMessage } from '@/lib/api-client';
 
 interface Stats {
@@ -67,6 +68,7 @@ function requestWebhook<T extends WebhookResponse = WebhookResponse>(
 }
 
 export default function AdminControlPage() {
+  const { confirm } = useConfirm();
   const [secret, setSecret] = useState('');
   const [secretReady, setSecretReady] = useState(false);
   const [pollingEnabled, setPollingEnabled] = useState(false);
@@ -260,17 +262,22 @@ export default function AdminControlPage() {
     });
     setNotifContent('');
   };
-
-  const confirmDbAction = (action: 'db.reset' | 'db.clear') => {
+  const confirmDbAction = async (action: 'db.reset' | 'db.clear') => {
     const text = action === 'db.reset'
       ? 'Bạn có chắc chắn muốn RESET Database về trạng thái mẫu ban đầu? (sẽ drop toàn bộ collections managed)'
       : 'CẢNH BÁO: Hành động này sẽ DROP toàn bộ collections (xóa sạch duplicates + data + indexes). Bạn có chắc không?';
 
-    if (confirm(text)) {
+    const confirmed = await confirm({
+      title: action === 'db.reset' ? 'Reset database?' : 'Xóa sạch database?',
+      description: text,
+      confirmLabel: action === 'db.reset' ? 'Reset' : 'Xóa sạch',
+      tone: 'danger',
+    });
+
+    if (confirmed) {
       handleAction(action, action, { confirm: true });
     }
   };
-
   const handleDbAction = (action: 'db.reset' | 'db.clear' | 'db.check' | 'db.createTables') => {
     if (action === 'db.check' || action === 'db.createTables') {
       handleAction(action, action);
@@ -321,7 +328,7 @@ export default function AdminControlPage() {
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
               }`}
             >
-              {pollingEnabled ? '⏸ Tạm dừng auto-refresh' : '▶ Bật auto-refresh (3s)'}
+              {pollingEnabled ? 'Tạm dừng auto-refresh' : 'Bật auto-refresh (3s)'}
             </button>
           </div>
         </div>
@@ -395,4 +402,3 @@ export default function AdminControlPage() {
     </div>
   );
 }
-

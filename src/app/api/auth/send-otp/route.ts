@@ -29,7 +29,7 @@ function buildEmailHTML(otp: string, fullName: string): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background-color:#f4f7fc;font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<body style="margin:0;padding:0;background-color:#f4f7fc;font-family:'Be Vietnam Pro',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7fc;padding:40px 20px;">
     <tr>
       <td align="center">

@@ -3,6 +3,7 @@ import { getDb, type CollectionFilter, type Trip } from '@/lib/db';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { toTripResponse } from '@/lib/trip-utils';
+import { escapeRegex } from '@/lib/string';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const filter: CollectionFilter = { isPublic: true };
     if (destination) {
-      filter.destination = { $regex: destination, $options: 'i' };
+      filter.destination = { $regex: escapeRegex(destination), $options: 'i' };
     }
 
     const db = await getDb();

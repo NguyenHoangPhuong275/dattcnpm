@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
+import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import { useTripList } from '@/hooks/useTripList';
 import type { TripSummary } from '@/types/profile';
 
@@ -55,11 +55,7 @@ export function useAddToTrip(): UseAddToTripReturn {
           body: JSON.stringify({ placeId, day }),
         },
       );
-      if (!response.ok || !data.success) {
-        setErrorMessage(getApiErrorMessage(data, 'Thêm địa điểm thất bại'));
-        setModalStatus('error');
-        return;
-      }
+      ensureApiSuccess(response, data, 'Thêm địa điểm thất bại');
       setModalStatus('success');
     } catch (err) {
       setErrorMessage(getApiErrorMessage(err, 'Thêm địa điểm thất bại'));
