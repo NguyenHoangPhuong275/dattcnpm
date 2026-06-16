@@ -24,6 +24,7 @@ const FavoritesSection = memo(({ places, onRemove, loading, removingIds }: Favor
               {place.address && <div className="text-sm text-[var(--color-text-muted)] mt-1 line-clamp-1">{place.address}</div>}
               <div className="text-xs text-[var(--color-text-muted)] mt-2">Lat {place.lat.toFixed(4)} • Lng {place.lng.toFixed(4)}</div>
               <button
+                type="button"
                 onClick={() => onRemove(place._id)}
                 disabled={removingIds?.has(place._id)}
                 className="absolute top-2 right-2 text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/5 px-1.5 py-0.5 rounded transition-colors disabled:opacity-50"

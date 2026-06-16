@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { SearchResult } from '@/hooks/usePlaceSearch';
-import { isAbortError } from '@/lib/api-client';
+import { apiRequestStrictJson, isAbortError } from '@/lib/api-client';
 import { normalizeText } from '@/lib/trip-utils';
 
 export type FetchStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -60,13 +60,11 @@ function getPlaceRegion(place: SearchResult): string {
   return place.address || place.name;
 }
 
-async function readJson<T>(response: Response): Promise<T> {
-  return await response.json() as T;
-}
-
 async function fetchWeather(lat: number, lng: number, signal: AbortSignal): Promise<WeatherData | null> {
-  const response = await fetch(`/api/weather?lat=${lat}&lng=${lng}`, { signal });
-  const json = await readJson<ApiEnvelope<WeatherPayload> & WeatherPayload>(response);
+  const { response, data: json } = await apiRequestStrictJson<ApiEnvelope<WeatherPayload> & WeatherPayload>(
+    `/api/weather?lat=${lat}&lng=${lng}`,
+    { signal }
+  );
   const payload = json.data || json;
 
   if (!response.ok || json.success === false) return null;
@@ -82,8 +80,10 @@ async function fetchPois(place: SearchResult, signal: AbortSignal): Promise<PoiD
     region: getPlaceRegion(place),
   });
 
-  const response = await fetch(`/api/places/poi?${params.toString()}`, { signal });
-  const json = await readJson<ApiEnvelope<PoiPayload> & PoiPayload>(response);
+  const { response, data: json } = await apiRequestStrictJson<ApiEnvelope<PoiPayload> & PoiPayload>(
+    `/api/places/poi?${params.toString()}`,
+    { signal }
+  );
   const payload = json.data || json;
 
   if (!response.ok || json.success === false) return [];

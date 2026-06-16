@@ -106,12 +106,14 @@ export default function PasswordChangeModal({
         )}
         <div className="flex gap-3 mt-6">
           <button
+            type="button"
             onClick={onClose}
             className="flex-1 py-2 border border-[var(--color-border)] rounded-xl text-sm hover:bg-[var(--color-primary-lightest)] text-[var(--color-text-secondary)] transition"
           >
             Hủy
           </button>
           <button
+            type="button"
             onClick={handleSubmit}
             disabled={saving}
             className="flex-1 py-2 bg-[var(--color-primary-dark)] text-white rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2 transition hover:bg-[var(--color-primary-darker)]"

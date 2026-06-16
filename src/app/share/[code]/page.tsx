@@ -33,9 +33,9 @@ async function getSharedTrip(code: string): Promise<{ trip: PublicTrip; items: P
       cache: 'no-store',
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    if (!data.success) return null;
-    return { trip: data.trip, items: data.items };
+    const body = await res.json();
+    if (!body.success || !body.data?.trip) return null;
+    return { trip: body.data.trip, items: body.data.items ?? [] };
   } catch {
     return null;
   }

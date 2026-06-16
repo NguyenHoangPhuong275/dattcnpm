@@ -143,7 +143,17 @@ const PersonalInfoForm = memo(({
 
           <div>
             <label htmlFor="profile-email" className="form-label">Email</label>
-            <input id="profile-email" type="email" name="email" value={personal.email} onChange={onChange} className={fieldClass} required />
+            <input
+              id="profile-email"
+              type="email"
+              name="email"
+              value={personal.email}
+              readOnly
+              disabled
+              aria-readonly="true"
+              className={`${fieldClass} cursor-not-allowed opacity-70`}
+            />
+            <p className="mt-1 text-xs text-[var(--color-text-muted)]">Email dùng để đăng nhập và không thể thay đổi.</p>
           </div>
         </div>
 

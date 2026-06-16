@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getAuthUserFull } from '@/lib/auth';
-import { handleApiError, AppError } from '@/lib/api-response';
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       avatarUrl: user.avatarUrl || null,
     };
 
-    return NextResponse.json(basicUser);
+    return sendSuccess(basicUser);
   } catch (error) {
     return handleApiError(error);
   }

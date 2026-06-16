@@ -1,11 +1,18 @@
 import { NextRequest } from 'next/server';
+import { randomInt } from 'node:crypto';
 import { getResend } from '@/lib/resend';
-import { getRedis, getDb, findUserByEmail } from '@/lib/db';
+import { getRedis, getDb, findUserByEmail, storeOtp } from '@/lib/db';
 import { sendOtpSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
+const OTP_TTL_SECONDS = 600;
+const OTP_SEND_WINDOW_SECONDS = 600;
+const OTP_SEND_LIMIT = 3;
+const OTP_RANGE_EXCLUSIVE = 1_000_000;
+const OTP_LENGTH = 6;
+
 function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(0, OTP_RANGE_EXCLUSIVE).toString().padStart(OTP_LENGTH, '0');
 }
 
 function maskEmail(email: string): string {
@@ -80,23 +87,21 @@ export async function POST(request: NextRequest) {
     const redis = getRedis();
     const rateLimitKey = `otp:limit:${normalizedEmail}`;
     const currentCount = await redis.incr(rateLimitKey);
-    await redis.expire(rateLimitKey, 600);
+    await redis.expire(rateLimitKey, OTP_SEND_WINDOW_SECONDS);
 
-    if (currentCount > 3) {
+    if (currentCount > OTP_SEND_LIMIT) {
       throw new AppError('RATE_LIMITED', 'Bạn đã gửi quá nhiều mã xác minh. Vui lòng thử lại sau 10 phút.', 429);
     }
 
     const otp = generateOTP();
-    const otpKey = `otp:${normalizedEmail}`;
-
-    await redis.set(otpKey, JSON.stringify({ otp, attempts: 0 }), 'EX', 600);
+    await storeOtp(normalizedEmail, otp, OTP_TTL_SECONDS);
 
     const db = await getDb();
     await db.auditLogs.insertOne({
-      userId: undefined,
+      userId: null,
       action: 'SEND_OTP',
       targetType: 'OTP',
-      targetId: undefined,
+      targetId: null,
       metadata: { email: normalizedEmail, status: 'generated' },
       createdAt: new Date(),
     });

@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { sendSuccess } from '@/lib/api-response';
 
 export async function GET() {
-  return NextResponse.json({
+  return sendSuccess({
     status: 'ok',
-    timestamp: new Date().toISOString(),
     service: 'smart-travel-guide',
+    timestamp: new Date().toISOString(),
   });
 }

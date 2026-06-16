@@ -18,6 +18,7 @@ export default function SuccessStep({ onClose }: SuccessStepProps) {
       <p className="text-slate-600 text-sm">Email đã được xác minh. Chào mừng bạn gia nhập LOTUS TRAVEL.</p>
       <div className="pt-1">
         <button
+          type="button"
           onClick={onClose}
           className="inline-flex justify-center w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] focus:ring-offset-white transition-all cursor-pointer min-h-[44px] items-center"
         >

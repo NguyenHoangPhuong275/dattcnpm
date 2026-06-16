@@ -29,6 +29,7 @@ export default function AuditLogViewer({ logs, isLoading, onRefresh }: AuditLogV
           Nhật ký Hệ thống (Logs)
         </h2>
         <button
+          type="button"
           onClick={onRefresh}
           disabled={isLoading}
           className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-40"

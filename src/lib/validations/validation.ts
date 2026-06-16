@@ -40,6 +40,15 @@ export type {
 export { updateProfileSchema } from './profile';
 export type { ProfileUpdateInput } from './profile';
 
+export {
+  createReviewSchema,
+  updateReviewSchema,
+} from './review';
+export type {
+  CreateReviewInput,
+  UpdateReviewInput,
+} from './review';
+
 export { searchHistoryCreateSchema } from './search';
 export type { SearchHistoryCreateInput } from './search';
 

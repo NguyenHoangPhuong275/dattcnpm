@@ -69,7 +69,7 @@ export const User: Model<IUser> = models.User || model<IUser>('User', UserSchema
 
 export async function getUserById(userId: string): Promise<PlainUser | null> {
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return null;
-  const user = await User.findById(userId).lean();
+  const user = await User.findOne({ _id: userId, deletedAt: null }).lean();
   return user ? (toPlain<PlainUser>(user) ?? null) : null;
 }
 

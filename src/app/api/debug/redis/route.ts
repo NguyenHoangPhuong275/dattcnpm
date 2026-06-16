@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { connectRedis, getRedis } from '@/lib/db';
 import { debugGuard } from '@/lib/debug-guard';
+import { sendSuccess, sendError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const guardRes = debugGuard(request);
@@ -10,18 +11,12 @@ export async function GET(request: NextRequest) {
     await connectRedis();
     const response = await getRedis().ping();
 
-    return NextResponse.json({
-      status: 'success',
+    return sendSuccess({
       connected: response === 'PONG',
       response,
       timestamp: new Date().toISOString(),
     });
   } catch {
-    return NextResponse.json({
-      status: 'error',
-      connected: false,
-      message: 'Redis connection failed',
-      timestamp: new Date().toISOString(),
-    }, { status: 500 });
+    return sendError('INTERNAL_ERROR', 'Redis connection failed', { connected: false }, 500);
   }
 }

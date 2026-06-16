@@ -1,23 +1,16 @@
 import { NextRequest } from 'next/server';
+
 import { getDb, createAuditLog } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { recalculatePlaceRating } from '@/lib/review-utils';
 import { objectIdSchema } from '@/lib/validations/common';
-import { z } from 'zod';
+import { updateReviewSchema } from '@/lib/validations/review';
 
 type RouteCtx = {
   params: Promise<{ id: string }>;
 };
-
-const updateReviewSchema = z.object({
-  rating: z.number().int().min(1).max(5).optional(),
-  comment: z.string().trim().max(1000).optional().nullable(),
-  images: z.array(z.string()).optional().nullable(),
-}).refine(d => Object.keys(d).length > 0, {
-  message: 'Không có trường hợp lệ để cập nhật',
-});
 
 type AppDb = Awaited<ReturnType<typeof getDb>>;
 
@@ -72,7 +65,6 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
 
     const updated = await db.reviews.updateOne(id, { $set: updates });
 
-    
     await recalculatePlaceRating(review.placeId, db);
 
     try {
@@ -113,10 +105,8 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     const db = await getDb();
     const review = await findOwnedReviewOrThrow(db, id, userId, 'Bạn không có quyền xóa đánh giá này');
 
-    
     await db.reviews.updateOne(id, { $set: { deletedAt: new Date() } });
 
-    
     await recalculatePlaceRating(review.placeId, db);
 
     try {

@@ -6,7 +6,6 @@ import { BasicUser } from '@/types/profile';
 import {
   clearStoredUser,
   getStoredUser,
-  hasAuthCookie,
   isLocalLogoutRecent,
   isStoredUserFresh,
   setStoredUser,
@@ -29,10 +28,10 @@ let currentUserRequest: Promise<CurrentUserRequestResult> | null = null;
 
 function loadCurrentUser(): Promise<CurrentUserRequestResult> {
   if (!currentUserRequest) {
-    currentUserRequest = apiRequest<BasicUser>('/api/profile/me')
+    currentUserRequest = apiRequest<{ data?: BasicUser }>('/api/profile/me')
       .then(({ response, data }) => {
         if (response.ok) {
-          return { user: data, unauthorized: false };
+          return { user: data.data ?? null, unauthorized: false };
         }
 
         if (response.status === 401 || response.status === 403) {
@@ -81,8 +80,7 @@ export function useCurrentUser(
   useEffect(() => {
     let active = true;
     const currentCachedUser = getStoredUser();
-    const cookieExists = hasAuthCookie();
-    const skipAuthCheck = !cookieExists || isLocalLogoutRecent(LOCAL_LOGOUT_SKIP_AUTH_MS);
+    const skipAuthCheck = isLocalLogoutRecent(LOCAL_LOGOUT_SKIP_AUTH_MS);
     const shouldVerify = !currentCachedUser || !isStoredUserFresh(CURRENT_USER_REVALIDATE_MS);
 
     if (skipAuthCheck) {

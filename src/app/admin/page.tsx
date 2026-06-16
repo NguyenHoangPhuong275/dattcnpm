@@ -9,7 +9,7 @@ import UserManagement from '@/components/admin/UserManagement';
 import BroadcastForm from '@/components/admin/BroadcastForm';
 import DatabaseActions from '@/components/admin/DatabaseActions';
 import AuditLogViewer from '@/components/admin/AuditLogViewer';
-import { getApiErrorMessage } from '@/lib/api-client';
+import { apiRequestStrictJson, getApiErrorMessage } from '@/lib/api-client';
 
 interface Stats {
   users: number;
@@ -33,6 +33,39 @@ interface AuditLog {
   createdAt: string;
 }
 
+interface WebhookResponse {
+  message?: string;
+  report?: {
+    isClean?: boolean;
+  };
+}
+
+interface StatsWebhookResponse extends WebhookResponse {
+  stats: Stats;
+}
+
+interface LogsWebhookResponse extends WebhookResponse {
+  logs?: AuditLog[];
+}
+
+const ALERT_DURATION_MS = 5_000;
+const POLL_INTERVAL_MS = 3_000;
+
+function requestWebhook<T extends WebhookResponse = WebhookResponse>(
+  secret: string,
+  event: string,
+  payload?: Record<string, unknown>
+): Promise<{ response: Response; data: T }> {
+  return apiRequestStrictJson<T>('/api/webhook', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-webhook-secret': secret,
+    },
+    body: JSON.stringify({ event, data: payload }),
+  });
+}
+
 export default function AdminControlPage() {
   const [secret, setSecret] = useState('');
   const [secretReady, setSecretReady] = useState(false);
@@ -53,63 +86,36 @@ export default function AdminControlPage() {
   const [alert, setAlert] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
-    let saved = localStorage.getItem('WEBHOOK_SECRET');
-    if (!saved || saved === 'undefined' || saved === 'null' || saved.trim() === '') {
-      saved = 'lotus_travel_admin_webhook_secret_2026';
-      localStorage.setItem('WEBHOOK_SECRET', saved);
-    }
-    setSecret(saved);
     setSecretReady(true);
   }, []);
 
   const handleSaveSecret = (val: string) => {
-    setSecret(val);
-    localStorage.setItem('WEBHOOK_SECRET', val);
-    triggerAlert('Đã lưu Secret Token cấu hình', 'success');
+    setSecret(val.trim());
+    triggerAlert('Đã áp dụng Secret Token cho phiên này', 'success');
   };
 
   const triggerAlert = (message: string, type: 'success' | 'error') => {
     setAlert({ message, type });
-    setTimeout(() => setAlert(null), 5000);
+    setTimeout(() => setAlert(null), ALERT_DURATION_MS);
   };
 
-  const handle401Error = useCallback((currentSecret: string) => {
-    const defaultSecret = 'lotus_travel_admin_webhook_secret_2026';
-    if (currentSecret !== defaultSecret) {
-      setSecret(defaultSecret);
-      localStorage.setItem('WEBHOOK_SECRET', defaultSecret);
-      triggerAlert('Secret Token sai đã được tự động đặt lại về mặc định.', 'success');
-      setPollingEnabled(true);
-      return true;
-    }
-
+  const handle401Error = useCallback(() => {
     setPollingEnabled(false);
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
-    triggerAlert('Webhook secret không hợp lệ (đang dùng giá trị mặc định). Vui lòng kiểm tra .env hoặc admin secret.', 'error');
-    return false;
+    triggerAlert('Webhook secret không hợp lệ. Vui lòng nhập đúng x-webhook-secret và bấm "Lưu cấu hình".', 'error');
   }, []);
 
   const fetchStats = useCallback(async () => {
     if (!secretReady || !secret) return;
     setIsLoadingStats(true);
     try {
-      const res = await fetch('/api/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-webhook-secret': secret,
-        },
-        body: JSON.stringify({ event: 'system.stats' }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (res.status === 401) {
-          const healed = handle401Error(secret);
-          if (healed) return;
-          triggerAlert('Webhook secret không hợp lệ. Vui lòng kiểm tra lại ở phần trên.', 'error');
+      const { response, data } = await requestWebhook<StatsWebhookResponse>(secret, 'system.stats');
+      if (!response.ok) {
+        if (response.status === 401) {
+          handle401Error();
           return;
         }
         throw new Error(getApiErrorMessage(data, 'Failed to fetch stats'));
@@ -127,20 +133,10 @@ export default function AdminControlPage() {
     if (!secretReady || !secret) return;
     setIsLoadingLogs(true);
     try {
-      const res = await fetch('/api/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-webhook-secret': secret,
-        },
-        body: JSON.stringify({ event: 'system.logs' }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (res.status === 401) {
-          const healed = handle401Error(secret);
-          if (healed) return;
-          triggerAlert('Webhook secret không hợp lệ. Vui lòng kiểm tra lại ở phần trên.', 'error');
+      const { response, data } = await requestWebhook<LogsWebhookResponse>(secret, 'system.logs');
+      if (!response.ok) {
+        if (response.status === 401) {
+          handle401Error();
           return;
         }
         throw new Error(getApiErrorMessage(data, 'Failed to fetch logs'));
@@ -157,20 +153,12 @@ export default function AdminControlPage() {
   const fetchStatsBackground = useCallback(async () => {
     if (!secretReady || !secret) return;
     try {
-      const res = await fetch('/api/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-webhook-secret': secret,
-        },
-        body: JSON.stringify({ event: 'system.stats' }),
-      });
-      const data = await res.json();
-      if (res.status === 401) {
-        handle401Error(secret);
+      const { response, data } = await requestWebhook<StatsWebhookResponse>(secret, 'system.stats');
+      if (response.status === 401) {
+        handle401Error();
         return;
       }
-      if (res.ok) setStats(data.stats);
+      if (response.ok) setStats(data.stats);
     } catch {
     }
   }, [secret, secretReady, handle401Error]);
@@ -178,20 +166,12 @@ export default function AdminControlPage() {
   const fetchLogsBackground = useCallback(async () => {
     if (!secretReady || !secret) return;
     try {
-      const res = await fetch('/api/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-webhook-secret': secret,
-        },
-        body: JSON.stringify({ event: 'system.logs' }),
-      });
-      const data = await res.json();
-      if (res.status === 401) {
-        handle401Error(secret);
+      const { response, data } = await requestWebhook<LogsWebhookResponse>(secret, 'system.logs');
+      if (response.status === 401) {
+        handle401Error();
         return;
       }
-      if (res.ok) setLogs(data.logs || []);
+      if (response.ok) setLogs(data.logs || []);
     } catch {
     }
   }, [secret, secretReady, handle401Error]);
@@ -218,7 +198,7 @@ export default function AdminControlPage() {
           fetchStatsBackground();
           fetchLogsBackground();
         }
-      }, 3000);
+      }, POLL_INTERVAL_MS);
     };
 
     const handleVisibility = () => {
@@ -249,16 +229,8 @@ export default function AdminControlPage() {
   const handleAction = async (actionId: string, event: string, payload?: Record<string, unknown>) => {
     setActionLoading(actionId);
     try {
-      const res = await fetch('/api/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-webhook-secret': secret,
-        },
-        body: JSON.stringify({ event, data: payload }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(getApiErrorMessage(data, 'Thao tác thất bại'));
+      const { response, data } = await requestWebhook(secret, event, payload);
+      if (!response.ok) throw new Error(getApiErrorMessage(data, 'Thao tác thất bại'));
 
       if (event === 'db.check' || event === 'db.consistency' || event === 'db.inspect') {
         triggerAlert(data.message || 'Đã kiểm tra DB', data.report?.isClean ? 'success' : 'error');
@@ -330,6 +302,7 @@ export default function AdminControlPage() {
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => { fetchStats(); fetchLogs(); }}
               className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-sm font-semibold transition-all cursor-pointer min-h-[40px]"
             >
@@ -340,6 +313,7 @@ export default function AdminControlPage() {
             </button>
 
             <button
+              type="button"
               onClick={() => setPollingEnabled(!pollingEnabled)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer min-h-[40px] border ${
                 pollingEnabled
@@ -369,6 +343,7 @@ export default function AdminControlPage() {
               placeholder="Nhập x-webhook-secret token..."
             />
             <button
+              type="button"
               onClick={() => handleSaveSecret(secret)}
               className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
             >
@@ -376,7 +351,7 @@ export default function AdminControlPage() {
             </button>
           </div>
           <p className="text-xs text-slate-500 mt-2 pl-1">
-            Token được lưu trực tiếp tại Browser Storage và đính kèm vào header `x-webhook-secret` khi tạo request.
+            Token chỉ được giữ trong bộ nhớ của phiên hiện tại (không lưu vào Browser Storage) và đính kèm vào header `x-webhook-secret` khi tạo request. Bạn cần nhập lại sau khi tải lại trang.
           </p>
         </div>
 

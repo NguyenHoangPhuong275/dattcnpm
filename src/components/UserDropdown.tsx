@@ -46,7 +46,6 @@ export default function UserDropdown({ user }: UserDropdownProps): React.JSX.Ele
     try {
       await apiRequest('/api/auth/logout', { method: 'POST' });
     } catch {
-      // Ignored
     }
     router.replace(ROUTES.home);
     router.refresh();

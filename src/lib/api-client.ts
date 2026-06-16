@@ -55,3 +55,20 @@ export async function apiRequest<T = unknown>(
 
   return { response, data };
 }
+
+export async function apiRequestStrictJson<T = unknown>(
+  input: string | URL | Request,
+  options: ApiRequestOptions = {}
+): Promise<{ response: Response; data: T }> {
+  const { userId, headers, ...init } = options;
+  const requestHeaders = createRequestHeaders(headers, userId);
+
+  const response = await fetch(input, {
+    credentials: 'include',
+    ...init,
+    headers: requestHeaders,
+  });
+  const data = await response.json() as T;
+
+  return { response, data };
+}

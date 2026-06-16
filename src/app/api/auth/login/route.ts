@@ -1,20 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { compare } from 'bcryptjs';
-import { authCookieName, signAuthToken } from '@/lib/auth';
+import { setAuthCookie, signAuthToken } from '@/lib/auth';
 import { getDb, findUserByEmail } from '@/lib/db';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { loginSchema } from '@/lib/validations/auth';
-import { handleApiError, AppError } from '@/lib/api-response';
-
-function setAuthCookie(response: NextResponse, token: string) {
-  response.cookies.set(authCookieName, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
-}
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,11 +25,9 @@ export async function POST(request: NextRequest) {
       throw new AppError('RATE_LIMITED', 'Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau.', 429);
     }
 
-
-
     const user = await findUserByEmail(normalizedEmail);
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       throw new AppError('UNAUTHORIZED', 'Email hoặc mật khẩu không chính xác', 401);
     }
 
@@ -68,10 +56,9 @@ export async function POST(request: NextRequest) {
       fullName: user.fullName,
       role: user.role,
     };
-    
+
     const token = await signAuthToken(responseUser);
-    const payload = { success: true, user: responseUser };
-    const response = NextResponse.json(payload);
+    const response = sendSuccess({ user: responseUser });
     setAuthCookie(response, token);
     return response;
   } catch (error) {

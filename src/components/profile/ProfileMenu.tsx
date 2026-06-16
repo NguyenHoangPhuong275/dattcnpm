@@ -12,6 +12,7 @@ interface TabButtonProps {
 
 const TabButton = memo(({ tab, label, isActive, onClick }: TabButtonProps) => (
   <button
+    type="button"
     onClick={() => onClick(tab)}
     className={`w-full rounded-lg border-l-4 px-5 py-3 text-left text-sm font-semibold transition-colors ${
       isActive

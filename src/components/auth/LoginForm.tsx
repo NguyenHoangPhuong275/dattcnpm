@@ -11,7 +11,7 @@ import type { BasicUser } from '@/types/profile';
 
 type LoginResponse = {
   success?: boolean;
-  user?: BasicUser;
+  data?: { user?: BasicUser };
 };
 
 const AUTH_SUCCESS_TOAST_MS = 2600;
@@ -65,16 +65,17 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
         return;
       }
 
-      if (!data.user) {
+      const authedUser = data.data?.user;
+      if (!authedUser) {
         throw new Error('Missing authenticated user');
       }
 
       await onToast?.('Đăng nhập thành công, đang chuyển hướng...', 'success', AUTH_SUCCESS_TOAST_MS);
 
       if (onAuthenticated) {
-        onAuthenticated(data.user);
+        onAuthenticated(authedUser);
       } else {
-        setStoredUser(data.user);
+        setStoredUser(authedUser);
       }
 
       if (onSuccess) {

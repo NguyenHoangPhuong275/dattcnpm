@@ -23,7 +23,7 @@ type SendOtpResponse = {
 
 type VerifyOtpResponse = {
   success?: boolean;
-  user?: BasicUser;
+  data?: { user?: BasicUser };
 };
 
 type RegisterErrors = {
@@ -207,11 +207,12 @@ export default function RegisterForm({ onSuccess, onAuthenticated, onToast }: Re
 
       await onToast?.('Đăng ký thành công. Chào mừng bạn đến với LOTUS TRAVEL.', 'success', AUTH_SUCCESS_TOAST_MS);
 
-      if (data.user) {
+      const authedUser = data.data?.user;
+      if (authedUser) {
         if (onAuthenticated) {
-          onAuthenticated(data.user);
+          onAuthenticated(authedUser);
         } else {
-          setStoredUser(data.user);
+          setStoredUser(authedUser);
         }
       }
       setStep('success');

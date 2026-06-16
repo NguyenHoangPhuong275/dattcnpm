@@ -1,24 +1,21 @@
-import { NextResponse } from 'next/server';
-import { authCookieName } from '@/lib/auth';
+import { NextRequest } from 'next/server';
+import { clearAuthCookies, getAuthUserId, invalidateUserCache, revokeAuthToken } from '@/lib/auth';
+import { sendSuccess, handleApiError } from '@/lib/api-response';
 
-export async function POST() {
-  const response = NextResponse.json({
-    success: true,
-    message: 'Logged out',
-  });
+export async function POST(request?: NextRequest) {
+  try {
+    const userId = request ? await getAuthUserId(request) : null;
+    if (request) {
+      await revokeAuthToken(request);
+    }
+    if (userId) {
+      await invalidateUserCache(userId);
+    }
 
-  const cookieOptions = {
-    httpOnly: true,
-    sameSite: 'lax' as const,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
-    expires: new Date(0),
-  };
-
-  response.cookies.set('token', '', cookieOptions);
-  response.cookies.set('session', '', cookieOptions);
-  response.cookies.set(authCookieName, '', cookieOptions);
-
-  return response;
+    const response = sendSuccess({ message: 'Logged out' }, 'Logged out');
+    clearAuthCookies(response);
+    return response;
+  } catch (error) {
+    return handleApiError(error);
+  }
 }

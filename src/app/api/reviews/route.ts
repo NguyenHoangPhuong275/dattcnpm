@@ -1,19 +1,11 @@
 import { NextRequest } from 'next/server';
+
 import { getDb, createAuditLog } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { recalculatePlaceRating } from '@/lib/review-utils';
-import { objectIdSchema } from '@/lib/validations/common';
-import { z } from 'zod';
-
-const createReviewSchema = z.object({
-  placeId: objectIdSchema,
-  rating: z.number().int().min(1).max(5),
-  comment: z.string().trim().max(1000).optional().nullable(),
-  images: z.array(z.string()).optional().nullable(),
-  parentId: objectIdSchema.optional().nullable(),
-});
+import { createReviewSchema } from '@/lib/validations/review';
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {

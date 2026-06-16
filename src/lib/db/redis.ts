@@ -74,39 +74,61 @@ export async function isTokenBlacklisted(jti: string): Promise<boolean> {
   return val === '1';
 }
 
-const ONE_DAY_SECONDS = 86400;
-
-export async function storeOTP(email: string, otpData: { otp: string; attempts: number }): Promise<void> {
-  const client = getRedisClient();
-  const key = `otp:${email.toLowerCase()}`;
-  await client.set(key, JSON.stringify(otpData), 'EX', ONE_DAY_SECONDS);
+function otpKey(email: string): string {
+  return `otp:${email.toLowerCase()}`;
 }
 
-export async function getOTP(email: string): Promise<{ otp: string; attempts: number } | null> {
+export async function storeOtp(email: string, code: string, ttlSeconds: number): Promise<void> {
   const client = getRedisClient();
-  const key = `otp:${email.toLowerCase()}`;
-  const raw = await client.get(key);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch (error) {
-    console.error('Lỗi phân tích cú pháp OTP từ Redis:', error);
-    return null;
-  }
+  const key = otpKey(email);
+  const pipeline = client.multi();
+  pipeline.del(key);
+  pipeline.hset(key, 'code', code, 'attempts', '0');
+  pipeline.expire(key, ttlSeconds);
+  await pipeline.exec();
 }
 
-export async function deleteOTP(email: string): Promise<void> {
+export type OtpVerifyResult =
+  | { status: 'ok' }
+  | { status: 'expired' }
+  | { status: 'too_many'; attempts: number }
+  | { status: 'wrong'; attempts: number };
+
+const VERIFY_OTP_LUA = `
+local data = redis.call('HGETALL', KEYS[1])
+if #data == 0 then return {-1, 0} end
+local code = ''
+local attempts = 0
+for i = 1, #data, 2 do
+  if data[i] == 'code' then code = data[i + 1] end
+  if data[i] == 'attempts' then attempts = tonumber(data[i + 1]) or 0 end
+end
+local maxAttempts = tonumber(ARGV[2])
+if attempts >= maxAttempts then
+  redis.call('DEL', KEYS[1])
+  return {-2, attempts}
+end
+if code == ARGV[1] then
+  redis.call('DEL', KEYS[1])
+  return {1, attempts}
+end
+local newAttempts = redis.call('HINCRBY', KEYS[1], 'attempts', 1)
+return {0, newAttempts}
+`;
+
+export async function verifyOtpAtomic(email: string, code: string, maxAttempts: number): Promise<OtpVerifyResult> {
   const client = getRedisClient();
-  const key = `otp:${email.toLowerCase()}`;
-  await client.del(key);
+  const result = (await client.eval(VERIFY_OTP_LUA, 1, otpKey(email), code, String(maxAttempts))) as [number, number];
+  const [flag, attempts] = result;
+  if (flag === -1) return { status: 'expired' };
+  if (flag === -2) return { status: 'too_many', attempts };
+  if (flag === 1) return { status: 'ok' };
+  return { status: 'wrong', attempts };
 }
 
-export async function incrementOTPAttempts(email: string, currentData: { otp: string; attempts: number }): Promise<{ otp: string; attempts: number }> {
+export async function deleteOtp(email: string): Promise<void> {
   const client = getRedisClient();
-  const key = `otp:${email.toLowerCase()}`;
-  currentData.attempts += 1;
-  await client.set(key, JSON.stringify(currentData), 'EX', ONE_DAY_SECONDS);
-  return currentData;
+  await client.del(otpKey(email));
 }
 
 export async function storeAvatar(userId: string, dataUrl: string): Promise<string> {

@@ -215,7 +215,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
     return (
       <div className="rounded-2xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 p-6 text-sm text-[var(--color-danger)] flex items-center justify-between">
         <span>{error}</span>
-        <button onClick={loadHistory} className="text-xs font-semibold underline text-[var(--color-danger)] hover:underline">Thử lại</button>
+        <button type="button" onClick={loadHistory} className="text-xs font-semibold underline text-[var(--color-danger)] hover:underline">Thử lại</button>
       </div>
     );
   }
@@ -229,6 +229,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
         </div>
         {items.length > 0 && (
           <button
+            type="button"
             onClick={handleClearAll}
             disabled={clearing}
             className="text-xs font-bold rounded-xl border border-[var(--color-danger)]/20 px-3.5 py-2 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/5 disabled:opacity-50 transition duration-200"
@@ -257,6 +258,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <button
+                      type="button"
                       onClick={() => handleUseAgain(item)}
                       className="font-semibold text-[var(--color-text)] hover:text-[var(--color-primary-darker)] transition-colors text-left text-sm"
                       title="Xem kết quả tìm kiếm cho từ khóa này"
@@ -281,6 +283,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
 
                   <div className="flex shrink-0 items-center gap-2">
                     <button
+                      type="button"
                       onClick={() => handleUseAgain(item)}
                       aria-label={`Tìm lại "${item.query}"`}
                       className="rounded-xl border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] bg-[var(--color-surface)] hover:bg-[var(--color-bg)] transition duration-200 shadow-sm"
@@ -288,6 +291,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                       Tìm lại
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDelete(item._id)}
                       disabled={deletingId === item._id}
                       aria-label={`Xóa lịch sử tìm kiếm "${item.query}"`}
@@ -305,6 +309,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Xem trước kết quả ({previewData?.results.length || 0})</span>
                       <button
+                        type="button"
                         onClick={() => { setPreviewFor(null); setPreviewData(null); setActiveTripSelectIdx(null); }}
                         className="text-xs font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition"
                       >
@@ -342,6 +347,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                               {r._id ? (
                                 <>
                                   <button
+                                    type="button"
                                     onClick={() => setActiveTripSelectIdx(activeTripSelectIdx === idx ? null : idx)}
                                     disabled={addingPlaceLoading}
                                     aria-haspopup="listbox"
@@ -361,6 +367,7 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                                           trips.map(trip => (
                                             <button
                                               key={trip._id}
+                                              type="button"
                                               onClick={() => handleAddPlaceToTrip(trip._id, r)}
                                               disabled={addingPlaceLoading}
                                               className="w-full text-left text-xs font-semibold text-[var(--color-text)] hover:bg-[var(--color-bg)] px-2.5 py-2 rounded-xl truncate transition"
@@ -409,12 +416,14 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
             </p>
             <div className="flex justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setShowClearConfirm(false)}
                 className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]"
               >
                 Hủy
               </button>
               <button
+                type="button"
                 onClick={handleConfirmClear}
                 className="rounded-lg bg-[var(--color-danger)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
               >

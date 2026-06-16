@@ -98,7 +98,6 @@ function ProfilePageContent() {
   const personal = profileData.personal;
   const preferences = profileData.preferences;
   const memberSince = profileData.memberSince;
-  const is2FAEnabled = profileData.is2FAEnabled;
   const savingPersonal = profileData.savingPersonal;
   const savingPreferences = profileData.savingPreferences;
   const {
@@ -106,7 +105,6 @@ function ProfilePageContent() {
     setPreferences,
     savePersonal,
     savePreferences,
-    toggle2FA,
     updateAvatar,
   } = profile.actions;
   const profileLoading = !!user?.id && shouldLoadProfile && (profileStatus === 'idle' || profileStatus === 'loading');
@@ -254,13 +252,6 @@ function ProfilePageContent() {
       setPasswordSaving(false);
     }
   }, [oldPass, newPass, confirmPass, user?.id, showToast]);
-
-  const handleToggle2FA = useCallback(async () => {
-    const result = await toggle2FA();
-    if (!result.success) {
-      showToast(result.error ?? 'Cập nhật bảo mật thất bại', 'error');
-    }
-  }, [toggle2FA, showToast]);
 
   const handleAvatarChange = useCallback((url: string) => {
     updateAvatar(url);
@@ -440,8 +431,6 @@ function ProfilePageContent() {
                   <ProfileSectionSkeleton />
                 ) : (
                   <SecuritySection
-                    is2FAEnabled={is2FAEnabled}
-                    onToggle2FA={handleToggle2FA}
                     onChangePassword={() => setShowPasswordModal(true)}
                     saving={savingPersonal || savingPreferences}
                   />

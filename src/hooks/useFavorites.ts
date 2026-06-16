@@ -14,8 +14,10 @@ interface FavoritesPagination {
 
 interface FavoritesApiResponse {
   success?: boolean;
-  data?: FavoritePlaceSummary[];
-  pagination?: FavoritesPagination;
+  data?: {
+    data?: FavoritePlaceSummary[];
+    pagination?: FavoritesPagination;
+  };
 }
 
 interface UseFavoritesOptions {
@@ -50,10 +52,12 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
     setError(null);
     try {
       const { response, data } = await apiRequest<FavoritesApiResponse>(`/api/favorites?page=${page}`, { userId: id });
-      if (response.ok && data.success && Array.isArray(data.data)) {
-        setFavorites(data.data);
-        if (data.pagination && typeof data.pagination.total === 'number') {
-          setPagination(data.pagination);
+      const items = data.data?.data;
+      const pageInfo = data.data?.pagination;
+      if (response.ok && data.success && Array.isArray(items)) {
+        setFavorites(items);
+        if (pageInfo && typeof pageInfo.total === 'number') {
+          setPagination(pageInfo);
         }
         setStatus('success');
       } else {

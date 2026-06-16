@@ -27,15 +27,15 @@ export async function createAuditLog(
   userId: MongoId | null,
   action: string,
   targetType: string,
-  targetId?: MongoId,
+  targetId?: MongoId | null,
   metadata?: Record<string, unknown>
 ) {
   const db = await getDb();
   return db.auditLogs.insertOne({
-    userId: userId || undefined,
+    userId: userId ?? null,
     action,
     targetType,
-    targetId: targetId || undefined,
-    metadata: metadata || {},
+    targetId: targetId ?? null,
+    metadata: metadata ?? {},
   });
 }

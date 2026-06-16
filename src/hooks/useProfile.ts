@@ -30,14 +30,12 @@ type ProfileApiData = {
   budgetLevel?: TravelPreferences['budgetLevel'] | null;
   preferredDestinations?: string[];
   createdAt?: string | null;
-  twoFactorEnabled?: boolean | null;
 };
 
 type ProfileFormData = {
   personal: PersonalInfo;
   preferences: TravelPreferences;
   memberSince: string;
-  is2FAEnabled: boolean;
 };
 
 type ProfileCacheEntry = ProfileFormData & {
@@ -62,7 +60,6 @@ const DEFAULT_PROFILE: ProfileFormData = {
     preferredDestinations: [],
   },
   memberSince: '',
-  is2FAEnabled: false,
 };
 
 function cloneProfileData(data: ProfileFormData): ProfileFormData {
@@ -75,7 +72,6 @@ function cloneProfileData(data: ProfileFormData): ProfileFormData {
       preferredDestinations: [...data.preferences.preferredDestinations],
     },
     memberSince: data.memberSince,
-    is2FAEnabled: data.is2FAEnabled,
   };
 }
 
@@ -104,7 +100,6 @@ function normalizeProfile(profile: ProfileApiData): ProfileFormData {
       preferredDestinations: profile.preferredDestinations || [],
     },
     memberSince: profile.createdAt || '',
-    is2FAEnabled: !!profile.twoFactorEnabled,
   };
 }
 
@@ -126,10 +121,11 @@ function isProfileCacheFresh(entry: ProfileCacheEntry): boolean {
 function requestProfile(userId: string): Promise<ProfileFormData> {
   let request = profileRequests.get(userId);
   if (!request) {
-    request = apiRequest<{ success?: boolean; profile?: ProfileApiData }>('/api/profile', { userId })
+    request = apiRequest<{ success?: boolean; data?: { profile?: ProfileApiData } }>('/api/profile', { userId })
       .then(({ response, data }) => {
-        if (response.ok && data.success && data.profile) {
-          return normalizeProfile(data.profile);
+        const profile = data.data?.profile;
+        if (response.ok && data.success && profile) {
+          return normalizeProfile(profile);
         }
 
         throw new Error(getApiErrorMessage(data, 'Không thể tải thông tin hồ sơ'));
@@ -148,7 +144,6 @@ export interface UseProfileReturn {
     personal: PersonalInfo;
     preferences: TravelPreferences;
     memberSince: string;
-    is2FAEnabled: boolean;
     savingPersonal: boolean;
     savingPreferences: boolean;
   };
@@ -157,10 +152,8 @@ export interface UseProfileReturn {
   actions: {
     setPersonal: React.Dispatch<React.SetStateAction<PersonalInfo>>;
     setPreferences: React.Dispatch<React.SetStateAction<TravelPreferences>>;
-    setIs2FAEnabled: React.Dispatch<React.SetStateAction<boolean>>;
     savePersonal: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }>;
     savePreferences: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }>;
-    toggle2FA: () => Promise<{ success: boolean; error?: string }>;
     updateAvatar: (url: string) => void;
   };
 }
@@ -169,7 +162,6 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
   const [personal, setPersonal] = useState<PersonalInfo>(() => cloneProfileData(DEFAULT_PROFILE).personal);
   const [preferences, setPreferences] = useState<TravelPreferences>(() => cloneProfileData(DEFAULT_PROFILE).preferences);
   const [memberSince, setMemberSince] = useState('');
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [status, setStatus] = useState<RequestStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [savePersonalStatus, setSavePersonalStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -183,7 +175,6 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     setPersonal(nextData.personal);
     setPreferences(nextData.preferences);
     setMemberSince(nextData.memberSince);
-    setIs2FAEnabled(nextData.is2FAEnabled);
   }, []);
 
   useEffect(() => {
@@ -236,10 +227,9 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
       personal,
       preferences,
       memberSince,
-      is2FAEnabled,
       ...nextProfile,
     });
-  }, [is2FAEnabled, memberSince, personal, preferences, userId]);
+  }, [memberSince, personal, preferences, userId]);
 
   const updateAvatar = useCallback((url: string): void => {
     setPersonal((prev) => ({ ...prev, avatarUrl: url }));
@@ -332,41 +322,11 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     }
   }, [preferences, updateProfileCache, userId]);
 
-  const toggle2FA = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
-    if (!userId) return { success: false, error: 'No user' };
-
-    const nextValue = !is2FAEnabled;
-    setIs2FAEnabled(nextValue);
-
-    try {
-      const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
-        method: 'PATCH',
-        userId,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ twoFactorEnabled: nextValue }),
-      });
-
-      if (!response.ok || !data.success) {
-        setIs2FAEnabled(!nextValue);
-        return { success: false, error: getApiErrorMessage(data, 'Cập nhật 2FA thất bại') };
-      }
-      updateProfileCache({ is2FAEnabled: nextValue });
-      return { success: true };
-    } catch (errorValue) {
-      setIs2FAEnabled(!nextValue);
-      return {
-        success: false,
-        error: errorValue instanceof Error ? errorValue.message : 'Không thể thay đổi cài đặt 2FA',
-      };
-    }
-  }, [is2FAEnabled, updateProfileCache, userId]);
-
   return {
     data: {
       personal,
       preferences,
       memberSince,
-      is2FAEnabled,
       savingPersonal,
       savingPreferences,
     },
@@ -375,10 +335,8 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     actions: {
       setPersonal,
       setPreferences,
-      setIs2FAEnabled,
       savePersonal,
       savePreferences,
-      toggle2FA,
       updateAvatar,
     },
   };

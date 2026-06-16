@@ -45,6 +45,8 @@ export const FavoritePlaceSchema = new Schema<IFavoritePlace>({
   placeId: { type: Schema.Types.ObjectId, ref: 'Place', required: true },
 }, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.favorites });
 
+FavoritePlaceSchema.index({ userId: 1, placeId: 1 }, { unique: true });
+
 export const FavoritePlace: Model<IFavoritePlace> = models.FavoritePlace || model<IFavoritePlace>('FavoritePlace', FavoritePlaceSchema);
 
 export interface ISearchHistory extends Document {
@@ -78,6 +80,7 @@ export interface ITripShare extends Document {
   sharedWithUserId?: Types.ObjectId | null;
   permission: 'READ' | 'EDIT';
   shareCode?: string | null;
+  isActive: boolean;
   expiresAt?: Date | null;
   createdAt: Date;
 }
@@ -88,6 +91,7 @@ export const TripShareSchema = new Schema<ITripShare>({
   sharedWithUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
   permission: { type: String, enum: ['READ', 'EDIT'], default: 'READ' },
   shareCode: { type: String, default: null },
+  isActive: { type: Boolean, default: true },
   expiresAt: { type: Date, default: null },
 }, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.tripShares, strict: false });
 

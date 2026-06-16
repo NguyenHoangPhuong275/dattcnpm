@@ -129,13 +129,13 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     }
 
     const db = await getDb();
+
+    const cascadeCounts = await deleteTripCascade(id, db);
+
     const deleted = await db.trips.deleteOne(id);
     if (!deleted) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
-
-    
-    const cascadeCounts = await deleteTripCascade(id, db);
 
     try {
       await createAuditLog(userId, 'DELETE_TRIP', 'TRIP', id, {

@@ -11,7 +11,6 @@ export {
 export {
   clearStoredUser,
   getStoredUser,
-  hasAuthCookie,
   setStoredUser,
   updateStoredUser,
 } from './user';

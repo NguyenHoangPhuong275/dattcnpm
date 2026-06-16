@@ -38,6 +38,7 @@ export default function UserManagement({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
           <button
+            type="button"
             onClick={() => onAction('lock', 'user.lock', { email: userEmail })}
             disabled={actionLoading !== null || !userEmail}
             className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer min-h-[40px] disabled:opacity-40 disabled:cursor-not-allowed"
@@ -46,6 +47,7 @@ export default function UserManagement({
           </button>
 
           <button
+            type="button"
             onClick={() => onAction('unlock', 'user.unlock', { email: userEmail })}
             disabled={actionLoading !== null || !userEmail}
             className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer min-h-[40px] disabled:opacity-40 disabled:cursor-not-allowed"
@@ -54,6 +56,7 @@ export default function UserManagement({
           </button>
 
           <button
+            type="button"
             onClick={() => onAction('softdelete', 'user.delete', { email: userEmail, hard: false })}
             disabled={actionLoading !== null || !userEmail}
             className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer min-h-[40px] disabled:opacity-40 disabled:cursor-not-allowed"
@@ -62,6 +65,7 @@ export default function UserManagement({
           </button>
 
           <button
+            type="button"
             onClick={() => {
               if (confirm(`Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản ${userEmail}?`)) {
                 onAction('harddelete', 'user.delete', { email: userEmail, hard: true, confirm: true });

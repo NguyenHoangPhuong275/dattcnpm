@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { compare, hash } from 'bcryptjs';
 import { User } from '@/lib/db';
-import { getAuthUserFull } from '@/lib/auth';
+import { getAuthUserFull, invalidateUserCache, revokeAuthToken } from '@/lib/auth';
 import { passwordChangeSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
@@ -25,9 +25,12 @@ export async function POST(request: NextRequest) {
       throw new AppError('UNAUTHORIZED', 'Mật khẩu hiện tại không đúng', 401);
     }
 
-    const newHash = await hash(parsed.newPassword, 10);
+    const newHash = await hash(parsed.newPassword, 12);
 
     await User.findByIdAndUpdate(userId, { $set: { passwordHash: newHash } });
+
+    await revokeAuthToken(request);
+    await invalidateUserCache(userId);
 
     return sendSuccess({ message: 'Đổi mật khẩu thành công' });
   } catch (error) {

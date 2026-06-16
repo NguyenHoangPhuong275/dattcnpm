@@ -282,6 +282,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               <div className="flex items-center gap-2">
                 <button
                   id="action-print-trip"
+                  type="button"
                   onClick={() => window.print()}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
                   title="In lịch trình"
@@ -291,6 +292,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                 </button>
                 <button
                   id="action-share-trip"
+                  type="button"
                   onClick={handleShare}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
                   title="Chia sẻ"
@@ -300,6 +302,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                 </button>
                 <button
                   id="action-edit-trip"
+                  type="button"
                   onClick={() => router.push(ROUTES.trips)}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
                   title="Quản lý chuyến đi"
@@ -309,6 +312,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                 </button>
                 <button
                   id="action-delete-trip"
+                  type="button"
                   onClick={handleDeleteTrip}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50"
                   title="Xóa chuyến đi"
@@ -322,6 +326,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
             <div className="mt-5 flex rounded-lg bg-slate-100 p-1">
               <button
                 id="tab-button-itinerary"
+                type="button"
                 onClick={() => setActiveTab('itinerary')}
                 className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'itinerary' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
@@ -329,6 +334,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               </button>
               <button
                 id="tab-button-budget"
+                type="button"
                 onClick={() => setActiveTab('budget')}
                 className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'budget' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
@@ -359,6 +365,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                           return (
                             <button
                               key={item._id}
+                              type="button"
                               onClick={() => setSelectedId(item._id)}
                               className={`w-full rounded-lg border p-4 text-left transition ${isSelected ? 'border-[var(--color-primary-dark)] bg-[var(--color-primary-lightest)] shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
                             >

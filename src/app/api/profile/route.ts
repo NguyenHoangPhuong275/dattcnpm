@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { updateUserProfile, type IUser, storeAvatar, getAvatar } from '@/lib/db';
-import { getAuthUserFull } from '@/lib/auth';
+import { getAuthUserFull, invalidateUserCache } from '@/lib/auth';
 import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -65,7 +65,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       budgetLevel: user.budgetLevel || 'Trung bình',
       preferredDestinations: user.preferredDestinations || [],
       interests: user.interests || [],
-      twoFactorEnabled: !!user.twoFactorEnabled,
       createdAt: toSafeDateString(user.createdAt),
     };
 
@@ -128,8 +127,6 @@ export async function PATCH(request: NextRequest): Promise<Response> {
       }
     }
 
-    if (parsed.twoFactorEnabled !== undefined) updates.twoFactorEnabled = parsed.twoFactorEnabled;
-
     if (parsed.travelStyles !== undefined) updates.travelStyles = parsed.travelStyles;
     if (parsed.budgetLevel !== undefined) updates.budgetLevel = parsed.budgetLevel;
     if (parsed.preferredDestinations !== undefined) updates.preferredDestinations = parsed.preferredDestinations;
@@ -143,6 +140,8 @@ export async function PATCH(request: NextRequest): Promise<Response> {
     if (!updated) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy người dùng', 404);
     }
+
+    await invalidateUserCache(userId);
 
     let resolvedAvatar = updated.avatarUrl;
     if (updated.avatarUrl && updated.avatarUrl.startsWith('redis:avatar:')) {
@@ -171,7 +170,6 @@ export async function PATCH(request: NextRequest): Promise<Response> {
         budgetLevel: updated.budgetLevel || 'Trung bình',
         preferredDestinations: updated.preferredDestinations || [],
         interests: updated.interests || [],
-        twoFactorEnabled: !!updated.twoFactorEnabled,
       }
     });
   } catch (error) {

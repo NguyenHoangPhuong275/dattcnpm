@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { getApiErrorMessage, isAbortError } from '@/lib/api-client';
+import { apiRequestStrictJson, getApiErrorMessage, isAbortError } from '@/lib/api-client';
 
 export type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -85,10 +85,9 @@ export function usePlaceSearch(): UsePlaceSearchReturn {
     setSearchError(null);
 
     try {
-      const response = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`, {
+      const { response, data: json } = await apiRequestStrictJson<PlacesSearchResponse>(`/api/places/search?q=${encodeURIComponent(query)}`, {
         signal: controller.signal,
       });
-      const json = await response.json() as PlacesSearchResponse;
 
       if (abortRef.current !== controller) return;
 

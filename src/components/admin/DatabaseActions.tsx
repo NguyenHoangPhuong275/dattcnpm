@@ -18,6 +18,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
       </h2>
       <div className="flex flex-col sm:flex-row gap-3">
         <button
+          type="button"
           onClick={() => onDbAction('db.reset')}
           disabled={actionLoading !== null}
           className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
@@ -25,6 +26,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
           {actionLoading === 'db.reset' ? 'Đang reset DB...' : 'Reset DB (Seed mẫu)'}
         </button>
         <button
+          type="button"
           onClick={() => onDbAction('db.clear')}
           disabled={actionLoading !== null}
           className="flex-1 py-3 bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
@@ -32,6 +34,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
           {actionLoading === 'db.clear' ? 'Đang xóa DB...' : 'Xóa trắng Database (drop collections + duplicates)'}
         </button>
         <button
+          type="button"
           onClick={() => onDbAction('db.check')}
           disabled={actionLoading !== null}
           className="flex-1 py-3 bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/60 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
@@ -39,6 +42,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
           {actionLoading === 'db.check' ? 'Đang kiểm tra...' : 'Check DB Consistency'}
         </button>
         <button
+          type="button"
           onClick={() => onDbAction('db.createTables')}
           disabled={actionLoading !== null}
           className="flex-1 py-3 bg-sky-900/40 hover:bg-sky-800/60 text-sky-300 border border-sky-500/30 hover:border-sky-400/60 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"

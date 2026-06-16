@@ -40,7 +40,6 @@ export const updateProfileSchema = z.object({
     .nullable()
     .or(z.literal(''))
     .transform((v) => v || null),
-  twoFactorEnabled: z.boolean().optional(),
   travelStyles: z.array(z.string().trim()).max(10).optional(),
   budgetLevel: z.enum(['Thấp', 'Trung bình', 'Cao']).optional().nullable(),
   preferredDestinations: z.array(z.string().trim()).max(10).optional(),

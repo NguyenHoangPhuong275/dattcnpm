@@ -2,50 +2,17 @@ import { NextRequest } from 'next/server';
 import { createAuditLog, findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
+import { createItineraryItemSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { parseValidDate } from '@/lib/date';
+import { assertTripDayIsSchedulable } from '@/lib/itinerary-utils';
 import { toItineraryItemResponse } from '@/lib/trip-formatters';
-import type { Trip, ItineraryItem } from '@/types/trip';
+import type { ItineraryItem } from '@/types/trip';
 
 type RouteCtx = {
   params: Promise<{ id: string }>;
 };
-
-function toDateOrNull(value: unknown): Date | null {
-  return parseValidDate(value);
-}
-
-function toNumber(value: unknown, fallback: number): number {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : fallback;
-}
-
-function startOfDay(date: Date): Date {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
-function getDateForTripDay(trip: Trip, day: number): Date {
-  const tripDate = startOfDay(new Date(trip.startDate));
-  tripDate.setDate(tripDate.getDate() + day - 1);
-  return tripDate;
-}
-
-function assertTripDayIsSchedulable(trip: Trip, day: number): void {
-  const itineraryDate = getDateForTripDay(trip, day);
-  const today = startOfDay(new Date());
-  const tripEndDate = startOfDay(new Date(trip.endDate));
-
-  if (itineraryDate < today) {
-    throw new AppError('VALIDATION_ERROR', 'Không thể thêm lịch trình vào ngày đã qua', 400);
-  }
-
-  if (itineraryDate > tripEndDate) {
-    throw new AppError('VALIDATION_ERROR', 'Ngày lịch trình vượt quá ngày kết thúc chuyến đi', 400);
-  }
-}
 
 export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
@@ -102,44 +69,37 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     }
 
     const body = await request.json().catch(() => ({}));
-    
-    const placeId = body.placeId ? String(body.placeId).trim() : '';
-    objectIdSchema.parse(placeId);
+    const parsed = createItineraryItemSchema.parse(body);
 
     const db = await getDb();
-    const place = await db.places.findById(placeId);
+    const place = await db.places.findById(parsed.placeId);
     if (!place) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm', 404);
     }
 
-    const existingItems = await db.itineraryItems.find({ tripId: id });
-    const day = Math.max(1, Math.floor(toNumber(body.day, 1)));
-    assertTripDayIsSchedulable(trip, day);
-    const fallbackOrder = existingItems.filter((item) => item.day === day).length;
-    const orderIndex = Math.max(0, Math.floor(toNumber(body.orderIndex, fallbackOrder)));
-    const cost = body.cost === undefined || body.cost === null || body.cost === '' ? null : Number(body.cost);
+    assertTripDayIsSchedulable(trip, parsed.day);
 
-    if (cost !== null && !Number.isFinite(cost)) {
-      throw new AppError('VALIDATION_ERROR', 'Chi phí không hợp lệ', 400);
-    }
+    const existingItems = await db.itineraryItems.find({ tripId: id });
+    const fallbackOrder = existingItems.filter((item) => item.day === parsed.day).length;
+    const orderIndex = parsed.orderIndex ?? fallbackOrder;
 
     const created = (await db.itineraryItems.insertOne({
       tripId: id,
-      placeId,
-      day,
+      placeId: parsed.placeId,
+      day: parsed.day,
       orderIndex,
-      note: body.note ? String(body.note).trim() : null,
-      startTime: toDateOrNull(body.startTime),
-      endTime: toDateOrNull(body.endTime),
-      cost,
-      currency: body.currency ? String(body.currency).trim() : null,
+      note: parsed.note ?? null,
+      startTime: parseValidDate(parsed.startTime),
+      endTime: parseValidDate(parsed.endTime),
+      cost: parsed.cost ?? null,
+      currency: parsed.currency ?? null,
       metadata: null,
     })) as ItineraryItem;
 
     try {
       await createAuditLog(userId, 'CREATE_ITINERARY_ITEM', 'ITINERARY_ITEM', created._id, {
         tripId: id,
-        placeId,
+        placeId: parsed.placeId,
       });
     } catch (err) {
       console.error('Lỗi khi ghi audit log CREATE_ITINERARY_ITEM:', err);
@@ -150,123 +110,3 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     return handleApiError(error);
   }
 }
-
-export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Response> {
-  try {
-    const user = await getAuthUserFull(request);
-    if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
-    }
-    const userId = String(user._id);
-
-    const rate = await checkRateLimit({
-      key: `rl:update-itinerary:${userId}`,
-      limit: 45,
-      windowSeconds: 60,
-    });
-    if (rate.limited) {
-      throw new AppError('RATE_LIMITED', 'Bạn đang cập nhật hoạt động quá nhanh. Vui lòng thử lại sau.', 429);
-    }
-
-    const { id: tripId } = await ctx.params;
-    objectIdSchema.parse(tripId);
-
-    const trip = await findOwnedTrip(tripId, userId);
-    if (!trip) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
-
-    const body = await request.json().catch(() => ({}));
-    const itemId = body.itemId ? String(body.itemId).trim() : '';
-    objectIdSchema.parse(itemId);
-
-    const db = await getDb();
-    const item = await db.itineraryItems.findById(itemId);
-    if (!item || String(item.tripId) !== tripId) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
-    }
-
-    const updates: Record<string, unknown> = {};
-    if (body.day != null) {
-      const nextDay = Math.max(1, Math.floor(Number(body.day)));
-      if (nextDay !== item.day) {
-        assertTripDayIsSchedulable(trip, nextDay);
-      }
-      updates.day = nextDay;
-    }
-    if (body.orderIndex != null) updates.orderIndex = Math.max(0, Math.floor(Number(body.orderIndex)));
-    if (body.note !== undefined) updates.note = body.note ? String(body.note).trim() : null;
-    if (body.startTime !== undefined) updates.startTime = toDateOrNull(body.startTime);
-    if (body.endTime !== undefined) updates.endTime = toDateOrNull(body.endTime);
-    if (body.cost !== undefined) {
-      const c = body.cost === null || body.cost === '' ? null : Number(body.cost);
-      if (c !== null && !Number.isFinite(c)) {
-        throw new AppError('VALIDATION_ERROR', 'Chi phí không hợp lệ', 400);
-      }
-      updates.cost = c;
-    }
-    if (body.currency !== undefined) updates.currency = body.currency ? String(body.currency).trim() : null;
-
-    if (Object.keys(updates).length === 0) {
-      throw new AppError('VALIDATION_ERROR', 'Không có trường hợp lệ để cập nhật', 400);
-    }
-
-    const updated = (await db.itineraryItems.updateOne(itemId, updates)) as ItineraryItem | null;
-    if (!updated) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
-    }
-    return sendSuccess(toItineraryItemResponse(updated));
-  } catch (error) {
-    return handleApiError(error);
-  }
-}
-
-export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Response> {
-  try {
-    const user = await getAuthUserFull(request);
-    if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
-    }
-    const userId = String(user._id);
-
-    const rate = await checkRateLimit({
-      key: `rl:delete-itinerary:${userId}`,
-      limit: 30,
-      windowSeconds: 60,
-    });
-    if (rate.limited) {
-      throw new AppError('RATE_LIMITED', 'Bạn đang xóa hoạt động quá nhanh. Vui lòng thử lại sau.', 429);
-    }
-
-    const { id: tripId } = await ctx.params;
-    objectIdSchema.parse(tripId);
-
-    const trip = await findOwnedTrip(tripId, userId);
-    if (!trip) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
-
-    const body = await request.json().catch(() => ({} as Record<string, unknown>));
-    const itemId = body.itemId ? String(body.itemId).trim() : '';
-    objectIdSchema.parse(itemId);
-
-    const db = await getDb();
-    const item = await db.itineraryItems.findById(itemId);
-    if (!item || String(item.tripId) !== tripId) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
-    }
-
-    await db.itineraryItems.deleteOne(itemId);
-
-    try {
-      await createAuditLog(userId, 'DELETE_ITINERARY_ITEM', 'ITINERARY_ITEM', itemId, { tripId });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log DELETE_ITINERARY_ITEM:', err);
-    }
-
-    return sendSuccess({ message: 'Itinerary item removed' });
-  } catch (error) {
-    return handleApiError(error);
-  }
-}
-

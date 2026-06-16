@@ -23,11 +23,6 @@ export const loginSchema = z.object({
   password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
 });
 
-export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Mật khẩu hiện tại là bắt buộc'),
-  newPassword: z.string().min(6, 'Mật khẩu mới phải từ 6 ký tự trở lên'),
-});
-
 export const passwordChangeSchema = z
   .object({
     currentPassword: z.string().min(1, 'Vui lòng nhập mật khẩu hiện tại'),
@@ -38,6 +33,8 @@ export const passwordChangeSchema = z
     message: 'Mật khẩu xác nhận không khớp',
     path: ['confirmPassword'],
   });
+
+export const changePasswordSchema = passwordChangeSchema;
 
 export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;

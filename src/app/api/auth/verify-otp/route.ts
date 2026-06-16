@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getRedis, getDb, findUserByEmail } from '@/lib/db';
+import { NextRequest } from 'next/server';
+import { getDb, findUserByEmail, verifyOtpAtomic } from '@/lib/db';
 import { hash } from 'bcryptjs';
 import { verifyOtpSchema } from '@/lib/validations/auth';
-import { handleApiError, AppError } from '@/lib/api-response';
-import { signAuthToken, authCookieName } from '@/lib/auth';
+import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { signAuthToken, setAuthCookie } from '@/lib/auth';
+
+const MAX_OTP_ATTEMPTS = 5;
+const PASSWORD_HASH_ROUNDS = 12;
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,38 +15,27 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = parsed.email;
 
-
-
     const existingUser = await findUserByEmail(normalizedEmail);
     if (existingUser) {
       throw new AppError('CONFLICT', 'Email này đã được đăng ký', 409);
     }
 
-    const redis = getRedis();
-    const otpKey = `otp:${normalizedEmail}`;
-    const storedRaw = await redis.get(otpKey);
+    const verifyResult = await verifyOtpAtomic(normalizedEmail, parsed.otp, MAX_OTP_ATTEMPTS);
 
-    if (!storedRaw) {
+    if (verifyResult.status === 'expired') {
       throw new AppError('GONE', 'Mã xác minh đã hết hạn. Vui lòng yêu cầu mã mới.', 410);
     }
 
-    const stored = JSON.parse(storedRaw) as { otp: string; attempts: number };
-
-    if (stored.attempts >= 5) {
-      await redis.del(otpKey);
+    if (verifyResult.status === 'too_many') {
       throw new AppError('RATE_LIMITED', 'Bạn đã nhập sai quá nhiều lần. Vui lòng yêu cầu mã mới.', 429);
     }
 
-    if (stored.otp !== parsed.otp) {
-      stored.attempts += 1;
-
-      await redis.set(otpKey, JSON.stringify(stored), 'EX', 600);
-
-      const remaining = 5 - stored.attempts;
+    if (verifyResult.status === 'wrong') {
+      const remaining = Math.max(0, MAX_OTP_ATTEMPTS - verifyResult.attempts);
       throw new AppError('VALIDATION_ERROR', `Mã xác minh không đúng. Còn ${remaining} lần thử.`, 400);
     }
 
-    const passwordHash = await hash(parsed.password, 12);
+    const passwordHash = await hash(parsed.password, PASSWORD_HASH_ROUNDS);
     const now = new Date();
 
     const db = await getDb();
@@ -60,8 +52,6 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
       deletedAt: null,
     });
-
-    await redis.del(otpKey);
 
     await db.auditLogs.insertOne({
       userId: newUser._id,
@@ -81,8 +71,7 @@ export async function POST(request: NextRequest) {
 
     const token = await signAuthToken(userForToken);
 
-    const response = NextResponse.json({
-      success: true,
+    const response = sendSuccess({
       user: {
         id: userForToken.id,
         email: userForToken.email,
@@ -90,13 +79,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    response.cookies.set(authCookieName, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    setAuthCookie(response, token);
 
     return response;
   } catch (error) {

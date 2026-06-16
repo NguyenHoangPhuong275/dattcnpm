@@ -10,6 +10,7 @@ import {
   getRedis
 } from '@/lib/db';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { invalidateUserCache } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 function getWebhookSecret() {
@@ -177,6 +178,7 @@ export async function POST(request: NextRequest) {
           const user = await findUserOrFail(email);
           const isLocked = event === 'user.lock';
           await db.users.updateOne(user._id, { isLocked });
+          await invalidateUserCache(String(user._id));
           await logAudit(isLocked ? 'LOCK_USER' : 'UNLOCK_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
 
           return sendSuccess({
@@ -200,6 +202,7 @@ export async function POST(request: NextRequest) {
           } else {
             await db.users.updateOne(user._id, { deletedAt: now });
           }
+          await invalidateUserCache(String(user._id));
           await logAudit(hard ? 'HARD_DELETE_USER' : 'SOFT_DELETE_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
 
           return sendSuccess({

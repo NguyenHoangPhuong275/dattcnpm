@@ -2,9 +2,10 @@ import { NextRequest } from 'next/server';
 import { createAuditLog, findOwnedTrip, getDb, type ItineraryItem } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
+import { updateItineraryItemSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { parseValidDate } from '@/lib/date';
+import { assertTripDayIsSchedulable } from '@/lib/itinerary-utils';
 import { toItineraryItemResponse } from '@/lib/trip-formatters';
 
 type RouteCtx = {
@@ -32,7 +33,8 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    if (!(await findOwnedTrip(id, userId))) {
+    const trip = await findOwnedTrip(id, userId);
+    if (!trip) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
 
@@ -43,59 +45,31 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     }
 
     const body = await request.json().catch(() => ({}));
+    const parsed = updateItineraryItemSchema.parse(body);
+
     const updates: Record<string, unknown> = {};
 
-    if (body.placeId !== undefined) {
-      const placeId = String(body.placeId || '').trim();
-      objectIdSchema.parse(placeId);
-      const place = await db.places.findById(placeId);
+    if (parsed.placeId !== undefined) {
+      const place = await db.places.findById(parsed.placeId);
       if (!place) {
         throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm', 404);
       }
-      updates.placeId = placeId;
+      updates.placeId = parsed.placeId;
     }
 
-    if (body.day !== undefined) {
-      const day = Math.floor(Number(body.day));
-      if (!Number.isFinite(day) || day < 1) {
-        throw new AppError('VALIDATION_ERROR', 'day không hợp lệ', 400);
+    if (parsed.day !== undefined) {
+      if (parsed.day !== item.day) {
+        assertTripDayIsSchedulable(trip, parsed.day);
       }
-      updates.day = day;
+      updates.day = parsed.day;
     }
 
-    if (body.orderIndex !== undefined) {
-      const orderIndex = Math.floor(Number(body.orderIndex));
-      if (!Number.isFinite(orderIndex) || orderIndex < 0) {
-        throw new AppError('VALIDATION_ERROR', 'orderIndex không hợp lệ', 400);
-      }
-      updates.orderIndex = orderIndex;
-    }
-
-    if (body.note !== undefined) {
-      const note = String(body.note || '').trim();
-      updates.note = note || null;
-    }
-
-    if (body.startTime !== undefined) {
-      updates.startTime = parseValidDate(body.startTime);
-    }
-
-    if (body.endTime !== undefined) {
-      updates.endTime = parseValidDate(body.endTime);
-    }
-
-    if (body.cost !== undefined) {
-      const cost = body.cost === null || body.cost === '' ? null : Number(body.cost);
-      if (cost !== null && !Number.isFinite(cost)) {
-        throw new AppError('VALIDATION_ERROR', 'Chi phí không hợp lệ', 400);
-      }
-      updates.cost = cost;
-    }
-
-    if (body.currency !== undefined) {
-      const currency = String(body.currency || '').trim();
-      updates.currency = currency || null;
-    }
+    if (parsed.orderIndex !== undefined) updates.orderIndex = parsed.orderIndex;
+    if (parsed.note !== undefined) updates.note = parsed.note;
+    if (parsed.startTime !== undefined) updates.startTime = parsed.startTime ? new Date(parsed.startTime) : null;
+    if (parsed.endTime !== undefined) updates.endTime = parsed.endTime ? new Date(parsed.endTime) : null;
+    if (parsed.cost !== undefined) updates.cost = parsed.cost;
+    if (parsed.currency !== undefined) updates.currency = parsed.currency;
 
     if (Object.keys(updates).length === 0) {
       throw new AppError('VALIDATION_ERROR', 'Không có trường hợp lệ để cập nhật', 400);

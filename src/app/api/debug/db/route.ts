@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { connectMongo, checkDatabaseConsistency } from '@/lib/db';
 import { debugGuard } from '@/lib/debug-guard';
+import { sendSuccess, sendError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const guardRes = debugGuard(request);
@@ -10,8 +11,7 @@ export async function GET(request: NextRequest) {
     await connectMongo();
     const report = await checkDatabaseConsistency();
 
-    return NextResponse.json({
-      status: 'success',
+    return sendSuccess({
       connected: true,
       database: {
         expectedCollections: report.expected.length,
@@ -21,11 +21,6 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch {
-    return NextResponse.json({
-      status: 'error',
-      connected: false,
-      message: 'MongoDB connection failed',
-      timestamp: new Date().toISOString(),
-    }, { status: 500 });
+    return sendError('INTERNAL_ERROR', 'MongoDB connection failed', { connected: false }, 500);
   }
 }

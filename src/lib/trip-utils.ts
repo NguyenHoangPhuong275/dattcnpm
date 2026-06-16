@@ -91,45 +91,13 @@ export function formatMoney(value: number, locale: string = DEFAULT_LOCALE, curr
 
 
 export async function deleteTripCascade(tripId: string, db: AppDatabase): Promise<Record<string, number>> {
-  const counts: Record<string, number> = {
-    itineraryItems: 0,
-    tripShares: 0,
-    tripBudgets: 0,
-    tripAccommodations: 0,
-    tripChecklists: 0,
+  return {
+    itineraryItems: await db.itineraryItems.deleteMany({ tripId }),
+    tripShares: await db.tripShares.deleteMany({ tripId }),
+    tripBudgets: await db.tripBudgets.deleteMany({ tripId }),
+    tripAccommodations: await db.tripAccommodations.deleteMany({ tripId }),
+    tripChecklists: await db.tripChecklists.deleteMany({ tripId }),
   };
-
-  try {
-    counts.itineraryItems = await db.itineraryItems.deleteMany({ tripId });
-  } catch (err) {
-    console.error(`Lỗi cascade delete itineraryItems cho trip ${tripId}:`, err);
-  }
-
-  try {
-    counts.tripShares = await db.tripShares.deleteMany({ tripId });
-  } catch (err) {
-    console.error(`Lỗi cascade delete tripShares cho trip ${tripId}:`, err);
-  }
-
-  try {
-    counts.tripBudgets = await db.tripBudgets.deleteMany({ tripId });
-  } catch (err) {
-    console.error(`Lỗi cascade delete tripBudgets cho trip ${tripId}:`, err);
-  }
-
-  try {
-    counts.tripAccommodations = await db.tripAccommodations.deleteMany({ tripId });
-  } catch (err) {
-    console.error(`Lỗi cascade delete tripAccommodations cho trip ${tripId}:`, err);
-  }
-
-  try {
-    counts.tripChecklists = await db.tripChecklists.deleteMany({ tripId });
-  } catch (err) {
-    console.error(`Lỗi cascade delete tripChecklists cho trip ${tripId}:`, err);
-  }
-
-  return counts;
 }
 
 

@@ -268,7 +268,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
           </div>
           <div className="flex items-center gap-2">
             {!isEditingTrip && (
-              <button onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]">
+              <button type="button" onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]">
                 Sửa thông tin
               </button>
             )}
@@ -350,6 +350,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             </div>
             <div className="mt-4 flex gap-2">
               <button
+                type="button"
                 onClick={saveTrip}
                 disabled={savingTrip || !tripDraft.title.trim() || !tripDraft.destination.trim()}
                 className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
@@ -357,6 +358,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 {savingTrip ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
               <button
+                type="button"
                 onClick={cancelEditTrip}
                 className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
               >
@@ -430,12 +432,14 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                       </div>
                       <div className="flex shrink-0 gap-2">
                         <button
+                          type="button"
                           onClick={() => handleEdit(item)}
                           className="text-xs px-2 py-1 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
                         >
                           Sửa
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDelete(item._id)}
                           className="text-xs px-2 py-1 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
                         >
@@ -522,6 +526,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
+                type="button"
                 onClick={handleSave}
                 disabled={saving || !draft.placeId.trim()}
                 className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
@@ -530,6 +535,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               </button>
               {editingId && (
                 <button
+                  type="button"
                   onClick={resetForm}
                   className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
                 >

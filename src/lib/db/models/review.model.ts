@@ -27,4 +27,9 @@ export const ReviewSchema = new Schema<IReview>({
 
 ReviewSchema.index({ placeId: 1, deletedAt: 1 });
 
+ReviewSchema.index(
+  { userId: 1, placeId: 1 },
+  { unique: true, partialFilterExpression: { parentId: null, deletedAt: null } }
+);
+
 export const Review: Model<IReview> = models.Review || model<IReview>('Review', ReviewSchema);
