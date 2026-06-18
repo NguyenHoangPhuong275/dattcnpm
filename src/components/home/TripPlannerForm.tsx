@@ -1,7 +1,35 @@
 'use client';
+import { useEffect, useMemo, useState } from 'react';
 import * as Icons from '@/components/icons';
 import type { SearchResult, UsePlaceSearchReturn } from '@/hooks/usePlaceSearch';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+const PLACE_TYPE_LABELS: Record<string, string> = {
+  attraction: 'Điểm tham quan',
+  museum: 'Bảo tàng',
+  viewpoint: 'Ngắm cảnh',
+  artwork: 'Nghệ thuật',
+  gallery: 'Phòng tranh',
+  theme_park: 'Khu vui chơi',
+  zoo: 'Sở thú',
+  monument: 'Đài tưởng niệm',
+  memorial: 'Tưởng niệm',
+  castle: 'Lâu đài',
+  ruins: 'Di tích',
+  archaeological_site: 'Khảo cổ',
+  place_of_worship: 'Tôn giáo',
+  historic: 'Lịch sử',
+  tourism: 'Du lịch',
+  park: 'Công viên',
+  nature_reserve: 'Khu bảo tồn',
+  garden: 'Vườn',
+  beach_resort: 'Biển',
+  province: 'Tỉnh/Thành',
+};
+
+function getPlaceTypeLabel(type: string): string {
+  return PLACE_TYPE_LABELS[type] || type.replace(/_/g, ' ');
+}
 
 interface TripPlannerFormProps {
   search: UsePlaceSearchReturn;
@@ -195,14 +223,56 @@ function SearchDropdown({
   selectedPlace,
   onSelect,
 }: SearchDropdownProps) {
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+
+  const availableTypes = useMemo(() => {
+    const types = new Set<string>();
+    results.forEach((place) => {
+      if (place.type) types.add(place.type);
+    });
+    return Array.from(types).sort();
+  }, [results]);
+
+  useEffect(() => {
+    setTypeFilter('all');
+  }, [results]);
+
   if (!isOpen) return null;
+
+  const showFilters = results.length > 0 && availableTypes.length > 1;
+  const filtered = typeFilter === 'all' ? results : results.filter((place) => place.type === typeFilter);
 
   if (results.length > 0) {
     return (
       <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
-        <div className="border-b bg-[var(--color-bg)] px-4 py-2 text-xs font-bold text-[var(--color-text-muted)]">Kết quả tìm kiếm ({results.length})</div>
+        <div className="border-b bg-[var(--color-bg)] px-4 py-2 text-xs font-bold text-[var(--color-text-muted)]">Kết quả tìm kiếm ({filtered.length})</div>
+        {showFilters && (
+          <div className="flex flex-wrap gap-1.5 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+            <button
+              type="button"
+              onClick={() => setTypeFilter('all')}
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${typeFilter === 'all' ? 'bg-[var(--color-primary-darker)] text-white' : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]'}`}
+            >
+              Tất cả
+            </button>
+            {availableTypes.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setTypeFilter(type)}
+                className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${typeFilter === type ? 'bg-[var(--color-primary-darker)] text-white' : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]'}`}
+              >
+                {getPlaceTypeLabel(type)}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="max-h-72 divide-y divide-[var(--color-border)] overflow-auto">
-          {results.map((place, index) => {
+          {filtered.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm font-medium text-[var(--color-text-muted)]">
+              Không có địa điểm phù hợp với bộ lọc.
+            </div>
+          ) : filtered.map((place, index) => {
             const stableKey = place.osmId || place.name || index;
             const isSelected = selectedPlace?.osmId === place.osmId || selectedPlace?.name === place.name;
 

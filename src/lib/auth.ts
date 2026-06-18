@@ -4,8 +4,13 @@ import type { User as PlainUser } from '@/lib/db';
 
 const AUTH_COOKIE = 'auth_token';
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+const AUTH_COOKIE_REMEMBER_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 const USER_CACHE_TTL_SECONDS = 30;
 const LEGACY_AUTH_COOKIES = ['token', 'session'];
+
+export function getAuthMaxAge(rememberMe = false): number {
+  return rememberMe ? AUTH_COOKIE_REMEMBER_MAX_AGE_SECONDS : AUTH_COOKIE_MAX_AGE_SECONDS;
+}
 
 export type AuthUser = Partial<PlainUser> & {
   id: string;
@@ -34,8 +39,8 @@ function authCookieOptions(maxAge: number) {
   };
 }
 
-export function setAuthCookie(response: NextResponse, token: string): void {
-  response.cookies.set(AUTH_COOKIE, token, authCookieOptions(AUTH_COOKIE_MAX_AGE_SECONDS));
+export function setAuthCookie(response: NextResponse, token: string, maxAgeSeconds: number = AUTH_COOKIE_MAX_AGE_SECONDS): void {
+  response.cookies.set(AUTH_COOKIE, token, authCookieOptions(maxAgeSeconds));
 }
 
 export function clearAuthCookies(response: NextResponse): void {
@@ -45,7 +50,8 @@ export function clearAuthCookies(response: NextResponse): void {
   }
 }
 
-export async function signAuthToken(user: AuthUser): Promise<string> {
+export async function signAuthToken(user: AuthUser, maxAgeSeconds: number = AUTH_COOKIE_MAX_AGE_SECONDS): Promise<string> {
+  const expirationTime = Math.floor(Date.now() / 1000) + maxAgeSeconds;
   return new SignJWT({
     email: user.email,
     fullName: user.fullName,
@@ -55,7 +61,7 @@ export async function signAuthToken(user: AuthUser): Promise<string> {
     .setSubject(user.id)
     .setJti(globalThis.crypto.randomUUID())
     .setIssuedAt()
-    .setExpirationTime('7d')
+    .setExpirationTime(expirationTime)
     .sign(getSecret());
 }
 

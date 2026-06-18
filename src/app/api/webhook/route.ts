@@ -1,9 +1,8 @@
 import { NextRequest } from 'next/server';
-import { createHmac, timingSafeEqual } from 'crypto';
 import {
-  getDb, 
-  dropAllManagedCollections, 
-  dropUnknownCollections, 
+  getDb,
+  dropAllManagedCollections,
+  dropUnknownCollections,
   hardResetDatabase,
   checkDatabaseConsistency,
   createAllCollections,
@@ -13,6 +12,7 @@ import {
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { invalidateUserCache } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { timingSafeEqualString } from '@/lib/crypto';
 
 function getWebhookSecret() {
   const secret = process.env.WEBHOOK_SECRET;
@@ -22,18 +22,13 @@ function getWebhookSecret() {
   return secret;
 }
 
-function timingSafeEqualString(a: string, b: string): boolean {
-  const key = 'webhook-secret-compare';
-  const ha = createHmac('sha256', key).update(a).digest();
-  const hb = createHmac('sha256', key).update(b).digest();
-  return timingSafeEqual(ha, hb);
-}
-
-function isIpAllowedForDestructive(ip: string): boolean {
+function isIpAllowedForRestrictedEvent(ip: string): boolean {
   const raw = process.env.WEBHOOK_IP_ALLOWLIST;
-  if (!raw || !raw.trim()) return true;
-  const allowed = raw.split(',').map((entry) => entry.trim()).filter(Boolean);
-  if (allowed.length === 0) return true;
+  const allowed = (raw ?? '').split(',').map((entry) => entry.trim()).filter(Boolean);
+  if (allowed.length === 0) {
+    return process.env.NODE_ENV !== 'production';
+  }
+
   return allowed.includes(ip);
 }
 
@@ -78,8 +73,27 @@ export async function POST(request: NextRequest) {
       'places.clear-cache',
     ]);
 
-    if (destructiveEvents.has(event) && !isIpAllowedForDestructive(ip)) {
-      throw new AppError('FORBIDDEN', 'IP không được phép thực hiện thao tác phá hủy này', 403);
+    const sensitiveEvents = new Set<string>([
+      'locations.seed-vn',
+      'user.lock',
+      'user.unlock',
+      'user.delete',
+      'notification.broadcast',
+      'system.users',
+      'system.logs',
+      'db.createTables',
+      'db.createCollections',
+      'db.ensureTables',
+    ]);
+
+    const ipRestrictedEvents = new Set<string>([...destructiveEvents, ...sensitiveEvents]);
+
+    if (ipRestrictedEvents.has(event) && !isIpAllowedForRestrictedEvent(ip)) {
+      throw new AppError(
+        'FORBIDDEN',
+        'IP không được phép thực hiện thao tác này (thiếu WEBHOOK_IP_ALLOWLIST trong production hoặc IP không nằm trong allowlist)',
+        403
+      );
     }
 
     if (destructiveEvents.has(event) && data?.confirm !== true) {
@@ -134,7 +148,7 @@ export async function POST(request: NextRequest) {
       case 'db.dropUnknown': {
         const dropped = await dropUnknownCollections();
         return sendSuccess({
-          message: dropped.length 
+          message: dropped.length
             ? `Đã xóa ${dropped.length} collection(s) lạ: ${dropped.join(', ')}`
             : 'Không có collection lạ nào cần xóa.',
           dropped,

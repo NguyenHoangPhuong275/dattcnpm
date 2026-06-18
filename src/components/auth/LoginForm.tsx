@@ -27,6 +27,7 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +38,7 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
     const result = loginSchema.safeParse({
       email: email.trim(),
       password,
+      rememberMe,
     });
 
     if (!result.success) {
@@ -55,7 +57,7 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
       const { response, data } = await apiRequest<LoginResponse>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: result.data.email, password: result.data.password }),
+        body: JSON.stringify({ email: result.data.email, password: result.data.password, rememberMe: result.data.rememberMe }),
       });
 
       if (!response.ok) {
@@ -187,7 +189,16 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
             )}
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3">
+            <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded accent-[var(--color-primary-darker)]"
+              />
+              Duy trì đăng nhập
+            </label>
             <button
               type="button"
               className="text-xs font-bold text-[var(--color-primary-darker)] hover:text-[var(--color-primary-dark)] transition-colors"

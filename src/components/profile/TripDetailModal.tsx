@@ -1,14 +1,22 @@
 'use client';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import type { z } from 'zod';
 import { createItineraryItemSchema } from '@/lib/validations/trip';
 import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import { formatDateInputValue } from '@/lib/date';
+import { getTripScheduleBadge } from '@/lib/trip-utils';
+import { ROUTES } from '@/lib/constants';
 import { TripSummary } from '@/types/profile';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useToast } from '@/hooks/useToast';
+import { usePlaceSearch, type SearchResult } from '@/hooks/usePlaceSearch';
+import TripChecklistSection from '@/components/trips/TripChecklistSection';
+import TripBudgetSummary from '@/components/trips/TripBudgetSummary';
+import TripCollaboratorsSection from '@/components/trips/TripCollaboratorsSection';
+import HotelSuggestions, { type HotelResult } from '@/components/hotels/HotelSuggestions';
 
 interface TripDetailModalProps {
   trip: TripSummary | null;
@@ -17,12 +25,21 @@ interface TripDetailModalProps {
   userId: string | null;
 }
 
+interface ItineraryPlace {
+  _id: string;
+  name: string;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+}
+
 interface ItineraryItem {
   _id: string;
   day: number;
   orderIndex: number;
   note: string;
   placeId: string;
+  place?: ItineraryPlace | null;
   cost?: number | null;
   currency?: string | null;
 }
@@ -31,7 +48,6 @@ type ItineraryItemInput = z.infer<typeof createItineraryItemSchema>;
 
 type ItineraryDraft = Omit<ItineraryItemInput, 'day' | 'orderIndex' | 'cost'> & {
   day: number | '';
-  orderIndex: number | '';
   cost: string;
   currency: string;
 };
@@ -53,7 +69,6 @@ type ApiListResponse<T> = {
 
 const emptyDraft: ItineraryDraft = {
   day: 1,
-  orderIndex: 0,
   placeId: '',
   note: '',
   cost: '',
@@ -68,12 +83,24 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   const [draft, setDraft] = useState<ItineraryDraft>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
 
   const [isEditingTrip, setIsEditingTrip] = useState(false);
   const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false, description: '' });
   const [savingTrip, setSavingTrip] = useState(false);
   const { actions: feedback } = useFeedback();
   const { actions: { showToast } } = useToast();
+  const placeSearch = usePlaceSearch();
+  const {
+    searchQuery: placeQuery,
+    setSearchQuery: setPlaceQuery,
+    searchResults: placeResults,
+    isSearching: placeSearching,
+    isDropdownOpen: placeDropdownOpen,
+    searchContainerRef: placeSearchRef,
+    handleSelectPlace,
+    clearSelectedPlace,
+  } = placeSearch;
 
   const groupedItems = useMemo(() => {
     const groups = new Map<number, ItineraryItem[]>();
@@ -118,14 +145,66 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
       setEditingId(null);
       setError('');
       setIsEditingTrip(false);
+      clearSelectedPlace();
     } else {
       setItems([]);
     }
-  }, [trip, loadItinerary]);
+  }, [trip, loadItinerary, clearSelectedPlace]);
 
   const resetForm = () => {
     setDraft(emptyDraft);
     setEditingId(null);
+    clearSelectedPlace();
+  };
+
+  const handlePickPlace = useCallback((place: SearchResult): void => {
+    handleSelectPlace(place);
+    setDraft((prev) => ({
+      ...prev,
+      placeId: place._id,
+      note: prev.note?.trim() ? prev.note : place.name,
+    }));
+  }, [handleSelectPlace]);
+
+  const handleMove = async (item: ItineraryItem, direction: 'up' | 'down'): Promise<void> => {
+    if (!trip || !userId || reordering) return;
+    const group = groupedItems.find((g) => g.day === item.day);
+    if (!group) return;
+    const index = group.items.findIndex((i) => i._id === item._id);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= group.items.length) return;
+
+    const reordered = [...group.items];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    const orderedIds = groupedItems.flatMap((g) =>
+      g.day === item.day ? reordered.map((i) => i._id) : g.items.map((i) => i._id)
+    );
+
+    setReordering(true);
+    setError('');
+    try {
+      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/itinerary/reorder`, {
+        method: 'PATCH',
+        userId,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds }),
+      });
+      try {
+        ensureApiSuccess(response, data, 'Không thể sắp xếp lịch trình');
+      } catch {
+        const message = getApiErrorMessage(data, 'Không thể sắp xếp lịch trình');
+        setError(message);
+        showToast(message, 'error');
+        return;
+      }
+      await loadItinerary();
+    } catch {
+      const message = 'Không thể sắp xếp lịch trình';
+      setError(message);
+      showToast(message, 'error');
+    } finally {
+      setReordering(false);
+    }
   };
 
   const handleSave = async (): Promise<void> => {
@@ -140,12 +219,9 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
       setSaving(false);
       return;
     }
-    const safeOrderIndex = draft.orderIndex === '' ? 0 : draft.orderIndex;
-
     const payload = {
       placeId: draft.placeId.trim(),
       day: Number(draft.day),
-      orderIndex: safeOrderIndex,
       note: draft.note?.trim() || undefined,
       cost: draft.cost?.trim() ? Number(draft.cost) : undefined,
       currency: draft.currency?.trim() || undefined,
@@ -186,11 +262,18 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     setEditingId(item._id);
     setDraft({
       day: item.day,
-      orderIndex: item.orderIndex,
       placeId: item.placeId,
       note: item.note || '',
       cost: item.cost == null ? '' : String(item.cost),
       currency: item.currency || 'VND',
+    });
+
+    handleSelectPlace({
+      _id: item.placeId,
+      name: item.place?.name || item.note || '',
+      address: item.place?.address ?? null,
+      lat: item.place?.lat ?? 0,
+      lng: item.place?.lng ?? 0,
     });
   };
 
@@ -294,7 +377,40 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     }
   };
 
+  const handleSelectHotel = async (hotel: HotelResult): Promise<void> => {
+    if (!trip || !userId) return;
+    const checkInDate = new Date(trip.startDate);
+    let checkOutDate = new Date(trip.endDate);
+    if (!(checkOutDate.getTime() > checkInDate.getTime())) {
+      checkOutDate = new Date(checkInDate.getTime() + 24 * 60 * 60 * 1000);
+    }
+    try {
+      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/accommodation`, {
+        method: 'POST',
+        userId,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: hotel.name,
+          address: hotel.address ?? undefined,
+          checkIn: checkInDate.toISOString(),
+          checkOut: checkOutDate.toISOString(),
+        }),
+      });
+      try {
+        ensureApiSuccess(response, data, 'Không thể lưu khách sạn vào chuyến đi');
+      } catch {
+        showToast(getApiErrorMessage(data, 'Không thể lưu khách sạn vào chuyến đi'), 'error');
+        return;
+      }
+      showToast('Đã lưu khách sạn vào chuyến đi', 'success');
+    } catch {
+      showToast('Không thể lưu khách sạn vào chuyến đi', 'error');
+    }
+  };
+
   if (!trip) return null;
+
+  const scheduleBadge = getTripScheduleBadge(trip.startDate, trip.endDate);
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -308,6 +424,12 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             <p className="text-xs text-[var(--color-text-muted)]">{trip.destination}</p>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href={`${ROUTES.scheduleReference}/${trip._id}`}
+              className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-primary-darker)] hover:bg-[var(--color-primary-lightest)]"
+            >
+              Xem lịch trình
+            </Link>
             {!isEditingTrip && (
               <button type="button" onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]">
                 Sửa thông tin
@@ -414,7 +536,14 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               <div className="font-medium text-[var(--color-text)]">{trip.title}</div>
             </div>
             <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
-              <div className="text-xs text-[var(--color-text-muted)]">Thời gian</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-xs text-[var(--color-text-muted)]">Thời gian</div>
+                {scheduleBadge && (
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${scheduleBadge.className}`}>
+                    {scheduleBadge.label}
+                  </span>
+                )}
+              </div>
               <div className="font-medium text-[var(--color-text)]">{trip.startDate} đến {trip.endDate}</div>
             </div>
             <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
@@ -459,17 +588,42 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                   Ngày {group.day}
                 </div>
                 <div className="divide-y divide-[var(--color-border)]">
-                  {group.items.map((item) => (
+                  {group.items.map((item, index) => (
                     <div key={item._id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm">
-                      <div className="min-w-0">
-                        <div className="text-[var(--color-text-secondary)]">Thứ tự #{item.orderIndex}</div>
-                        <div className="font-medium text-[var(--color-text)] break-words">{item.note || 'Chưa có ghi chú'}</div>
-                        <div className="text-xs text-[var(--color-text-muted)] break-all">placeId: {item.placeId}</div>
-                        {item.cost != null && (
-                          <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-                            Chi phí: {item.cost.toLocaleString('vi-VN')} {item.currency || 'VND'}
+                      <div className="flex min-w-0 items-start gap-2">
+                        <div className="flex shrink-0 flex-col gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleMove(item, 'up')}
+                            disabled={index === 0 || reordering}
+                            aria-label="Di chuyển lên"
+                            className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMove(item, 'down')}
+                            disabled={index === group.items.length - 1 || reordering}
+                            aria-label="Di chuyển xuống"
+                            className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-[var(--color-text)] break-words">
+                            {item.place?.name || item.note || 'Địa điểm chưa xác định'}
                           </div>
-                        )}
+                          {item.note && item.note !== item.place?.name && (
+                            <div className="text-xs text-[var(--color-text-muted)] break-words">{item.note}</div>
+                          )}
+                          {item.cost != null && (
+                            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
+                              Chi phí: {item.cost.toLocaleString('vi-VN')} {item.currency || 'VND'}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="flex shrink-0 gap-2">
                         <button
@@ -499,7 +653,44 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             <div className="text-sm font-semibold text-[var(--color-text)] mb-3">
               {editingId ? 'Sửa điểm dừng' : 'Thêm điểm dừng'}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-6 gap-2">
+
+            <div ref={placeSearchRef} className="relative mb-3">
+              <label className="block text-xs text-[var(--color-text-muted)] mb-1">Địa điểm</label>
+              <input
+                type="text"
+                value={placeQuery}
+                onChange={(e) => setPlaceQuery(e.target.value)}
+                placeholder="Tìm địa điểm, ví dụ: Hồ Gươm, Bà Nà Hills..."
+                autoComplete="off"
+                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
+              />
+              {placeSearching && (
+                <div className="absolute right-3 top-8 text-xs text-[var(--color-text-muted)]">Đang tìm...</div>
+              )}
+              {placeDropdownOpen && placeResults.length > 0 && (
+                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[var(--color-border)] bg-white shadow-lg">
+                  {placeResults.map((place) => (
+                    <li key={place._id}>
+                      <button
+                        type="button"
+                        onClick={() => handlePickPlace(place)}
+                        className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-[var(--color-primary-lightest)]"
+                      >
+                        <span className="text-sm font-medium text-[var(--color-text)]">{place.name}</span>
+                        {place.address && (
+                          <span className="text-xs text-[var(--color-text-muted)]">{place.address}</span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {!draft.placeId && (
+                <p className="mt-1 text-xs text-[var(--color-text-muted)]">Chọn địa điểm từ kết quả tìm kiếm để thêm vào lịch trình.</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <input
                 type="number"
                 min={1}
@@ -521,31 +712,6 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               <input
                 type="number"
                 min={0}
-                value={draft.orderIndex}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  if (raw === '') {
-                    setDraft(prev => ({ ...prev, orderIndex: '' }));
-                    return;
-                  }
-                  const parsed = parseInt(raw, 10);
-                  if (!isNaN(parsed) && parsed >= 0) {
-                    setDraft(prev => ({ ...prev, orderIndex: parsed }));
-                  }
-                }}
-                placeholder="Thứ tự"
-                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-              />
-              <input
-                type="text"
-                value={draft.placeId}
-                onChange={(e) => setDraft(prev => ({ ...prev, placeId: e.target.value }))}
-                placeholder="placeId"
-                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm sm:col-span-2 bg-white"
-              />
-              <input
-                type="number"
-                min={0}
                 value={draft.cost}
                 onChange={(e) => setDraft(prev => ({ ...prev, cost: e.target.value }))}
                 placeholder="Chi phí"
@@ -563,7 +729,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                 value={draft.note || ''}
                 onChange={(e) => setDraft(prev => ({ ...prev, note: e.target.value }))}
                 placeholder="Ghi chú"
-                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm sm:col-span-6 bg-white"
+                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm col-span-2 sm:col-span-3 bg-white"
               />
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -586,6 +752,17 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               )}
             </div>
           </div>
+        </div>
+
+        <TripBudgetSummary tripId={trip._id} userId={userId} />
+
+        <TripChecklistSection tripId={trip._id} userId={userId} />
+
+        <TripCollaboratorsSection tripId={trip._id} userId={userId} />
+
+        <div className="border-t border-[var(--color-border)] pt-4 mt-6">
+          <div className="font-semibold text-sm text-[var(--color-text)] mb-3">Khách sạn gợi ý tại {trip.destination}</div>
+          <HotelSuggestions destination={trip.destination} limit={6} onSelect={handleSelectHotel} />
         </div>
       </div>
     </div>

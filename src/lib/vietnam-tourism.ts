@@ -116,6 +116,14 @@ export function provinceCenter(value: string) {
   return PROVINCE_CENTERS[key] || { lat: 16.0471, lng: 108.2068, label: value };
 }
 
+export function resolveProvinceKey(value: string): string {
+  return provinceKey(value);
+}
+
+export function knownProvinceKeys(): string[] {
+  return Object.keys(PROVINCE_CENTERS);
+}
+
 function destinationToSearchPlace(destination: TourismDestination): TourismSearchPlace {
   const center = provinceCenter(destination.province);
   return {

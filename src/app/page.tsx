@@ -7,6 +7,7 @@ import HeroSlider from '@/components/home/HeroSlider';
 import TripPlannerForm from '@/components/home/TripPlannerForm';
 import PlaceDetailPanel from '@/components/home/PlaceDetailPanel';
 import FeaturedDestinations from '@/components/home/FeaturedDestinations';
+import RecommendedPlaces from '@/components/home/RecommendedPlaces';
 import TravelNewsSection from '@/components/home/TravelNewsSection';
 import AuthModal from '@/components/auth/AuthModal';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -242,6 +243,7 @@ function HomePageContent(): React.JSX.Element {
       )}
 
       <FeaturedDestinations onSelect={handleQuickSelect} />
+      <RecommendedPlaces />
       <TravelNewsSection />
       <AuthModal
         authMode={authMode}

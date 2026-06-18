@@ -68,6 +68,16 @@ export const deleteItineraryItemSchema = z.object({
   itemId: objectIdSchema,
 });
 
+export const reorderItinerarySchema = z.object({
+  orderedIds: z
+    .array(objectIdSchema)
+    .min(1, 'Cần ít nhất một mục để sắp xếp')
+    .max(200, 'Quá nhiều mục')
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: 'orderedIds không được chứa ID trùng lặp',
+    }),
+});
+
 export type TripCreateInput = z.infer<typeof createTripSchema>;
 export type TripUpdateInput = z.infer<typeof updateTripSchema>;
 export type ItineraryItemInput = z.infer<typeof createItineraryItemSchema>;

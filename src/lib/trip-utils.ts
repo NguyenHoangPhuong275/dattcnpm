@@ -89,6 +89,37 @@ export function formatMoney(value: number, locale: string = DEFAULT_LOCALE, curr
   }).format(value);
 }
 
+export type TripScheduleStatus = 'upcoming' | 'ongoing' | 'ended';
+
+export interface TripScheduleBadge {
+  status: TripScheduleStatus;
+  label: string;
+  className: string;
+}
+
+function toDateKey(value?: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
+export function getTripScheduleBadge(startDate?: string | null, endDate?: string | null): TripScheduleBadge | null {
+  const startKey = toDateKey(startDate);
+  const endKey = toDateKey(endDate);
+  if (!startKey || !endKey) return null;
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  if (todayKey < startKey) {
+    return { status: 'upcoming', label: 'Sắp diễn ra', className: 'bg-[var(--color-primary-lightest)] text-[var(--color-primary-darker)]' };
+  }
+  if (todayKey > endKey) {
+    return { status: 'ended', label: 'Đã kết thúc', className: 'bg-[var(--color-bg)] text-[var(--color-text-secondary)]' };
+  }
+  return { status: 'ongoing', label: 'Đang diễn ra', className: 'bg-[var(--color-success)]/10 text-[var(--color-success)]' };
+}
+
 
 export async function deleteTripCascade(tripId: string, db: AppDatabase): Promise<Record<string, number>> {
   return {

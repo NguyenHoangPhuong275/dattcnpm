@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { optionalTrimString } from './common';
+import { optionalTrimString, optionalPhoneString } from './common';
 
 export const updateProfileSchema = z.object({
   fullName: optionalTrimString(100),
-  phone: optionalTrimString(20),
+  phone: optionalPhoneString,
   dateOfBirth: z.string().date().or(z.literal('')).transform(v => v || null).optional().nullable(),
   gender: z.enum(['Nam', 'Nữ', 'Khác']).optional().nullable(),
   nationality: optionalTrimString(60),
@@ -12,7 +12,7 @@ export const updateProfileSchema = z.object({
   emergencyContact: z
     .object({
       name: optionalTrimString(80),
-      phone: optionalTrimString(20),
+      phone: optionalPhoneString,
     })
     .optional()
     .nullable(),

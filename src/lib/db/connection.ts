@@ -3,6 +3,7 @@ import type {
   User as PlainUser,
   Trip as PlainTrip,
   Place as PlainPlace,
+  Hotel as PlainHotel,
   ItineraryItem as PlainItineraryItem,
   FavoritePlace as PlainFavoritePlace,
   Review as PlainReview,
@@ -16,13 +17,15 @@ import type {
   TripAccommodation as PlainTripAccommodation,
   TripChecklist as PlainTripChecklist,
   UserFollow as PlainUserFollow,
+  ReviewReport as PlainReviewReport,
 } from './schema';
 
 import { createCollection } from './collections';
 import { 
-  User, 
-  Trip, 
-  Place, 
+  User,
+  Trip,
+  Place,
+  Hotel,
   Review,
   ItineraryItem,
   FavoritePlace,
@@ -34,7 +37,8 @@ import {
   TripBudget,
   TripAccommodation,
   TripChecklist,
-  UserFollow 
+  UserFollow,
+  ReviewReport,
 } from './models';
 import { AuditLog } from './audit';
 import { createAllCollections } from './maintenance';
@@ -75,6 +79,7 @@ export type AppDatabase = {
   users: ReturnType<typeof createCollection<PlainUser>>;
   trips: ReturnType<typeof createCollection<PlainTrip>>;
   places: ReturnType<typeof createCollection<PlainPlace>>;
+  hotels: ReturnType<typeof createCollection<PlainHotel>>;
   itineraryItems: ReturnType<typeof createCollection<PlainItineraryItem>>;
   favorites: ReturnType<typeof createCollection<PlainFavoritePlace>>;
   reviews: ReturnType<typeof createCollection<PlainReview>>;
@@ -88,6 +93,7 @@ export type AppDatabase = {
   tripAccommodations: ReturnType<typeof createCollection<PlainTripAccommodation>>;
   tripChecklists: ReturnType<typeof createCollection<PlainTripChecklist>>;
   userFollows: ReturnType<typeof createCollection<PlainUserFollow>>;
+  reviewReports: ReturnType<typeof createCollection<PlainReviewReport>>;
 };
 
 let dbInstance: AppDatabase | null = null;
@@ -100,6 +106,7 @@ export async function getDb(): Promise<AppDatabase> {
       users: createCollection<PlainUser>(User),
       trips: createCollection<PlainTrip>(Trip),
       places: createCollection<PlainPlace>(Place),
+      hotels: createCollection<PlainHotel>(Hotel),
       itineraryItems: createCollection<PlainItineraryItem>(ItineraryItem),
       favorites: createCollection<PlainFavoritePlace>(FavoritePlace),
       reviews: createCollection<PlainReview>(Review),
@@ -113,6 +120,7 @@ export async function getDb(): Promise<AppDatabase> {
       tripAccommodations: createCollection<PlainTripAccommodation>(TripAccommodation),
       tripChecklists: createCollection<PlainTripChecklist>(TripChecklist),
       userFollows: createCollection<PlainUserFollow>(UserFollow),
+      reviewReports: createCollection<PlainReviewReport>(ReviewReport),
     };
   }
 

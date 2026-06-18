@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { createAuditLog, findOwnedTrip, getDb, type ItineraryItem } from '@/lib/db';
+import { createAuditLog, getDb, type ItineraryItem } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
+import { getTripForEdit } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
 import { updateItineraryItemSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -33,10 +34,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    const trip = await findOwnedTrip(id, userId);
-    if (!trip) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
+    const trip = await getTripForEdit(id, userId);
 
     const db = await getDb();
     const item = (await db.itineraryItems.findById(itemId)) as ItineraryItem | null;
@@ -114,9 +112,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    if (!(await findOwnedTrip(id, userId))) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
+    await getTripForEdit(id, userId);
 
     const db = await getDb();
     const item = await db.itineraryItems.findById(itemId);

@@ -6,6 +6,7 @@ export const COLLECTIONS = {
   users: 'users',
   trips: 'trips',
   places: 'places',
+  hotels: 'hotels',
   itineraryItems: 'itinerary_items',
   favorites: 'favorite_places',
   reviews: 'reviews',
@@ -19,6 +20,7 @@ export const COLLECTIONS = {
   tripAccommodations: 'trip_accommodations',
   tripChecklists: 'trip_checklists',
   userFollows: 'user_follows',
+  reviewReports: 'review_reports',
 } as const;
 
 export type CollectionName = typeof COLLECTIONS[keyof typeof COLLECTIONS];

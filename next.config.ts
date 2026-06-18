@@ -5,14 +5,9 @@ const isDev = process.env.NODE_ENV !== "production";
 const nextConfig: NextConfig = {
   reactCompiler: false,
 
-  // Tắt Next.js devtools indicators — giảm overhead dev-time
-  // và tránh xung đột với Chrome DevTools gây crash browser
   devIndicators: false,
 
   async headers() {
-    // Security headers chỉ áp dụng trong production.
-    // Trong development, CSP gây xung đột với HMR/DevTools/React extensions
-    // dẫn đến crash browser khi mở F12.
     if (isDev) return [];
 
     return [

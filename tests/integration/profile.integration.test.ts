@@ -67,4 +67,38 @@ describe('Integration: Profile with mocked DB helpers', () => {
     const patchRes = await profilePATCH(patchReq as any);
     expect([200, 400]).toContain(patchRes.status);
   });
+
+  it('PATCH số điện thoại hợp lệ → lưu thành công', async () => {
+    const patchReq = new Request('http://localhost/api/profile', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json', 'x-user-id': 'test-user-phuong' },
+      body: JSON.stringify({ phone: '+84901234567' }),
+    });
+    const res = await profilePATCH(patchReq as any);
+    const json = await res.json();
+    expect(res.status).toBe(200);
+    expect(json.data.profile.phone).toBe('+84901234567');
+  });
+
+  it('PATCH số điện thoại sai định dạng → 400', async () => {
+    const patchReq = new Request('http://localhost/api/profile', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json', 'x-user-id': 'test-user-phuong' },
+      body: JSON.stringify({ phone: 'khong-phai-so' }),
+    });
+    const res = await profilePATCH(patchReq as any);
+    expect(res.status).toBe(400);
+  });
+
+  it('PATCH số điện thoại rỗng → xoá số (null)', async () => {
+    const patchReq = new Request('http://localhost/api/profile', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json', 'x-user-id': 'test-user-phuong' },
+      body: JSON.stringify({ phone: '' }),
+    });
+    const res = await profilePATCH(patchReq as any);
+    const json = await res.json();
+    expect(res.status).toBe(200);
+    expect(json.data.profile.phone).toBe('');
+  });
 });

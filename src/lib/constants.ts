@@ -1,6 +1,7 @@
 export const ROUTES = {
   home: '/',
   trips: '/trips',
+  hotels: '/hotels',
   profile: '/profile',
   local: '/local',
   scheduleReference: '/schedule-reference',

@@ -31,6 +31,8 @@ export const ItineraryItemSchema = new Schema<IItineraryItem>({
   metadata: { type: Object, default: null },
 }, { timestamps: true, collection: COLLECTIONS.itineraryItems });
 
+ItineraryItemSchema.index({ tripId: 1, day: 1, orderIndex: 1 }, { unique: true });
+
 export const ItineraryItem: Model<IItineraryItem> = models.ItineraryItem || model<IItineraryItem>('ItineraryItem', ItineraryItemSchema);
 
 export interface IFavoritePlace extends Document {
@@ -156,25 +158,35 @@ export const UserPreferenceSchema = new Schema<IUserPreference>({
 
 export const UserPreference: Model<IUserPreference> = models.UserPreference || model<IUserPreference>('UserPreference', UserPreferenceSchema);
 
+export const TRIP_BUDGET_CATEGORIES = ['transport', 'food', 'accommodation', 'ticket', 'shopping', 'other'] as const;
+export const TRIP_BUDGET_TYPES = ['planned', 'actual'] as const;
+
 export interface ITripBudget extends Document {
   _id: Types.ObjectId;
   tripId: Types.ObjectId;
-  category: 'TRANSPORT' | 'ACCOMMODATION' | 'FOOD' | 'ACTIVITY' | 'OTHER';
-  estimatedAmount: number;
-  actualAmount?: number | null;
+  userId: Types.ObjectId;
+  category: (typeof TRIP_BUDGET_CATEGORIES)[number];
+  amount: number;
   currency: string;
   note?: string | null;
+  date?: Date | null;
+  type: (typeof TRIP_BUDGET_TYPES)[number];
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export const TripBudgetSchema = new Schema<ITripBudget>({
   tripId: { type: Schema.Types.ObjectId, ref: 'Trip', required: true },
-  category: { type: String, enum: ['TRANSPORT', 'ACCOMMODATION', 'FOOD', 'ACTIVITY', 'OTHER'], required: true },
-  estimatedAmount: { type: Number, required: true },
-  actualAmount: { type: Number, default: null },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  category: { type: String, enum: TRIP_BUDGET_CATEGORIES, required: true },
+  amount: { type: Number, required: true, min: 0 },
   currency: { type: String, default: 'VND' },
   note: { type: String, default: null },
-}, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.tripBudgets });
+  date: { type: Date, default: null },
+  type: { type: String, enum: TRIP_BUDGET_TYPES, default: 'planned' },
+}, { timestamps: true, collection: COLLECTIONS.tripBudgets });
+
+TripBudgetSchema.index({ tripId: 1 });
 
 export const TripBudget: Model<ITripBudget> = models.TripBudget || model<ITripBudget>('TripBudget', TripBudgetSchema);
 
@@ -183,6 +195,7 @@ export interface ITripAccommodation extends Document {
   tripId: Types.ObjectId;
   placeId?: Types.ObjectId | null;
   name: string;
+  address?: string | null;
   checkIn: Date;
   checkOut: Date;
   bookingRef?: string | null;
@@ -190,19 +203,23 @@ export interface ITripAccommodation extends Document {
   currency: string;
   note?: string | null;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export const TripAccommodationSchema = new Schema<ITripAccommodation>({
   tripId: { type: Schema.Types.ObjectId, ref: 'Trip', required: true },
   placeId: { type: Schema.Types.ObjectId, ref: 'Place', default: null },
   name: { type: String, required: true },
+  address: { type: String, default: null },
   checkIn: { type: Date, required: true },
   checkOut: { type: Date, required: true },
   bookingRef: { type: String, default: null },
   cost: { type: Number, default: null },
   currency: { type: String, default: 'VND' },
   note: { type: String, default: null },
-}, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.tripAccommodations });
+}, { timestamps: true, collection: COLLECTIONS.tripAccommodations });
+
+TripAccommodationSchema.index({ tripId: 1, checkIn: 1 });
 
 export const TripAccommodation: Model<ITripAccommodation> = models.TripAccommodation || model<ITripAccommodation>('TripAccommodation', TripAccommodationSchema);
 
@@ -237,3 +254,28 @@ export const UserFollowSchema = new Schema<IUserFollow>({
 }, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.userFollows });
 
 export const UserFollow: Model<IUserFollow> = models.UserFollow || model<IUserFollow>('UserFollow', UserFollowSchema);
+
+export const REVIEW_REPORT_REASONS = ['spam', 'inappropriate', 'fake', 'offensive', 'off_topic', 'other'] as const;
+export const REVIEW_REPORT_STATUSES = ['pending', 'resolved', 'dismissed'] as const;
+
+export interface IReviewReport extends Document {
+  _id: Types.ObjectId;
+  reviewId: Types.ObjectId;
+  reportedBy: Types.ObjectId;
+  reason: (typeof REVIEW_REPORT_REASONS)[number];
+  note?: string | null;
+  status: (typeof REVIEW_REPORT_STATUSES)[number];
+  createdAt: Date;
+}
+
+export const ReviewReportSchema = new Schema<IReviewReport>({
+  reviewId: { type: Schema.Types.ObjectId, ref: 'Review', required: true },
+  reportedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  reason: { type: String, enum: REVIEW_REPORT_REASONS, required: true },
+  note: { type: String, default: null },
+  status: { type: String, enum: REVIEW_REPORT_STATUSES, default: 'pending' },
+}, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.reviewReports });
+
+ReviewReportSchema.index({ reviewId: 1, reportedBy: 1 }, { unique: true });
+
+export const ReviewReport: Model<IReviewReport> = models.ReviewReport || model<IReviewReport>('ReviewReport', ReviewReportSchema);

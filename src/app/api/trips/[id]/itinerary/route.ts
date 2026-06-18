@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { createAuditLog, findOwnedTrip, getDb } from '@/lib/db';
+import { createAuditLog, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
+import { getTripForEdit, getTripForView } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
 import { createItineraryItemSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -9,6 +10,7 @@ import { parseValidDate } from '@/lib/date';
 import { assertTripDayIsSchedulable } from '@/lib/itinerary-utils';
 import { toItineraryItemResponse } from '@/lib/trip-formatters';
 import type { ItineraryItem } from '@/types/trip';
+import type { Place } from '@/lib/db';
 
 type RouteCtx = {
   params: Promise<{ id: string }>;
@@ -25,10 +27,7 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
     const { id } = await ctx.params;
     objectIdSchema.parse(id);
 
-    const trip = await findOwnedTrip(id, userId);
-    if (!trip) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
+    await getTripForView(id, userId);
 
     const db = await getDb();
     const items = (await db.itineraryItems.find({ tripId: id })) as ItineraryItem[];
@@ -37,7 +36,14 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
       return a.orderIndex - b.orderIndex;
     });
 
-    return sendSuccess(items.map((item) => toItineraryItemResponse(item)));
+
+    const placeIds = [...new Set(items.map((item) => String(item.placeId)).filter(Boolean))];
+    const places = placeIds.length ? ((await db.places.find({ _id: { $in: placeIds } })) as Place[]) : [];
+    const placeById = new Map(places.map((place) => [String(place._id), place]));
+
+    return sendSuccess(
+      items.map((item) => toItineraryItemResponse(item, { place: placeById.get(String(item.placeId)) ?? null }))
+    );
   } catch (error) {
     return handleApiError(error);
   }
@@ -63,10 +69,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     const { id } = await ctx.params;
     objectIdSchema.parse(id);
 
-    const trip = await findOwnedTrip(id, userId);
-    if (!trip) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
+    const trip = await getTripForEdit(id, userId);
 
     const body = await request.json().catch(() => ({}));
     const parsed = createItineraryItemSchema.parse(body);
@@ -79,9 +82,9 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
 
     assertTripDayIsSchedulable(trip, parsed.day);
 
-    const existingItems = await db.itineraryItems.find({ tripId: id });
-    const fallbackOrder = existingItems.filter((item) => item.day === parsed.day).length;
-    const orderIndex = parsed.orderIndex ?? fallbackOrder;
+    const dayItems = await db.itineraryItems.find({ tripId: id, day: parsed.day });
+    const maxOrderIndex = dayItems.reduce((max, item) => Math.max(max, item.orderIndex), -1);
+    const orderIndex = parsed.orderIndex ?? maxOrderIndex + 1;
 
     const created = (await db.itineraryItems.insertOne({
       tripId: id,

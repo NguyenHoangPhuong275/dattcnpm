@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import Image from 'next/image';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useFormSubmitError } from '@/hooks/useFormSubmitError';
@@ -39,7 +39,12 @@ const PersonalInfoForm = memo(({
 }: PersonalInfoFormProps): React.JSX.Element => {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const { formError, handleSubmit } = useFormSubmitError(onSave, 'Không thể lưu thông tin lúc này');
+
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [personal.avatarUrl]);
 
   const handleAvatarFile = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
@@ -87,8 +92,16 @@ const PersonalInfoForm = memo(({
     <form onSubmit={handleSubmit} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm sm:p-6">
       <div className="flex flex-col items-center gap-3 border-b border-[var(--color-border)] pb-6">
         <div className="relative h-28 w-28 overflow-hidden rounded-full bg-[var(--color-primary-dark)] text-white ring-4 ring-[var(--color-bg)]">
-          {personal.avatarUrl ? (
-            <Image src={personal.avatarUrl} alt={`Ảnh đại diện của ${personal.firstName} ${personal.lastName}`.trim() || 'Ảnh đại diện'} fill sizes="112px" className="object-cover" unoptimized />
+          {personal.avatarUrl && !avatarBroken ? (
+            <Image
+              src={personal.avatarUrl}
+              alt={`Ảnh đại diện của ${personal.firstName} ${personal.lastName}`.trim() || 'Ảnh đại diện'}
+              fill
+              sizes="112px"
+              className="object-cover"
+              unoptimized
+              onError={() => setAvatarBroken(true)}
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-3xl font-bold">{initials(personal)}</div>
           )}
@@ -166,17 +179,26 @@ const PersonalInfoForm = memo(({
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-3">
               <label htmlFor="profile-phone" className="form-label mb-0">Số điện thoại</label>
-              <button
-                type="button"
-                className="text-xs font-semibold text-[var(--color-primary-dark)] hover:underline opacity-60 cursor-not-allowed"
-                disabled
-                title="Tính năng sắp ra mắt"
-                aria-label="Liên kết số điện thoại — tính năng đang phát triển"
+              <span
+                className="inline-flex items-center rounded-full bg-[var(--color-primary-lightest)] px-2.5 py-0.5 text-xs font-semibold text-[var(--color-primary-dark)]"
+                title="Liên kết & xác minh số điện thoại qua SMS sẽ sớm có"
               >
-                Liên kết số điện thoại
-              </button>
+                Sắp ra mắt
+              </span>
             </div>
-            <input id="profile-phone" type="text" name="phone" value={personal.phone} onChange={onChange} placeholder="0901 234 567" className={fieldClass} />
+            <input
+              id="profile-phone"
+              type="tel"
+              inputMode="tel"
+              name="phone"
+              value={personal.phone}
+              onChange={onChange}
+              placeholder="0901 234 567"
+              maxLength={20}
+              aria-describedby="profile-phone-help"
+              className={fieldClass}
+            />
+            <p id="profile-phone-help" className="mt-1 text-xs text-[var(--color-text-muted)]">8-15 chữ số, có thể bắt đầu bằng dấu + (VD: +84901234567).</p>
           </div>
 
           <div>

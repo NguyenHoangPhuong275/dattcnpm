@@ -92,6 +92,7 @@ export function useHomepageTripActions({
 
   const addSelectedPlaceToTrip = useCallback(async (tripId: string): Promise<boolean> => {
     if (!userId || !selectedPlace) return false;
+    if (tripActionStatus === 'loading') return false;
 
     setTripActionStatus('loading');
     resetTripActionMessage();
@@ -129,9 +130,10 @@ export function useHomepageTripActions({
       setTripActionStatus('error');
       return false;
     }
-  }, [resetTripActionMessage, router, selectedPlace, userId]);
+  }, [resetTripActionMessage, router, selectedPlace, tripActionStatus, userId]);
 
   const createTripFromSelectedPlace = useCallback(async (): Promise<void> => {
+    if (tripActionStatus === 'loading') return;
     if (!selectedPlace || !userId) {
       onMissingPlace?.();
       return;
@@ -183,6 +185,7 @@ export function useHomepageTripActions({
     selectedPlace,
     startDate,
     travelerCount,
+    tripActionStatus,
     userId,
   ]);
 

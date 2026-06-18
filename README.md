@@ -98,7 +98,18 @@ npm run dev
 | `DEFAULT_TEST_EMAIL` | Email test mặc định |
 | `DEFAULT_TEST_PASSWORD` | Mật khẩu test mặc định |
 | `API_KEY_RESEND` | API key Resend |
-| `WEBHOOK_SECRET` | Secret cho admin webhook |
+| `WEBHOOK_SECRET` | Secret cho admin webhook (header `x-webhook-secret`) |
+| `WEBHOOK_IP_ALLOWLIST` | IP được phép chạy event phá hủy/seed. Trống ở production = từ chối các event này (bắt buộc khai báo khi deploy) |
+| `CRON_SECRET` | Secret cho cron cảnh báo thời tiết (`x-cron-secret`). Production phải đặt riêng, không dùng chung `WEBHOOK_SECRET` |
+
+> **Lưu ý reverse proxy:** IP client lấy từ `x-forwarded-for` / `x-real-ip`. Khi deploy production, Nginx/Cloudflare **phải** override/strip các header này từ client, nếu không `WEBHOOK_IP_ALLOWLIST` có thể bị bypass. Ví dụ Nginx an toàn (ghi đè, không dùng `$proxy_add_x_forwarded_for`):
+>
+> ```nginx
+> proxy_set_header X-Forwarded-For $remote_addr;
+> proxy_set_header X-Real-IP $remote_addr;
+> ```
+>
+> Với Cloudflare: dùng `CF-Connecting-IP` và chặn truy cập trực tiếp bỏ qua CF.
 
 ## Scripts thật
 
@@ -113,6 +124,38 @@ npm run dev
 | `npm test` | Chạy Vitest |
 | `npm run test:ui` | Chạy Vitest UI |
 | `npm run test:coverage` | Chạy Vitest coverage |
+
+### Audit dữ liệu trùng orderIndex (trước khi bật unique index itinerary)
+
+Script `scripts/audit-itinerary-orderindex.ts` chỉ đọc DB, liệt kê các nhóm `ItineraryItem` trùng `{ tripId, day, orderIndex }`. Chạy trước khi bật unique index:
+
+```bash
+npx tsx scripts/audit-itinerary-orderindex.ts
+```
+
+Script đọc `MONGODB_URI` từ `.env` (không tự sửa DB). Exit code: `0` nếu sạch, `1` nếu phát hiện trùng, `2` nếu lỗi/thiếu cấu hình.
+
+### Tính năng Khách sạn
+
+Mục "Khách sạn" trên header → trang `/hotels` (tìm theo điểm đến) và phần "Khách sạn gợi ý" trong chi tiết chuyến đi (gợi ý theo `destination` của trip, có thể "Lưu vào chuyến đi" → `TripAccommodation`). Matching chuẩn hóa tiếng Việt, ưu tiên tỉnh/thành → khu vực → tên/điểm đến → tọa độ → keyword; không trả sai tỉnh khi tỉnh đã rõ.
+
+**Lưu ý dữ liệu:** dataset khách sạn **không tự có** — DB trống cho tới khi chạy script import. Một số khách sạn OSM thiếu `stars`/`addr:district` nên `rating`/`district` có thể trống (UI đã guard). Tỉnh nào chưa import thì trang/section khách sạn sẽ hiện empty state — cần import thêm tỉnh đó.
+
+**Rủi ro deploy:** nếu deploy mà DB production chưa import `hotels`, tính năng khách sạn sẽ luôn trống (không lỗi, chỉ empty). Chạy import (mục dưới) trước hoặc sau deploy để có dữ liệu.
+
+### Import dataset khách sạn từ OpenStreetMap
+
+Dataset khách sạn (collection `hotels`, tách biệt `trip_accommodations` của từng chuyến đi) được lấy từ OpenStreetMap Overpass (`tourism=hotel|guest_house|hostel|resort|apartment|motel`) — miễn phí, không cần API key. Mỗi bản ghi có: `name`, `province`, `provinceKey`, `district`, `address`, `lat/lng`, `rating` (từ `stars`), `priceLevel`, `source='osm'`.
+
+```bash
+npx tsx scripts/import-hotels-osm.ts                       # dry-run tất cả tỉnh hub
+npx tsx scripts/import-hotels-osm.ts --import              # ghi DB tất cả tỉnh hub
+npx tsx scripts/import-hotels-osm.ts --import --province="Da Nang"  # một tỉnh
+npx tsx scripts/import-hotels-osm.ts --import --radius=10000        # bán kính (m), clamp 1000–100000
+npx tsx scripts/import-hotels-osm.ts --import --limit=200           # giới hạn số khách sạn/tỉnh, clamp 1–5000
+```
+
+Mặc định là dry-run (không ghi DB). Upsert theo `osmId` nên chạy lại an toàn. Lỗi mạng/Overpass 429/504 được bỏ qua từng tỉnh, không làm hỏng các tỉnh khác. Mỗi lần chạy in tổng kết coverage: số lấy được, sau loại trùng, số thiếu district/tọa độ/rating, số tỉnh lỗi (và số upsert/cập nhật nếu `--import`). API `/api/hotels/search` (query `destination`/`province`/`district`/`lat`/`lng`/`limit`) match khách sạn theo khu vực, không trả sai tỉnh khi đã rõ tỉnh.
 
 ## API chính hiện có
 
@@ -130,6 +173,7 @@ npm run dev
 | POST | `/api/profile/password` | Đổi mật khẩu |
 | GET | `/api/places/search` | Tìm địa điểm bằng Nominatim/Overpass, Redis cache, rate limit |
 | GET | `/api/places/poi` | Tìm POI quanh tọa độ |
+| GET | `/api/hotels/search` | Tìm khách sạn theo khu vực (collection `hotels`), Redis cache, rate limit |
 | GET | `/api/weather` | Thời tiết Open-Meteo |
 | GET | `/api/trips` | Danh sách trip |
 | POST | `/api/trips` | Tạo trip |

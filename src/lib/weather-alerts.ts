@@ -1,0 +1,81 @@
+import { cacheGet, cacheSet } from '@/lib/db';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { getWeatherDescription } from '@/lib/weather';
+
+export type DailyForecast = {
+  date: string;
+  weathercode: number;
+  precipitationMm: number;
+  precipitationProbability: number;
+  tempMax: number | null;
+  tempMin: number | null;
+};
+
+export const WEATHER_ALERT_THRESHOLDS = {
+  rainProbability: 70,
+  stormCodeMin: 95,
+  extremeTempMax: 40,
+  extremeTempMin: 5,
+};
+
+export function evaluateWeatherAlert(day: DailyForecast): { alert: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+  if (day.precipitationProbability > WEATHER_ALERT_THRESHOLDS.rainProbability) {
+    reasons.push(`Khả năng mưa cao (${day.precipitationProbability}%)`);
+  }
+  if (day.weathercode >= WEATHER_ALERT_THRESHOLDS.stormCodeMin) {
+    reasons.push(`Cảnh báo ${getWeatherDescription(day.weathercode)}`);
+  }
+  if (day.tempMax !== null && day.tempMax >= WEATHER_ALERT_THRESHOLDS.extremeTempMax) {
+    reasons.push(`Nắng nóng cực đoan (${day.tempMax}°C)`);
+  }
+  if (day.tempMin !== null && day.tempMin <= WEATHER_ALERT_THRESHOLDS.extremeTempMin) {
+    reasons.push(`Rét đậm (${day.tempMin}°C)`);
+  }
+  return { alert: reasons.length > 0, reasons };
+}
+
+const FORECAST_CACHE_TTL = 1800;
+
+export async function fetchDailyForecast(lat: number, lng: number): Promise<DailyForecast[] | null> {
+  const cacheKey = `weather:fc:${lat.toFixed(4)}:${lng.toFixed(4)}`;
+
+  try {
+    const cached = await cacheGet(cacheKey);
+    if (cached) return JSON.parse(cached) as DailyForecast[];
+  } catch {
+  }
+
+  const limiter = await checkRateLimit({
+    key: `rl:weather-fetch:${lat.toFixed(4)}:${lng.toFixed(4)}`,
+    limit: 1,
+    windowSeconds: 600,
+  }).catch(() => ({ limited: false }));
+  if (limiter.limited) return null;
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=Asia%2FHo_Chi_Minh`;
+    const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const days: string[] = data.daily?.time ?? [];
+    const forecast: DailyForecast[] = days.map((date, i) => ({
+      date,
+      weathercode: data.daily.weathercode?.[i] ?? 0,
+      precipitationMm: data.daily.precipitation_sum?.[i] ?? 0,
+      precipitationProbability: data.daily.precipitation_probability_max?.[i] ?? 0,
+      tempMax: data.daily.temperature_2m_max?.[i] ?? null,
+      tempMin: data.daily.temperature_2m_min?.[i] ?? null,
+    }));
+
+    try {
+      await cacheSet(cacheKey, JSON.stringify(forecast), FORECAST_CACHE_TTL);
+    } catch {
+    }
+
+    return forecast;
+  } catch {
+    return null;
+  }
+}

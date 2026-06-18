@@ -2,9 +2,14 @@ import { NextRequest } from 'next/server';
 import { cacheGet, cacheSet } from '@/lib/db';
 import { getWeatherDescription } from '@/lib/weather';
 import { weatherSchema } from '@/lib/validations/place';
-import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-response';
+import { sendSuccess, handleApiError } from '@/lib/api-response';
 
-const WEATHER_CACHE_TTL = 900;
+const WEATHER_CACHE_TTL = 1800;
+const WEATHER_FETCH_TIMEOUT_MS = 5000;
+
+function weatherUnavailable(): Response {
+  return sendSuccess({ weather: null, cached: false, available: false });
+}
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
@@ -20,33 +25,31 @@ export async function GET(request: NextRequest): Promise<Response> {
     const cached = await cacheGet(cacheKey);
     if (cached) {
       try {
-        const parsedCached = JSON.parse(cached);
-        return sendSuccess({
-          weather: parsedCached,
-          cached: true,
-        });
-      } catch (error) {
-        console.error('Lỗi phân tích cú pháp thời tiết từ cache:', error);
+        return sendSuccess({ weather: JSON.parse(cached), cached: true, available: true });
+      } catch {
       }
     }
 
     const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&daily=weathercode,precipitation_sum&forecast_days=7&timezone=Asia%2FHo_Chi_Minh`;
-    const response = await fetch(openMeteoUrl, {
-      headers: {
-        'Accept': 'application/json',
-      },
-      signal: AbortSignal.timeout(5000),
-    });
+
+    let response: Response;
+    try {
+      response = await fetch(openMeteoUrl, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(WEATHER_FETCH_TIMEOUT_MS),
+      });
+    } catch {
+      return weatherUnavailable();
+    }
 
     if (!response.ok) {
-      throw new AppError('SERVICE_UNAVAILABLE', 'Không thể lấy dữ liệu thời tiết tại địa điểm này.', 502);
+      return weatherUnavailable();
     }
 
     const data = await response.json();
     const current = data.current_weather;
-
     if (!current) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy dữ liệu thời tiết hiện tại.', 404);
+      return weatherUnavailable();
     }
 
     const weatherResult = {
@@ -66,14 +69,8 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     await cacheSet(cacheKey, JSON.stringify(weatherResult), WEATHER_CACHE_TTL);
 
-    return sendSuccess({
-      weather: weatherResult,
-      cached: false,
-    });
+    return sendSuccess({ weather: weatherResult, cached: false, available: true });
   } catch (error: unknown) {
-    if (error instanceof Error && error.name === 'TimeoutError') {
-      return sendError('SERVICE_UNAVAILABLE', 'Yêu cầu lấy thông tin thời tiết quá hạn.', [], 504);
-    }
     return handleApiError(error);
   }
 }

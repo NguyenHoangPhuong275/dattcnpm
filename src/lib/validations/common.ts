@@ -46,4 +46,15 @@ export const optionalTrimString = (max = 500) =>
     .nullable()
     .transform((v) => (v === '' ? null : v));
 
+export const optionalPhoneString = z
+  .string()
+  .trim()
+  .refine((v) => /^\+?[0-9]{8,15}$/.test(v.replace(/[\s().-]/g, '')), {
+    message: 'Số điện thoại không hợp lệ (8-15 chữ số, có thể bắt đầu bằng dấu +)',
+  })
+  .or(z.literal(''))
+  .transform((v) => (v ? v : null))
+  .optional()
+  .nullable();
+
 export type ObjectIdInput = z.infer<typeof objectIdSchema>;

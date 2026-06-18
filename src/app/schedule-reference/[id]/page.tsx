@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import ChangePlaceModal from '@/components/trips/ChangePlaceModal';
 import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, ShareIcon, TrashIcon, UsersIcon } from '@/components/icons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -26,12 +27,21 @@ interface Trip {
   coverImage?: string | null;
 }
 
+interface ItineraryPlace {
+  _id: string;
+  name: string;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+}
+
 interface ItineraryItem {
   _id: string;
   day: number;
   orderIndex: number;
   note?: string;
   placeId: string;
+  place?: ItineraryPlace | null;
   startTime?: string | null;
   endTime?: string | null;
   cost?: number | null;
@@ -58,10 +68,12 @@ function formatTime(value?: string | null, fallback = '07:00'): string {
   return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 }
 
-function displayName(item: ItineraryItem, index: number): string {
+function displayName(item: ItineraryItem, trip: Trip, index: number): string {
+  const placeName = item.place?.name?.trim();
+  if (placeName) return placeName;
   const note = item.note?.trim();
   if (note) return note.split('\n')[0].split(' - ')[0].trim();
-  return `Địa điểm ${index + 1}`;
+  return trip.destination?.trim() || `Địa điểm ${index + 1}`;
 }
 
 function parseTravelerCount(description?: string): string | null {
@@ -71,14 +83,14 @@ function parseTravelerCount(description?: string): string | null {
 }
 
 function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlace {
-  const name = displayName(item, index);
+  const name = displayName(item, trip, index);
   const image = getTripImage(trip);
   const open = new Date().getHours() >= 7 && new Date().getHours() < 22;
 
   return {
     id: item._id,
     name,
-    address: trip.destination || 'Việt Nam',
+    address: item.place?.address?.trim() || trip.destination || 'Việt Nam',
     image,
     rating: '10 Tuyệt vời',
     hours: '07:00 - 22:00',
@@ -103,6 +115,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
+  const [changePlaceItem, setChangePlaceItem] = useState<ItineraryItem | null>(null);
   const [activeTab, setActiveTab] = useState<'itinerary' | 'budget'>('itinerary');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -214,12 +227,14 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   }
 
   return (
-    <div className="min-h-dvh bg-slate-50 font-sans text-slate-900">
-      <AppHeader active="profile" />
+    <div className="min-h-dvh bg-slate-50 font-sans text-slate-900 print:min-h-0 print:bg-white">
+      <div className="print:hidden">
+        <AppHeader active="profile" />
+      </div>
 
-      <main className="grid min-h-[calc(100dvh-72px)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px]">
-        <section className="min-w-0 border-r border-slate-200 bg-white">
-          <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur lg:px-8">
+      <main className="grid min-h-[calc(100dvh-72px)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px] print:block print:min-h-0">
+        <section className="min-w-0 border-r border-slate-200 bg-white print:border-0">
+          <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur lg:px-8 print:static print:border-0 print:px-0 print:py-2 print:backdrop-blur-none">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0">
                 <h1 className="font-display text-2xl font-extrabold text-slate-950">{trip.title || 'Chuyến đi Hà Nội'}</h1>
@@ -234,7 +249,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 print:hidden">
                 <button
                   id="action-print-trip"
                   type="button"
@@ -278,7 +293,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               </div>
             </div>
 
-            <div className="mt-5 flex rounded-lg bg-slate-100 p-1">
+            <div className="mt-5 flex rounded-lg bg-slate-100 p-1 print:hidden">
               <button
                 id="tab-button-itinerary"
                 type="button"
@@ -298,12 +313,12 @@ export default function ItineraryDetailPage(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="px-4 py-6 lg:px-8">
+          <div className="px-4 py-6 lg:px-8 print:hidden">
             {activeTab === 'itinerary' ? (
               groups.length > 0 ? (
                 <div className="space-y-8">
                   {groups.map(({ day, items: dayItems }) => (
-                    <div key={day} className="relative pl-6">
+                    <div key={day} className="relative pl-6 print:break-inside-avoid">
                       <div className="absolute left-2 top-8 bottom-0 w-px bg-slate-200" />
                       <div className="mb-4 flex items-baseline gap-2">
                         <span className="absolute left-0 mt-1 h-4 w-4 rounded-full border-4 border-white bg-[var(--color-primary-dark)] shadow" />
@@ -318,11 +333,18 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                           const isSelected = selectedId === item._id;
 
                           return (
-                            <button
+                            <div
                               key={item._id}
-                              type="button"
+                              role="button"
+                              tabIndex={0}
                               onClick={() => setSelectedId(item._id)}
-                              className={`w-full rounded-lg border p-4 text-left transition ${isSelected ? 'border-[var(--color-primary-dark)] bg-[var(--color-primary-lightest)] shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  setSelectedId(item._id);
+                                }
+                              }}
+                              className={`w-full cursor-pointer rounded-lg border p-4 text-left transition print:break-inside-avoid print:border-slate-300 print:shadow-none ${isSelected ? 'border-[var(--color-primary-dark)] bg-[var(--color-primary-lightest)] shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
                             >
                               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div className="min-w-0">
@@ -344,11 +366,20 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                                 ))}
                               </div>
 
-                              <div className="mt-4 flex flex-wrap gap-2">
+                              <div className="mt-4 flex flex-wrap gap-2 print:hidden">
                                 <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">Ghi chú</span>
-                                <span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">Đổi địa điểm</span>
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setChangePlaceItem(item);
+                                  }}
+                                  className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100"
+                                >
+                                  Đổi địa điểm
+                                </button>
                               </div>
-                            </button>
+                            </div>
                           );
                         })}
                       </div>
@@ -378,7 +409,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   {items.length > 0 ? items.map((item, index) => (
                     <div key={item._id} className="flex items-center justify-between gap-4 py-3 text-sm">
                       <div>
-                        <div className="font-bold text-slate-800">{displayName(item, index)}</div>
+                        <div className="font-bold text-slate-800">{displayName(item, trip, index)}</div>
                         <div className="text-xs text-slate-555">Ngày {item.day}</div>
                       </div>
                       <div className="font-bold text-slate-900">{formatMoney(Number(item.cost) || 0)}</div>
@@ -390,9 +421,38 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               </div>
             )}
           </div>
+
+          <div className="hidden px-4 py-6 print:block">
+            {groups.length > 0 ? (
+              <div className="space-y-6">
+                {groups.map(({ day, items: dayItems }) => (
+                  <div key={day} className="break-inside-avoid">
+                    <h2 className="text-base font-extrabold text-slate-900">Ngày {day} · {formatTripDayDate(trip.startDate, day)}</h2>
+                    <ul className="mt-2 space-y-2">
+                      {dayItems.map((item, itemIndex) => {
+                        const place = buildPlace(item, trip, itemIndex);
+                        return (
+                          <li key={item._id} className="break-inside-avoid border-b border-slate-200 pb-2">
+                            <div className="flex items-baseline justify-between gap-3">
+                              <span className="font-bold text-slate-900">{place.name}</span>
+                              <span className="text-sm text-slate-700">{formatTime(item.startTime, '07:00')} - {formatTime(item.endTime, '08:00')}</span>
+                            </div>
+                            <div className="text-sm text-slate-600">{place.address}</div>
+                            {item.note ? <div className="text-sm text-slate-700">{item.note}</div> : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-semibold text-slate-500">Lịch trình chưa có địa điểm nào.</p>
+            )}
+          </div>
         </section>
 
-        <aside className="bg-slate-50 p-4 lg:sticky lg:top-0 lg:h-[calc(100dvh-72px)] lg:overflow-y-auto lg:p-6">
+        <aside className="bg-slate-50 p-4 lg:sticky lg:top-0 lg:h-[calc(100dvh-72px)] lg:overflow-y-auto lg:p-6 print:hidden">
           {selectedPlace ? (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
               <div className="relative aspect-[4/3] bg-slate-200">
@@ -440,6 +500,17 @@ export default function ItineraryDetailPage(): React.JSX.Element {
           )}
         </aside>
       </main>
+
+      {changePlaceItem && (
+        <ChangePlaceModal
+          tripId={tripId as string}
+          itemId={changePlaceItem._id}
+          currentName={changePlaceItem.place?.name || changePlaceItem.note || 'Địa điểm'}
+          userId={user?.id ?? null}
+          onClose={() => setChangePlaceItem(null)}
+          onChanged={loadData}
+        />
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarIcon, TrashIcon } from '@/components/icons';
-import { formatDateRange, getTripCities, getTripImage } from '@/lib/trip-utils';
+import { formatDateRange, getTripCities, getTripImage, getTripScheduleBadge } from '@/lib/trip-utils';
 import type { TripSummary } from '@/types/profile';
 
 interface TripCardProps {
@@ -61,11 +61,18 @@ function CityChips({ destination }: CityChipsProps): React.JSX.Element {
 }
 
 function TripMeta({ trip }: TripMetaProps): React.JSX.Element {
+  const scheduleBadge = getTripScheduleBadge(trip.startDate, trip.endDate);
+
   return (
     <div className="space-y-2 text-sm text-[var(--color-text-secondary)]">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <CalendarIcon className="h-4 w-4 text-[var(--color-primary-dark)]" />
         <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
+        {scheduleBadge && (
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${scheduleBadge.className}`}>
+            {scheduleBadge.label}
+          </span>
+        )}
       </div>
     </div>
   );

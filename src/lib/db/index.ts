@@ -2,6 +2,7 @@ import type {
   User as UserType,
   Trip as TripType,
   Place as PlaceType,
+  Hotel as HotelType,
   Review as ReviewType,
   ItineraryItem as ItineraryItemType,
   FavoritePlace as FavoritePlaceType,
@@ -14,6 +15,7 @@ import type {
   TripAccommodation as TripAccommodationType,
   TripChecklist as TripChecklistType,
   UserFollow as UserFollowType,
+  ReviewReport as ReviewReportType,
   AuditLog as AuditLogType,
 } from './schema';
 
@@ -21,6 +23,7 @@ import {
   User as UserModel,
   Trip as TripModel,
   Place as PlaceModel,
+  Hotel as HotelModel,
   Review as ReviewModel,
   ItineraryItem as ItineraryItemModel,
   FavoritePlace as FavoritePlaceModel,
@@ -33,6 +36,7 @@ import {
   TripAccommodation as TripAccommodationModel,
   TripChecklist as TripChecklistModel,
   UserFollow as UserFollowModel,
+  ReviewReport as ReviewReportModel,
 } from './models/index';
 
 import { AuditLog as AuditLogModel } from './audit';
@@ -45,6 +49,9 @@ const Trip = TripModel;
 
 type Place = PlaceType;
 const Place = PlaceModel;
+
+type Hotel = HotelType;
+const Hotel = HotelModel;
 
 type Review = ReviewType;
 const Review = ReviewModel;
@@ -82,6 +89,9 @@ const TripChecklist = TripChecklistModel;
 type UserFollow = UserFollowType;
 const UserFollow = UserFollowModel;
 
+type ReviewReport = ReviewReportType;
+const ReviewReport = ReviewReportModel;
+
 type AuditLog = AuditLogType;
 const AuditLog = AuditLogModel;
 
@@ -89,6 +99,7 @@ export {
   User,
   Trip,
   Place,
+  Hotel,
   Review,
   ItineraryItem,
   FavoritePlace,
@@ -101,11 +112,13 @@ export {
   TripAccommodation,
   TripChecklist,
   UserFollow,
+  ReviewReport,
   AuditLog,
 };
 
 export type {
   MongoId,
+  TripCollaborator,
   PlaceTag,
   ItineraryTransport,
   CachedGeoResult,

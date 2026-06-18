@@ -21,6 +21,7 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),
   password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 export const passwordChangeSchema = z
@@ -36,7 +37,19 @@ export const passwordChangeSchema = z
 
 export const changePasswordSchema = passwordChangeSchema;
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),
+  otp: z.string().length(6, 'Mã OTP phải gồm 6 chữ số'),
+  newPassword: z.string().min(8, 'Mật khẩu mới phải từ 8 ký tự trở lên'),
+});
+
 export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

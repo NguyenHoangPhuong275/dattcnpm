@@ -1,5 +1,34 @@
 import type { TripSummary } from '@/types/profile';
-import type { ItineraryItem } from '@/types/trip';
+import type { ItineraryItem, TripBudget, TripAccommodation } from '@/types/trip';
+
+export function toBudgetResponse(item: TripBudget) {
+  return {
+    id: String(item._id),
+    tripId: String(item.tripId),
+    category: item.category,
+    amount: item.amount,
+    currency: item.currency,
+    note: item.note ?? null,
+    date: item.date ? new Date(item.date).toISOString() : null,
+    type: item.type,
+    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null,
+  };
+}
+
+export function toAccommodationResponse(item: TripAccommodation) {
+  return {
+    id: String(item._id),
+    tripId: String(item.tripId),
+    name: item.name,
+    address: item.address ?? null,
+    checkIn: new Date(item.checkIn).toISOString(),
+    checkOut: new Date(item.checkOut).toISOString(),
+    bookingCode: item.bookingRef ?? null,
+    note: item.note ?? null,
+    currency: item.currency ?? 'VND',
+    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null,
+  };
+}
 
 export interface TripsPagination {
   page?: number;
@@ -74,9 +103,17 @@ export function extractTripsPagination(payload: TripsListResponse | unknown): Tr
   return null;
 }
 
+type ResolvedItineraryPlace = {
+  _id: unknown;
+  name: string;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+};
+
 export function toItineraryItemResponse(
   item: ItineraryItem,
-  options: { includeUpdatedAt?: boolean } = {}
+  options: { includeUpdatedAt?: boolean; place?: ResolvedItineraryPlace | null } = {}
 ): Record<string, unknown> {
   const response: Record<string, unknown> = {
     _id: item._id,
@@ -91,6 +128,19 @@ export function toItineraryItemResponse(
     currency: item.currency ?? null,
     createdAt: item.createdAt ? item.createdAt.toISOString() : '',
   };
+
+
+  if ('place' in options) {
+    response.place = options.place
+      ? {
+          _id: String(options.place._id),
+          name: options.place.name,
+          address: options.place.address ?? null,
+          lat: options.place.lat ?? null,
+          lng: options.place.lng ?? null,
+        }
+      : null;
+  }
 
   if (options.includeUpdatedAt) {
     response.updatedAt = item.updatedAt ? item.updatedAt.toISOString() : '';

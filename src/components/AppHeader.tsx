@@ -10,7 +10,7 @@ import type { AuthMode } from '@/hooks/useAuthModal';
 import { ROUTES } from '@/lib/constants';
 
 interface AppHeaderProps {
-  active?: 'local' | 'destinations' | 'news' | 'profile';
+  active?: 'local' | 'destinations' | 'hotels' | 'news' | 'profile';
   searchValue?: string;
   searchPlaceholder?: string;
   showSearch?: boolean;
@@ -22,6 +22,7 @@ interface AppHeaderProps {
 const NAV_ITEMS = [
   { key: 'local', label: 'Địa phương', href: ROUTES.local },
   { key: 'destinations', label: 'Điểm đến', href: `${ROUTES.home}#planner` },
+  { key: 'hotels', label: 'Khách sạn', href: ROUTES.hotels },
   { key: 'news', label: 'Tin tức du lịch', href: `${ROUTES.home}#travel-news` },
 ] as const;
 

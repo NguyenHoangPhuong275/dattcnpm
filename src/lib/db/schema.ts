@@ -37,6 +37,13 @@ export interface User {
   twoFactorEnabled?: boolean | null;
 }
 
+export interface TripCollaborator {
+  userId: MongoId;
+  permission: 'READ' | 'EDIT';
+  invitedAt: Date;
+  acceptedAt?: Date | null;
+}
+
 export interface Trip {
   _id: MongoId;
   userId: MongoId;
@@ -48,6 +55,7 @@ export interface Trip {
   isPublic: boolean;
   coverImage?: string | null;
   metadata?: Record<string, unknown> | null;
+  collaborators?: TripCollaborator[];
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;
@@ -67,6 +75,24 @@ export interface Place {
   tags?: string[] | null;
   ratingAvg: number;
   ratingCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Hotel {
+  _id: MongoId;
+  osmId?: string | null;
+  name: string;
+  province?: string | null;
+  provinceKey?: string | null;
+  district?: string | null;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  rating?: number | null;
+  priceLevel?: 'budget' | 'mid' | 'luxury' | null;
+  tags?: string[] | null;
+  source: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -173,15 +199,21 @@ export interface UserPreference {
   updatedAt: Date;
 }
 
+export type TripBudgetCategory = 'transport' | 'food' | 'accommodation' | 'ticket' | 'shopping' | 'other';
+export type TripBudgetType = 'planned' | 'actual';
+
 export interface TripBudget {
   _id: MongoId;
   tripId: MongoId;
-  category: 'TRANSPORT' | 'ACCOMMODATION' | 'FOOD' | 'ACTIVITY' | 'OTHER';
-  estimatedAmount: number;
-  actualAmount?: number | null;
+  userId: MongoId;
+  category: TripBudgetCategory;
+  amount: number;
   currency: string;
   note?: string | null;
+  date?: Date | null;
+  type: TripBudgetType;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ItineraryTransport {
@@ -200,6 +232,7 @@ export interface TripAccommodation {
   tripId: MongoId;
   placeId?: MongoId | null;
   name: string;
+  address?: string | null;
   checkIn: Date;
   checkOut: Date;
   bookingRef?: string | null;
@@ -207,6 +240,7 @@ export interface TripAccommodation {
   currency: string;
   note?: string | null;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface TripChecklist {
@@ -222,6 +256,19 @@ export interface UserFollow {
   _id: MongoId;
   followerId: MongoId;
   followingId: MongoId;
+  createdAt: Date;
+}
+
+export type ReviewReportReason = 'spam' | 'inappropriate' | 'fake' | 'offensive' | 'off_topic' | 'other';
+export type ReviewReportStatus = 'pending' | 'resolved' | 'dismissed';
+
+export interface ReviewReport {
+  _id: MongoId;
+  reviewId: MongoId;
+  reportedBy: MongoId;
+  reason: ReviewReportReason;
+  note?: string | null;
+  status: ReviewReportStatus;
   createdAt: Date;
 }
 

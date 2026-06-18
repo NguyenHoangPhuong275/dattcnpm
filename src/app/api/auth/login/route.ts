@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { compare } from 'bcryptjs';
-import { setAuthCookie, signAuthToken } from '@/lib/auth';
+import { getAuthMaxAge, setAuthCookie, signAuthToken } from '@/lib/auth';
 import { getDb, findUserByEmail } from '@/lib/db';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { loginSchema } from '@/lib/validations/auth';
@@ -57,9 +57,10 @@ export async function POST(request: NextRequest) {
       role: user.role,
     };
 
-    const token = await signAuthToken(responseUser);
+    const maxAge = getAuthMaxAge(parsed.rememberMe);
+    const token = await signAuthToken(responseUser, maxAge);
     const response = sendSuccess({ user: responseUser });
-    setAuthCookie(response, token);
+    setAuthCookie(response, token, maxAge);
     return response;
   } catch (error) {
     return handleApiError(error);

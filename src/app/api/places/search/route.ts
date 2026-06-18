@@ -26,8 +26,6 @@ const LOCAL_SEARCH_FALLBACKS = [
   { slug: 'can-tho', name: 'Cần Thơ', type: 'province', lat: 10.0452, lng: 105.7469, address: 'Cần Thơ, Việt Nam', tags: ['river', 'food'] },
 ];
 
-const CLEAN_LOCAL_SEARCH_FALLBACKS = LOCAL_SEARCH_FALLBACKS;
-
 interface NominatimResult {
   place_id: number;
   osm_type?: string;
@@ -169,7 +167,7 @@ function getPriorityLocalityResults(query: string): PlaceDraft[] {
 
 function getLocalFallbackResults(query: string): PlaceDraft[] {
   const normalized = normalizeVietnameseSearch(query);
-  const fallbackItems = CLEAN_LOCAL_SEARCH_FALLBACKS.length > 0 ? CLEAN_LOCAL_SEARCH_FALLBACKS : LOCAL_SEARCH_FALLBACKS;
+  const fallbackItems = LOCAL_SEARCH_FALLBACKS;
   const fromClean = fallbackItems
     .filter((item) => {
       const haystack = normalizeVietnameseSearch(`${item.name} ${item.address} ${item.tags.join(' ')}`);

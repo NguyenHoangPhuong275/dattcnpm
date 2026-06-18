@@ -13,10 +13,25 @@ export interface ITrip extends Document {
   isPublic: boolean;
   coverImage?: string | null;
   metadata?: Record<string, unknown> | null;
+  collaborators?: ITripCollaborator[];
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;
 }
+
+export interface ITripCollaborator {
+  userId: Types.ObjectId;
+  permission: 'READ' | 'EDIT';
+  invitedAt: Date;
+  acceptedAt?: Date | null;
+}
+
+const TripCollaboratorSchema = new Schema<ITripCollaborator>({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  permission: { type: String, enum: ['READ', 'EDIT'], default: 'READ' },
+  invitedAt: { type: Date, default: Date.now },
+  acceptedAt: { type: Date, default: null },
+}, { _id: false });
 
 export const TripSchema = new Schema<ITrip>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -28,6 +43,7 @@ export const TripSchema = new Schema<ITrip>({
   isPublic: { type: Boolean, default: false },
   coverImage: { type: String, default: null },
   metadata: { type: Object, default: null },
+  collaborators: { type: [TripCollaboratorSchema], default: [] },
   deletedAt: { type: Date, default: null },
 }, { timestamps: true, collection: COLLECTIONS.trips });
 

@@ -135,6 +135,35 @@ export async function deleteOtp(email: string): Promise<void> {
   await client.del(otpKey(email));
 }
 
+function resetOtpKey(email: string): string {
+  return `otp:reset:${email.toLowerCase()}`;
+}
+
+export async function storeResetOtp(email: string, code: string, ttlSeconds: number): Promise<void> {
+  const client = getRedisClient();
+  const key = resetOtpKey(email);
+  const pipeline = client.multi();
+  pipeline.del(key);
+  pipeline.hset(key, 'code', code, 'attempts', '0');
+  pipeline.expire(key, ttlSeconds);
+  await pipeline.exec();
+}
+
+export async function verifyResetOtpAtomic(email: string, code: string, maxAttempts: number): Promise<OtpVerifyResult> {
+  const client = getRedisClient();
+  const result = (await client.eval(VERIFY_OTP_LUA, 1, resetOtpKey(email), code, String(maxAttempts))) as [number, number];
+  const [flag, attempts] = result;
+  if (flag === -1) return { status: 'expired' };
+  if (flag === -2) return { status: 'too_many', attempts };
+  if (flag === 1) return { status: 'ok' };
+  return { status: 'wrong', attempts };
+}
+
+export async function deleteResetOtp(email: string): Promise<void> {
+  const client = getRedisClient();
+  await client.del(resetOtpKey(email));
+}
+
 export async function storeAvatar(userId: string, dataUrl: string): Promise<string> {
   const client = getRedisClient();
   const key = `avatar:${userId}`;
