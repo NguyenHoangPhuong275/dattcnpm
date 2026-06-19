@@ -5,15 +5,14 @@ import { evaluateWeatherAlert, fetchDailyForecast } from '@/lib/weather-alerts';
 import { getResend } from '@/lib/resend';
 import { timingSafeEqualString } from '@/lib/crypto';
 
-async function sendWeatherAlertEmail(tripTitle: string, dateKey: string, reasons: string[], ownerId: string): Promise<void> {
+async function sendWeatherAlertEmail(tripTitle: string, dateKey: string, reasons: string[], ownerEmail: string | null): Promise<void> {
   if (process.env.NODE_ENV === 'test' || !process.env.API_KEY_RESEND) return;
   try {
-    const owner = await getUserById(ownerId);
-    if (!owner?.email) return;
+    if (!ownerEmail) return;
     const reasonsHtml = reasons.map((reason) => `<li>${reason}</li>`).join('');
     await getResend().emails.send({
       from: 'LOTUS TRAVEL <no-reply@cybersafe.tokyo>',
-      to: [owner.email],
+      to: [ownerEmail],
       subject: `Cảnh báo thời tiết cho chuyến đi "${tripTitle}"`,
       html: `<p>Xin chào,</p><p>Chuyến đi <strong>"${tripTitle}"</strong> (ngày ${dateKey}) có cảnh báo thời tiết:</p><ul>${reasonsHtml}</ul><p>Vui lòng kiểm tra dự báo và chuẩn bị phù hợp trước khi khởi hành.</p><p>— LOTUS TRAVEL</p>`,
     });
@@ -81,7 +80,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       const day = forecast.find((d) => d.date === startDateKey);
       if (!day) continue;
 
-      const { alert, reasons } = evaluateWeatherAlert(day);
+      const owner = await getUserById(String(trip.userId));
+      const { alert, reasons } = evaluateWeatherAlert(day, owner?.weatherAlerts ?? null);
       if (!alert) continue;
 
       const dedupKey = `weather_alert_sent:${tripId}:${startDateKey}`;
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         createdAt: now,
       });
 
-      await sendWeatherAlertEmail(trip.title, startDateKey, reasons, String(trip.userId));
+      await sendWeatherAlertEmail(trip.title, startDateKey, reasons, owner?.email ?? null);
 
       await redis.set(dedupKey, '1', 'EX', ALERT_DEDUP_TTL_SECONDS).catch(() => null);
       alertsSent++;

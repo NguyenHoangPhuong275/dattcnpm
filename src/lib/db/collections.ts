@@ -43,6 +43,18 @@ export type PaginationOptions = {
   sortOrder?: 1 | -1;
 };
 
+export const PAGINATION_DEFAULT_LIMIT = 20;
+export const PAGINATION_MAX_LIMIT = 100;
+
+export function normalizePagination(input: { page?: number; limit?: number }): { page: number; limit: number } {
+  const rawPage = Number(input.page);
+  const rawLimit = Number(input.limit);
+  const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1;
+  let limit = Number.isFinite(rawLimit) && rawLimit >= 1 ? Math.floor(rawLimit) : PAGINATION_DEFAULT_LIMIT;
+  if (limit > PAGINATION_MAX_LIMIT) limit = PAGINATION_MAX_LIMIT;
+  return { page, limit };
+}
+
 export function toPlain<T>(doc: unknown): T | undefined {
   if (!doc) return undefined;
   const mongooseDoc = doc as { toObject?: () => Record<string, unknown> };
@@ -69,8 +81,7 @@ export function createCollection<T extends { _id: MongoId }>(mongooseModel: Mode
       return docs.map((d: unknown) => toPlain<T>(d)).filter((d): d is T => !!d);
     },
     async findPaginated(filter: CollectionFilter = {}, options: PaginationOptions): Promise<PaginatedResult<T>> {
-      const page = Math.max(1, Math.floor(options.page));
-      const limit = Math.max(1, Math.floor(options.limit));
+      const { page, limit } = normalizePagination({ page: options.page, limit: options.limit });
       const skip = (page - 1) * limit;
       const sort = options.sortBy ? { [options.sortBy]: options.sortOrder ?? 1 } : undefined;
 
@@ -83,7 +94,7 @@ export function createCollection<T extends { _id: MongoId }>(mongooseModel: Mode
         data: docs.map((d: unknown) => toPlain<T>(d)).filter((d): d is T => !!d),
         total,
         page,
-        totalPages: Math.ceil(total / limit),
+        totalPages: total === 0 ? 0 : Math.ceil(total / limit),
       };
     },
     async findById(id: MongoId): Promise<T | undefined> {

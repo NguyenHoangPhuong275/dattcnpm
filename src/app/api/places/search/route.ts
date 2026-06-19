@@ -310,13 +310,13 @@ function mapNominatimToPlace(result: NominatimResult): PlaceDraft {
   if (result.class === 'place') type = 'place';
   if (result.class === 'historic') type = 'historic';
 
-  if (['administrative', 'boundary'].includes(result.class || '') || 
+  if (['administrative', 'boundary'].includes(result.class || '') ||
       ['administrative', 'province', 'city', 'town', 'village', 'district'].includes(type)) {
     type = 'province';
   }
 
-  const osmId = result.osm_id 
-    ? `${result.osm_type || 'node'}:${result.osm_id}` 
+  const osmId = result.osm_id
+    ? `${result.osm_type || 'node'}:${result.osm_id}`
     : `place:${result.place_id}`;
 
   const isAdministrative = type === 'province';

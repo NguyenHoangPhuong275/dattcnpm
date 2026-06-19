@@ -29,6 +29,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
     if (parsed.interests !== undefined) updates.interests = parsed.interests;
     if (parsed.travelStyles !== undefined) updates.travelStyles = parsed.travelStyles;
     if (parsed.budgetLevel !== undefined) updates.budgetLevel = parsed.budgetLevel;
+    if (parsed.weatherAlerts !== undefined) updates.weatherAlerts = parsed.weatherAlerts;
     updates.updatedAt = new Date();
 
     const db = await getDb();
@@ -46,6 +47,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
       interests: updated.interests ?? [],
       travelStyles: updated.travelStyles ?? [],
       budgetLevel: updated.budgetLevel ?? null,
+      weatherAlerts: updated.weatherAlerts ?? null,
     });
   } catch (error) {
     return handleApiError(error);

@@ -119,6 +119,7 @@ export {
 export type {
   MongoId,
   TripCollaborator,
+  WeatherAlertThresholds,
   PlaceTag,
   ItineraryTransport,
   CachedGeoResult,

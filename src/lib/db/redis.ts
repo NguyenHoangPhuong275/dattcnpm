@@ -1,10 +1,12 @@
 import Redis from 'ioredis';
+import { env } from '@/lib/env';
+import { normalizeEmail } from '@/lib/string';
 
 let redisClient: Redis | null = null;
 
 function getRedisClient(): Redis {
   if (!redisClient) {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisUrl = env.REDIS_URL;
     redisClient = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
@@ -79,7 +81,7 @@ export async function isTokenBlacklisted(jti: string): Promise<boolean> {
 }
 
 function otpKey(email: string): string {
-  return `otp:${email.toLowerCase()}`;
+  return `otp:${normalizeEmail(email)}`;
 }
 
 export async function storeOtp(email: string, code: string, ttlSeconds: number): Promise<void> {
@@ -136,7 +138,7 @@ export async function deleteOtp(email: string): Promise<void> {
 }
 
 function resetOtpKey(email: string): string {
-  return `otp:reset:${email.toLowerCase()}`;
+  return `otp:reset:${normalizeEmail(email)}`;
 }
 
 export async function storeResetOtp(email: string, code: string, ttlSeconds: number): Promise<void> {

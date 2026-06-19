@@ -1,4 +1,4 @@
-import { jwtVerify, SignJWT } from 'jose';
+import { jwtVerify, SignJWT, type JWTPayload } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 import type { User as PlainUser } from '@/lib/db';
 
@@ -21,12 +21,50 @@ export type AuthUser = Partial<PlainUser> & {
 
 type AuthClaims = { userId: string; jti?: string; exp?: number };
 
-function getSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
+function getJwtSecretList(): string[] {
+  const raw = process.env.JWT_SECRET;
+  const keys = (raw ?? '').split(',').map((key) => key.trim()).filter(Boolean);
+  if (keys.length === 0) {
     throw new Error('Biến môi trường JWT_SECRET là bắt buộc');
   }
-  return new TextEncoder().encode(secret);
+  return keys;
+}
+
+function getSigningSecret(): Uint8Array {
+  return new TextEncoder().encode(getJwtSecretList()[0]);
+}
+
+function getVerifySecrets(): Uint8Array[] {
+  return getJwtSecretList().map((key) => new TextEncoder().encode(key));
+}
+
+async function verifyWithRotation(token: string): Promise<{ payload: JWTPayload; keyIndex: number } | null> {
+  const secrets = getVerifySecrets();
+  for (let i = 0; i < secrets.length; i++) {
+    try {
+      const { payload } = await jwtVerify(token, secrets[i]);
+      return { payload, keyIndex: i };
+    } catch {
+    }
+  }
+  return null;
+}
+
+async function reSignFromPayload(payload: JWTPayload): Promise<string> {
+  const builder = new SignJWT({
+    email: payload.email,
+    fullName: payload.fullName,
+    role: payload.role,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setSubject(String(payload.sub))
+    .setJti(typeof payload.jti === 'string' ? payload.jti : globalThis.crypto.randomUUID())
+    .setIssuedAt();
+
+  if (typeof payload.exp === 'number') {
+    builder.setExpirationTime(payload.exp);
+  }
+  return builder.sign(getSigningSecret());
 }
 
 function authCookieOptions(maxAge: number) {
@@ -62,23 +100,40 @@ export async function signAuthToken(user: AuthUser, maxAgeSeconds: number = AUTH
     .setJti(globalThis.crypto.randomUUID())
     .setIssuedAt()
     .setExpirationTime(expirationTime)
-    .sign(getSecret());
+    .sign(getSigningSecret());
+}
+
+function payloadToAuthUser(payload: JWTPayload): AuthUser | null {
+  const userId = payload.sub;
+  if (!userId) return null;
+  return {
+    id: userId,
+    email: typeof payload.email === 'string' ? payload.email : '',
+    fullName: typeof payload.fullName === 'string' ? payload.fullName : '',
+    role: payload.role === 'ADMIN' ? 'ADMIN' : 'USER',
+  };
 }
 
 export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    const userId = payload.sub;
-    if (!userId) return null;
-    return {
-      id: userId,
-      email: typeof payload.email === 'string' ? payload.email : '',
-      fullName: typeof payload.fullName === 'string' ? payload.fullName : '',
-      role: payload.role === 'ADMIN' ? 'ADMIN' : 'USER',
-    };
-  } catch {
-    return null;
-  }
+  const result = await verifyWithRotation(token);
+  if (!result) return null;
+  return payloadToAuthUser(result.payload);
+}
+
+export async function verifyAuthTokenWithRefresh(
+  token: string,
+): Promise<{ user: AuthUser; refreshedToken: string | null; expSeconds?: number } | null> {
+  const result = await verifyWithRotation(token);
+  if (!result) return null;
+  const user = payloadToAuthUser(result.payload);
+  if (!user) return null;
+
+  const refreshedToken = result.keyIndex > 0 ? await reSignFromPayload(result.payload) : null;
+  return {
+    user,
+    refreshedToken,
+    expSeconds: typeof result.payload.exp === 'number' ? result.payload.exp : undefined,
+  };
 }
 
 function extractToken(request: NextRequest): string | null {
@@ -111,17 +166,30 @@ async function resolveAuthClaims(request: NextRequest): Promise<AuthClaims | nul
     return null;
   }
 
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    if (!payload.sub) return null;
-    return {
-      userId: payload.sub,
-      jti: typeof payload.jti === 'string' ? payload.jti : undefined,
-      exp: typeof payload.exp === 'number' ? payload.exp : undefined,
-    };
-  } catch {
+  const result = await verifyWithRotation(token);
+  if (!result || !result.payload.sub) return null;
+  return {
+    userId: result.payload.sub,
+    jti: typeof result.payload.jti === 'string' ? result.payload.jti : undefined,
+    exp: typeof result.payload.exp === 'number' ? result.payload.exp : undefined,
+  };
+}
+
+export async function resolveAuthWithRefresh(
+  request: NextRequest,
+): Promise<{ userId: string; refreshedToken: string | null; expSeconds?: number } | null> {
+  const token = extractToken(request);
+  if (!token) {
+    if (process.env.NODE_ENV === 'test') {
+      const xUserId = request.headers.get('x-user-id');
+      if (xUserId) return { userId: xUserId, refreshedToken: null };
+    }
     return null;
   }
+
+  const result = await verifyAuthTokenWithRefresh(token);
+  if (!result) return null;
+  return { userId: result.user.id, refreshedToken: result.refreshedToken, expSeconds: result.expSeconds };
 }
 
 export async function getAuthUserId(request: NextRequest): Promise<string | null> {

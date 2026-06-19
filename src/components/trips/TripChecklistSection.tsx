@@ -5,6 +5,7 @@ import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-clie
 import { useToast } from '@/hooks/useToast';
 import ChecklistProgressBar from '@/components/trips/ChecklistProgressBar';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { CHECKLIST_TEMPLATES } from '@/data/checklist-templates';
 
 interface ChecklistItem {
   id: string;
@@ -30,6 +31,8 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
   const [newTitle, setNewTitle] = useState('');
   const [adding, setAdding] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
   const { actions: { showToast } } = useToast();
 
   const load = useCallback(async (): Promise<void> => {
@@ -78,6 +81,41 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
       showToast('Không thể thêm mục', 'error');
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleApplyTemplate = async (templateId: string): Promise<void> => {
+    if (!userId || applyingId) return;
+    setApplyingId(templateId);
+    try {
+      const { response, data } = await apiRequest<ApiResponse<{ added: number; skipped: number }>>(
+        `/api/trips/${tripId}/checklist/bulk`,
+        {
+          method: 'POST',
+          userId,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ templateId }),
+        },
+      );
+      try {
+        ensureApiSuccess(response, data, 'Không thể áp dụng bản mẫu');
+      } catch {
+        showToast(getApiErrorMessage(data, 'Không thể áp dụng bản mẫu'), 'error');
+        return;
+      }
+      const added = data.data?.added ?? 0;
+      const skipped = data.data?.skipped ?? 0;
+      if (added > 0) {
+        showToast(`Đã thêm ${added} mục${skipped > 0 ? `, bỏ qua ${skipped} mục trùng` : ''}.`, 'success');
+      } else {
+        showToast('Tất cả mục trong bản mẫu đã có sẵn.', 'info');
+      }
+      setShowTemplates(false);
+      await load();
+    } catch {
+      showToast('Không thể áp dụng bản mẫu', 'error');
+    } finally {
+      setApplyingId(null);
     }
   };
 
@@ -131,8 +169,43 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
     <div className="border-t border-[var(--color-border)] pt-4 mt-6">
       <div className="flex items-center justify-between mb-3">
         <div className="font-semibold text-sm text-[var(--color-text)]">Chuẩn bị</div>
-        {loading && <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />}
+        <div className="flex items-center gap-2">
+          {loading && <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />}
+          {userId && (
+            <button
+              type="button"
+              onClick={() => setShowTemplates((prev) => !prev)}
+              aria-expanded={showTemplates}
+              className="text-xs font-semibold text-[var(--color-primary-darker)] hover:underline"
+            >
+              {showTemplates ? 'Đóng bản mẫu' : 'Áp dụng bản mẫu'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {showTemplates && (
+        <div className="mb-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3">
+          <div className="mb-2 text-xs text-[var(--color-text-muted)]">
+            Chọn loại chuyến đi để nạp nhanh danh sách chuẩn bị (mục trùng sẽ được bỏ qua):
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {CHECKLIST_TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => handleApplyTemplate(template.id)}
+                disabled={applyingId !== null}
+                title={template.description}
+                className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--color-text)] hover:border-[var(--color-primary-darker)] disabled:opacity-50"
+              >
+                <span aria-hidden="true">{template.icon}</span> {template.name}
+                {applyingId === template.id ? ' (đang thêm...)' : ''}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mb-3">
         <ChecklistProgressBar items={items} />

@@ -51,6 +51,8 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     }
 
     const now = new Date();
+    // Pha 1: gán orderIndex âm tạm thời để tránh vi phạm unique index { tripId, day, orderIndex }
+    // khi hoán vị. Pha 2: gán giá trị cuối cùng theo vị trí mảng.
     const tempOps = orderedIds.map((itemId, index) => ({
       updateOne: {
         filter: { _id: itemId },
@@ -64,8 +66,44 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
       },
     }));
 
-    await db.itineraryItems.bulkWrite(tempOps);
-    const result = await db.itineraryItems.bulkWrite(finalOps);
+    // MongoDB ở môi trường này chạy standalone (docker compose) → không có replica set,
+    // không dùng được session.withTransaction(). Vì vậy dùng compensating write thủ công:
+    // nếu pha nào thất bại, khôi phục orderIndex về giá trị gốc để tránh kẹt ở giá trị âm.
+    const restoreOps = existing.map((item) => ({
+      updateOne: {
+        filter: { _id: String(item._id) },
+        update: { $set: { orderIndex: item.orderIndex } },
+      },
+    }));
+
+    const compensate = async (phase: 1 | 2): Promise<void> => {
+      try {
+        await db.itineraryItems.bulkWrite(restoreOps);
+      } catch (rollbackErr) {
+        // Rollback cũng thất bại: orderIndex có thể còn ở trạng thái âm. Log để xử lý thủ công.
+        console.error(
+          `Rollback reorder itinerary thất bại sau lỗi pha ${phase} (orderIndex có thể còn âm, cần audit):`,
+          rollbackErr,
+        );
+      }
+    };
+
+    let result: { modifiedCount: number };
+    try {
+      await db.itineraryItems.bulkWrite(tempOps);
+    } catch (phase1Err) {
+      console.error('Reorder itinerary thất bại ở pha 1:', { phase: 1, failedOps: tempOps.length, error: phase1Err });
+      await compensate(1);
+      throw new AppError('INTERNAL_ERROR', 'Không thể cập nhật thứ tự lịch trình, đã hoàn tác thay đổi.', 500);
+    }
+
+    try {
+      result = await db.itineraryItems.bulkWrite(finalOps);
+    } catch (phase2Err) {
+      console.error('Reorder itinerary thất bại ở pha 2:', { phase: 2, failedOps: finalOps.length, error: phase2Err });
+      await compensate(2);
+      throw new AppError('INTERNAL_ERROR', 'Không thể cập nhật thứ tự lịch trình, đã hoàn tác thay đổi.', 500);
+    }
 
     await createAuditLog(userId, 'REORDER_ITINERARY', 'TRIP', id, {
       tripId: id,

@@ -42,10 +42,8 @@ describe('TripCollaboratorsSection', () => {
     ]);
     render(<TripCollaboratorsSection tripId="t1" userId="u1" />);
 
-    // "Đang chờ"/"Đã tham gia" chỉ xuất hiện trong danh sách collaborator (không trùng option select)
     expect(await screen.findByText('Đang chờ')).toBeTruthy();
     expect(screen.getByText('Đã tham gia')).toBeTruthy();
-    // Nhãn quyền trùng với <option> nên có thể có nhiều match: badge + option
     expect(screen.getAllByText('Chỉ xem').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Chỉnh sửa').length).toBeGreaterThanOrEqual(1);
   });

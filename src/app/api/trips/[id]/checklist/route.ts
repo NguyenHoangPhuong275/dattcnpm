@@ -3,7 +3,7 @@ import { createAuditLog, getDb, type TripChecklist } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { getTripForEdit, getTripForView } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
-import { createChecklistItemSchema } from '@/lib/validations/checklist';
+import { createChecklistItemSchema, normalizeChecklistLabel } from '@/lib/validations/checklist';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     const db = await getDb();
     const created = (await db.tripChecklists.insertOne({
       tripId: id,
-      label: parsed.title,
+      label: normalizeChecklistLabel(parsed.title),
       isDone: false,
       dueDate: parsed.dueDate ? new Date(parsed.dueDate) : null,
     })) as TripChecklist;

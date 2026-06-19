@@ -251,14 +251,15 @@ export default function ItineraryDetailPage(): React.JSX.Element {
 
               <div className="flex items-center gap-2 print:hidden">
                 <button
-                  id="action-print-trip"
+                  id="action-export-pdf-trip"
                   type="button"
                   onClick={() => window.print()}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
-                  title="In lịch trình"
-                  aria-label="In lịch trình"
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  title="Xuất PDF / In lịch trình (chọn 'Lưu thành PDF' trong hộp thoại in để lưu offline)"
+                  aria-label="Xuất PDF hoặc in lịch trình"
                 >
                   <ListIcon className="h-4 w-4" />
+                  Xuất PDF
                 </button>
                 <button
                   id="action-share-trip"
@@ -445,6 +446,12 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                     </ul>
                   </div>
                 ))}
+                {totalCost > 0 && (
+                  <div className="mt-4 flex items-baseline justify-between border-t border-slate-300 pt-3 text-sm">
+                    <span className="font-bold text-slate-900">Tổng chi phí dự tính</span>
+                    <span className="font-extrabold text-slate-900">{formatMoney(totalCost)}</span>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-sm font-semibold text-slate-500">Lịch trình chưa có địa điểm nào.</p>

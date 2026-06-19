@@ -49,5 +49,7 @@ export const TripSchema = new Schema<ITrip>({
 
 TripSchema.index({ userId: 1, updatedAt: -1 });
 TripSchema.index({ isPublic: 1, updatedAt: -1 });
+TripSchema.index({ userId: 1, deletedAt: 1 });
+TripSchema.index({ deletedAt: 1, startDate: 1 });
 
 export const Trip: Model<ITrip> = models.Trip || model<ITrip>('Trip', TripSchema);

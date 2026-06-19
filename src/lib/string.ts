@@ -20,6 +20,12 @@ export function removeVietnameseTones(str: string): string {
   return result;
 }
 
+// Chuẩn hóa email dùng chung cho mọi đường ghi/đọc (register, login, reset, webhook, lookup).
+// Bảo đảm bất biến "tối đa 1 active user / email" không phân biệt hoa/thường.
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 export function escapeRegex(value: string, maxLength = 100): string {
   if (!value) return '';
   return value.slice(0, maxLength).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

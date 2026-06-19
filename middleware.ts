@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getAuthUserId } from '@/lib/auth';
+import { resolveAuthWithRefresh, setAuthCookie } from '@/lib/auth';
 import { ROUTES } from '@/lib/constants';
 
 const PROTECTED_PREFIXES = [ROUTES.profile, ROUTES.trips, ROUTES.scheduleReference];
@@ -36,13 +36,19 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  const userId = await getAuthUserId(request);
-  if (userId) {
-    return NextResponse.next({
+  const auth = await resolveAuthWithRefresh(request);
+  if (auth) {
+    const response = NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
+    if (auth.refreshedToken) {
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      const maxAge = auth.expSeconds ? Math.max(0, auth.expSeconds - nowSeconds) : undefined;
+      setAuthCookie(response, auth.refreshedToken, maxAge);
+    }
+    return response;
   }
 
   const url = request.nextUrl.clone();

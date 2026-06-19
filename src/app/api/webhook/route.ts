@@ -13,6 +13,7 @@ import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { invalidateUserCache } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { timingSafeEqualString } from '@/lib/crypto';
+import { normalizeEmail } from '@/lib/string';
 
 function getWebhookSecret() {
   const secret = process.env.WEBHOOK_SECRET;
@@ -116,8 +117,10 @@ export async function POST(request: NextRequest) {
     const now = new Date();
 
     async function findUserOrFail(email: string) {
-      const normalized = email.toLowerCase().trim();
-      const user = await db.users.findOne({ email: normalized });
+      const normalized = normalizeEmail(email);
+      // Chỉ nhắm tài khoản còn hoạt động: nếu email cũ đã soft-delete rồi đăng ký lại,
+      // webhook lock/delete phải tác động đúng user active, không nhắm nhầm user cũ.
+      const user = await db.users.findOne({ email: normalized, deletedAt: null });
       if (!user) {
         throw new Error('User not found');
       }

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
     } catch (error) {
       console.error('Lỗi khi lấy/lưu avatar từ Redis:', error);
-      avatarUrl = user.avatarUrl || null; 
+      avatarUrl = user.avatarUrl || null;
     }
     const profile = {
       id: user._id,
@@ -120,7 +120,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
           updates.avatarUrl = `redis:avatar:${userId}`;
         } catch (error) {
           console.error('Lỗi khi lưu avatar vào Redis:', error);
-          updates.avatarUrl = parsed.avatarUrl; 
+          updates.avatarUrl = parsed.avatarUrl;
         }
       } else {
         updates.avatarUrl = parsed.avatarUrl ?? null;

@@ -15,8 +15,10 @@ export interface HotelResult {
 }
 
 interface HotelSearchData {
-  hotels: HotelResult[];
+  data: HotelResult[];
   total: number;
+  page: number;
+  totalPages: number;
   matchedBy: string;
 }
 
@@ -43,7 +45,12 @@ const PRICE_LABELS: Record<NonNullable<HotelResult['priceLevel']>, string> = {
   luxury: 'Cao cấp',
 };
 
-function buildQuery(props: HotelSuggestionsProps): string {
+type HotelFilters = {
+  priceLevel: HotelResult['priceLevel'];
+  minRating: number | null;
+};
+
+function buildQuery(props: HotelSuggestionsProps, page: number, filters: HotelFilters): string {
   const params = new URLSearchParams();
   if (props.destination) params.set('destination', props.destination);
   if (props.province) params.set('province', props.province);
@@ -52,6 +59,9 @@ function buildQuery(props: HotelSuggestionsProps): string {
     params.set('lng', String(props.lng));
   }
   if (props.limit) params.set('limit', String(props.limit));
+  if (filters.priceLevel) params.set('priceLevel', filters.priceLevel);
+  if (typeof filters.minRating === 'number') params.set('minRating', String(filters.minRating));
+  params.set('page', String(page));
   return params.toString();
 }
 
@@ -61,7 +71,16 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
   const [hotels, setHotels] = useState<HotelResult[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [priceFilter, setPriceFilter] = useState<HotelResult['priceLevel']>(null);
+  const [ratingFilter, setRatingFilter] = useState(false);
   const lastQueryRef = useRef('');
+
+  useEffect(() => {
+    setPage(1);
+  }, [destination, province, lat, lng, priceFilter, ratingFilter]);
 
   const handleSelect = async (hotel: HotelResult): Promise<void> => {
     if (!onSelect || savingId) return;
@@ -76,12 +95,16 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
   const hasCriteria = Boolean(destination) || Boolean(province) || (typeof lat === 'number' && typeof lng === 'number');
 
   const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
-    const query = buildQuery({ destination, province, lat, lng, limit });
+    const hasQueryCriteria = Boolean(destination) || Boolean(province) || (typeof lat === 'number' && typeof lng === 'number');
+    const filters: HotelFilters = { priceLevel: priceFilter, minRating: ratingFilter ? 3 : null };
+    const query = hasQueryCriteria ? buildQuery({ destination, province, lat, lng, limit }, page, filters) : '';
     lastQueryRef.current = query;
     if (!query) {
       if (!signal?.aborted) {
         setStatus('idle');
         setHotels([]);
+        setTotal(0);
+        setTotalPages(0);
       }
       return;
     }
@@ -97,14 +120,16 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
         setStatus('error');
         return;
       }
-      setHotels(Array.isArray(data.data?.hotels) ? data.data.hotels : []);
+      setHotels(Array.isArray(data.data?.data) ? data.data.data : []);
+      setTotal(typeof data.data?.total === 'number' ? data.data.total : 0);
+      setTotalPages(typeof data.data?.totalPages === 'number' ? data.data.totalPages : 0);
       setStatus('success');
     } catch {
       if (signal?.aborted || lastQueryRef.current !== query) return;
       setErrorMessage('Không thể tải danh sách khách sạn');
       setStatus('error');
     }
-  }, [destination, province, lat, lng, limit]);
+  }, [destination, province, lat, lng, limit, page, priceFilter, ratingFilter]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -120,8 +145,47 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
     );
   }
 
+  const priceChips: { value: NonNullable<HotelResult['priceLevel']>; label: string }[] = [
+    { value: 'budget', label: 'Tiết kiệm' },
+    { value: 'mid', label: 'Trung bình' },
+    { value: 'luxury', label: 'Cao cấp' },
+  ];
+
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {priceChips.map((chip) => {
+          const active = priceFilter === chip.value;
+          return (
+            <button
+              key={chip.value}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setPriceFilter(active ? null : chip.value)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                active
+                  ? 'border-[var(--color-primary-darker)] bg-[var(--color-primary-lightest)] text-[var(--color-primary-darker)]'
+                  : 'border-[var(--color-border)] bg-white text-[var(--color-text)]'
+              }`}
+            >
+              {chip.label}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          aria-pressed={ratingFilter}
+          onClick={() => setRatingFilter((prev) => !prev)}
+          className={`rounded-full border px-3 py-1 text-xs font-medium ${
+            ratingFilter
+              ? 'border-[var(--color-primary-darker)] bg-[var(--color-primary-lightest)] text-[var(--color-primary-darker)]'
+              : 'border-[var(--color-border)] bg-white text-[var(--color-text)]'
+          }`}
+        >
+          ★ Từ 3 sao
+        </button>
+      </div>
+
       {status === 'loading' && (
         <div className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
           <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />
@@ -146,7 +210,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
 
       {status === 'success' && hotels.length > 0 && (
         <div className="text-xs font-semibold text-[var(--color-text-secondary)]">
-          Tìm thấy {hotels.length} khách sạn
+          Tìm thấy {total} khách sạn{totalPages > 1 ? ` · Trang ${page}/${totalPages}` : ''}
         </div>
       )}
 
@@ -183,6 +247,28 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {status === 'success' && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 pt-1">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] disabled:opacity-40"
+          >
+            ← Trước
+          </button>
+          <span className="text-xs text-[var(--color-text-muted)]">Trang {page}/{totalPages}</span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text)] disabled:opacity-40"
+          >
+            Sau →
+          </button>
         </div>
       )}
     </div>

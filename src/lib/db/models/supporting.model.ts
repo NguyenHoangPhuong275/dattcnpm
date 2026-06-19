@@ -239,6 +239,15 @@ export const TripChecklistSchema = new Schema<ITripChecklist>({
   dueDate: { type: Date, default: null },
 }, { timestamps: { createdAt: true, updatedAt: false }, collection: COLLECTIONS.tripChecklists });
 
+// Backstop chống race condition + duplicate khác hoa/thường: unique index ở tầng DB.
+// Collation strength:2 (locale 'vi') → KHÔNG phân biệt hoa/thường nhưng vẫn phân biệt dấu.
+// normalization:true → so khớp Unicode-normalized, chặn lách dedup bằng dạng NFD vs NFC.
+// Tầng app cũng chuẩn hóa NFC + lowercase (normalizeChecklistLabel) để đồng nhất 2 tầng.
+TripChecklistSchema.index(
+  { tripId: 1, label: 1 },
+  { unique: true, sparse: true, collation: { locale: 'vi', strength: 2, normalization: true } },
+);
+
 export const TripChecklist: Model<ITripChecklist> = models.TripChecklist || model<ITripChecklist>('TripChecklist', TripChecklistSchema);
 
 export interface IUserFollow extends Document {

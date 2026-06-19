@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb, cacheGet, cacheSet, type Hotel } from '@/lib/db';
+import { getDb, cacheGet, cacheSet, normalizePagination, type Hotel } from '@/lib/db';
 import { getAuthUserId } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { hotelSearchSchema } from '@/lib/validations/hotel';
@@ -36,6 +36,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       lat: params.get('lat') ?? undefined,
       lng: params.get('lng') ?? undefined,
       limit: params.get('limit') ?? undefined,
+      page: params.get('page') ?? undefined,
+      priceLevel: params.get('priceLevel') ?? undefined,
+      minRating: params.get('minRating') ?? undefined,
     });
 
     const userId = await getAuthUserId(request);
@@ -49,7 +52,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       throw new AppError('RATE_LIMITED', 'Quá nhiều yêu cầu tìm kiếm. Vui lòng thử lại sau.', 429);
     }
 
-    const limit = parsed.limit ?? DEFAULT_LIMIT;
     const criteria = {
       destination: parsed.destination ?? null,
       province: parsed.province ?? null,
@@ -59,48 +61,63 @@ export async function GET(request: NextRequest): Promise<Response> {
     };
 
     const provinceFilterKey = resolveHotelProvinceFilterKey(criteria);
-    const cacheKey = `hotels:search:${normalizeVietnameseText(
-      `${parsed.province ?? ''}|${parsed.destination ?? ''}|${parsed.district ?? ''}|${parsed.lat ?? ''}|${parsed.lng ?? ''}|${limit}`
+
+    const cacheKey = `hotels:search:v2:${normalizeVietnameseText(
+      `${parsed.province ?? ''}|${parsed.destination ?? ''}|${parsed.district ?? ''}|${parsed.lat ?? ''}|${parsed.lng ?? ''}|${parsed.priceLevel ?? ''}|${parsed.minRating ?? ''}`
     )}`;
 
+    let allItems: ReturnType<typeof toHotelResponse>[] | null = null;
     const cached = await cacheGet(cacheKey);
     if (cached) {
       try {
-        const payload = JSON.parse(cached);
-        return sendSuccess(payload);
+        allItems = JSON.parse(cached) as ReturnType<typeof toHotelResponse>[];
       } catch {
-        // fallthrough on corrupted cache entry
+        allItems = null;
       }
     }
 
-    const db = await getDb();
-    const filter: Record<string, unknown> = {};
-    if (provinceFilterKey) {
-      filter.provinceKey = provinceFilterKey;
-    } else {
-      const term = (parsed.destination || parsed.province || '').trim();
-      if (term) {
-        const pattern = escapeRegex(term);
-        filter.$or = [
-          { name: { $regex: pattern, $options: 'i' } },
-          { address: { $regex: pattern, $options: 'i' } },
-          { district: { $regex: pattern, $options: 'i' } },
-        ];
+    if (!allItems) {
+      const db = await getDb();
+      const filter: Record<string, unknown> = {};
+      if (provinceFilterKey) {
+        filter.provinceKey = provinceFilterKey;
+      } else {
+        const term = (parsed.destination || parsed.province || '').trim();
+        if (term) {
+          const pattern = escapeRegex(term);
+          filter.$or = [
+            { name: { $regex: pattern, $options: 'i' } },
+            { address: { $regex: pattern, $options: 'i' } },
+            { district: { $regex: pattern, $options: 'i' } },
+          ];
+        }
       }
+
+      if (parsed.priceLevel) {
+        filter.priceLevel = parsed.priceLevel;
+      }
+      if (typeof parsed.minRating === 'number') {
+        filter.rating = { $gte: parsed.minRating };
+      }
+
+      const scanned = await db.hotels.findPaginated(filter, { page: 1, limit: SCAN_CAP });
+      const candidates = scanned.data as Hotel[];
+      allItems = matchHotels(candidates, criteria).map(toHotelResponse);
+      await cacheSet(cacheKey, JSON.stringify(allItems), CACHE_TTL);
     }
 
-    const scanned = await db.hotels.findPaginated(filter, { page: 1, limit: SCAN_CAP });
-    const candidates = scanned.data as Hotel[];
-    const matched = matchHotels(candidates, criteria).slice(0, limit);
+    const { page, limit } = normalizePagination({ page: parsed.page, limit: parsed.limit ?? DEFAULT_LIMIT });
+    const total = allItems.length;
+    const start = (page - 1) * limit;
+    const data = allItems.slice(start, start + limit);
 
-    const payload = {
-      hotels: matched.map(toHotelResponse),
-      total: matched.length,
+    return sendSuccess({
+      data,
+      total,
+      page,
+      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
       matchedBy: provinceFilterKey ? 'province' : 'keyword',
-    };
-
-    await cacheSet(cacheKey, JSON.stringify(payload), CACHE_TTL);
-    return sendSuccess(payload);
+    });
   } catch (error) {
     return handleApiError(error);
   }

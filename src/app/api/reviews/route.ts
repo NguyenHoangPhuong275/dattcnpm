@@ -56,7 +56,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       deletedAt: null,
     });
 
-    
+
     await recalculatePlaceRating(parsed.placeId, db);
 
     try {

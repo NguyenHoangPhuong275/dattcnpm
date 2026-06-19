@@ -26,6 +26,7 @@ export const ReviewSchema = new Schema<IReview>({
 }, { timestamps: true, collection: COLLECTIONS.reviews });
 
 ReviewSchema.index({ placeId: 1, deletedAt: 1 });
+ReviewSchema.index({ userId: 1, deletedAt: 1 });
 
 ReviewSchema.index(
   { userId: 1, placeId: 1 },

@@ -3,7 +3,7 @@ import { createAuditLog, getDb, type TripChecklist } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { getTripForEdit } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
-import { updateChecklistItemSchema } from '@/lib/validations/checklist';
+import { updateChecklistItemSchema, normalizeChecklistLabel } from '@/lib/validations/checklist';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -55,7 +55,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     const parsed = updateChecklistItemSchema.parse(body);
 
     const updates: Record<string, unknown> = {};
-    if (parsed.title !== undefined) updates.label = parsed.title;
+    if (parsed.title !== undefined) updates.label = normalizeChecklistLabel(parsed.title);
     if (parsed.completed !== undefined) updates.isDone = parsed.completed;
     if (parsed.dueDate !== undefined) updates.dueDate = parsed.dueDate ? new Date(parsed.dueDate) : null;
 

@@ -1,4 +1,4 @@
-import { cacheGet, cacheSet } from '@/lib/db';
+import { cacheGet, cacheSet, type WeatherAlertThresholds } from '@/lib/db';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getWeatherDescription } from '@/lib/weather';
 
@@ -9,6 +9,7 @@ export type DailyForecast = {
   precipitationProbability: number;
   tempMax: number | null;
   tempMin: number | null;
+  windspeedKmh?: number | null;
 };
 
 export const WEATHER_ALERT_THRESHOLDS = {
@@ -18,19 +19,30 @@ export const WEATHER_ALERT_THRESHOLDS = {
   extremeTempMin: 5,
 };
 
-export function evaluateWeatherAlert(day: DailyForecast): { alert: boolean; reasons: string[] } {
+export function evaluateWeatherAlert(
+  day: DailyForecast,
+  thresholds?: WeatherAlertThresholds | null,
+): { alert: boolean; reasons: string[] } {
+  const maxRainProbability = thresholds?.maxRainProbability ?? WEATHER_ALERT_THRESHOLDS.rainProbability;
+  const maxTemp = thresholds?.maxTemp ?? WEATHER_ALERT_THRESHOLDS.extremeTempMax;
+  const minTemp = thresholds?.minTemp ?? WEATHER_ALERT_THRESHOLDS.extremeTempMin;
+  const maxWindKmh = thresholds?.maxWindKmh ?? null;
+
   const reasons: string[] = [];
-  if (day.precipitationProbability > WEATHER_ALERT_THRESHOLDS.rainProbability) {
+  if (day.precipitationProbability > maxRainProbability) {
     reasons.push(`Khả năng mưa cao (${day.precipitationProbability}%)`);
   }
   if (day.weathercode >= WEATHER_ALERT_THRESHOLDS.stormCodeMin) {
     reasons.push(`Cảnh báo ${getWeatherDescription(day.weathercode)}`);
   }
-  if (day.tempMax !== null && day.tempMax >= WEATHER_ALERT_THRESHOLDS.extremeTempMax) {
+  if (day.tempMax !== null && day.tempMax >= maxTemp) {
     reasons.push(`Nắng nóng cực đoan (${day.tempMax}°C)`);
   }
-  if (day.tempMin !== null && day.tempMin <= WEATHER_ALERT_THRESHOLDS.extremeTempMin) {
+  if (day.tempMin !== null && day.tempMin <= minTemp) {
     reasons.push(`Rét đậm (${day.tempMin}°C)`);
+  }
+  if (maxWindKmh !== null && day.windspeedKmh != null && day.windspeedKmh >= maxWindKmh) {
+    reasons.push(`Gió mạnh (${Math.round(day.windspeedKmh)} km/h)`);
   }
   return { alert: reasons.length > 0, reasons };
 }
@@ -54,7 +66,7 @@ export async function fetchDailyForecast(lat: number, lng: number): Promise<Dail
   if (limiter.limited) return null;
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=Asia%2FHo_Chi_Minh`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,windspeed_10m_max&forecast_days=7&timezone=Asia%2FHo_Chi_Minh`;
     const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(5000) });
     if (!response.ok) return null;
 
@@ -67,6 +79,7 @@ export async function fetchDailyForecast(lat: number, lng: number): Promise<Dail
       precipitationProbability: data.daily.precipitation_probability_max?.[i] ?? 0,
       tempMax: data.daily.temperature_2m_max?.[i] ?? null,
       tempMin: data.daily.temperature_2m_min?.[i] ?? null,
+      windspeedKmh: data.daily.windspeed_10m_max?.[i] ?? null,
     }));
 
     try {

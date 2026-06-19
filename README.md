@@ -124,6 +124,8 @@ npm run dev
 | `npm test` | Chạy Vitest |
 | `npm run test:ui` | Chạy Vitest UI |
 | `npm run test:coverage` | Chạy Vitest coverage |
+| `npm run test:e2e` | Chạy Playwright E2E |
+| `npm run test:e2e:ui` | Chạy Playwright E2E ở UI mode |
 
 ### Audit dữ liệu trùng orderIndex (trước khi bật unique index itinerary)
 
@@ -134,6 +136,31 @@ npx tsx scripts/audit-itinerary-orderindex.ts
 ```
 
 Script đọc `MONGODB_URI` từ `.env` (không tự sửa DB). Exit code: `0` nếu sạch, `1` nếu phát hiện trùng, `2` nếu lỗi/thiếu cấu hình.
+
+### Migration index DB (chạy khi nâng cấp production)
+
+Hai migration index dưới đây mặc định **dry-run** (chỉ in kế hoạch), thêm `--apply` để thực thi. Idempotent, an toàn chạy lại. Ở môi trường dev/test, Mongoose tự build index theo schema nên không bắt buộc; chỉ cần ở production có dữ liệu sẵn.
+
+```bash
+# Email: unique toàn cục → partial unique (chỉ khi deletedAt = null) → cho đăng ký lại sau soft-delete
+npx tsx scripts/migrate-user-email-partial-index.ts
+npx tsx scripts/migrate-user-email-partial-index.ts --apply
+
+# Checklist: unique index { tripId, label } collation case-insensitive + Unicode-normalized
+# (chống trùng nhãn khác hoa/thường hoặc khác dạng NFC/NFD). Kiểm tra trùng trước khi tạo.
+npx tsx scripts/migrate-checklist-unique-index.ts
+npx tsx scripts/migrate-checklist-unique-index.ts --apply --i-have-backup
+```
+
+> **⚠️ Checklist index dùng collation — đổi collation = DROP + CREATE lại index.** Trong khoảng giữa
+> drop và create, uniqueness `{ tripId, label }` **không được enforce**. Vì vậy:
+> - `--apply` **bắt buộc** kèm `--i-have-backup` (script từ chối nếu thiếu) và phải chạy trong **maintenance window**.
+> - Script log mốc thời gian `BẮT ĐẦU`/`KẾT THÚC` cửa sổ (drop→recreate) để theo dõi.
+> - **Rollback** nếu CREATE lại thất bại — tạm khôi phục enforce bằng index không-collation rồi điều tra dữ liệu trùng:
+>   ```js
+>   db.trip_checklists.createIndex({ tripId: 1, label: 1 }, { unique: true, sparse: true })
+>   ```
+> - Bước aggregation phát hiện trùng vẫn chạy và **dừng** trước khi drop nếu còn dữ liệu trùng.
 
 ### Tính năng Khách sạn
 
@@ -184,6 +211,8 @@ Mặc định là dry-run (không ghi DB). Upsert theo `osmId` nên chạy lại
 | POST | `/api/trips/[id]/itinerary` | Thêm itinerary item |
 | PATCH | `/api/trips/[id]/itinerary/[itemId]` | Sửa itinerary item |
 | DELETE | `/api/trips/[id]/itinerary/[itemId]` | Xóa itinerary item |
+| PATCH | `/api/trips/[id]/itinerary/reorder` | Sắp xếp lại thứ tự itinerary (2 pha + compensating write) |
+| POST | `/api/trips/[id]/checklist/bulk` | Thêm nhiều checklist item theo batch (template hoặc list) |
 | GET | `/api/favorites` | Danh sách yêu thích |
 | POST | `/api/favorites` | Thêm yêu thích |
 | DELETE | `/api/favorites/[id]` | Xóa yêu thích |
@@ -201,6 +230,82 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+```
+
+## Testing
+
+### Unit & Integration Tests
+
+```bash
+npm test
+```
+
+> Cần MongoDB + Redis đang chạy (`docker compose up -d`). `tests/setupEnv.ts` tự thêm hậu tố `_test` vào tên DB nên test không đụng dữ liệu dev.
+
+### E2E Tests (Playwright)
+
+```bash
+# Cài đặt browsers lần đầu
+npx playwright install
+
+# Chạy smoke test
+npm run test:e2e
+
+# Chạy với UI mode
+npx playwright test --ui
+```
+
+## API Reference
+
+### PATCH /api/trips/:id/checklist/bulk → thực tế là `POST /api/trips/:id/checklist/bulk`
+
+Thêm nhiều checklist item vào chuyến đi theo batch. Yêu cầu quyền EDIT (chủ trip hoặc cộng tác viên). Khử trùng lặp theo nhãn (chuẩn hoá trim + lowercase) ở tầng ứng dụng; tầng DB có thêm unique index `{ tripId, label }` chống race condition.
+
+**Body (một trong hai):**
+
+```json
+{ "templateId": "beach" }
+```
+
+```json
+{ "items": ["Mua vé máy bay", "Đặt khách sạn"] }
+```
+
+**Response 201:**
+
+```json
+{
+  "success": true,
+  "status": 201,
+  "data": { "added": 2, "skipped": 0, "items": [ /* checklist items */ ] },
+  "message": "Đã thêm 2 mục."
+}
+```
+
+**Response 409** (một request song song vừa thêm cùng nhãn — unique index `{ tripId, label }`):
+
+```json
+{
+  "success": false,
+  "status": 409,
+  "error": { "code": "CONFLICT", "message": "Một số mục đã được thêm bởi thao tác khác. Vui lòng tải lại và thử lại.", "details": { "duplicates": ["Mua vé máy bay"] } }
+}
+```
+
+### PATCH /api/trips/:id/itinerary/reorder
+
+Sắp xếp lại thứ tự itinerary theo `orderedIds`. Chạy 2 pha (gán `orderIndex` âm tạm thời → gán giá trị cuối) để không vi phạm unique index `{ tripId, day, orderIndex }`. Vì MongoDB ở môi trường này là standalone (không có replica set, không dùng transaction), nếu một pha thất bại sẽ tự **compensating write** khôi phục `orderIndex` về giá trị gốc.
+
+**Body:**
+
+```json
+{ "orderedIds": ["<itemId1>", "<itemId2>", "<itemId3>"] }
+```
+
+**Response 200:**
+
+```json
+{ "success": true, "status": 200, "data": { "message": "Đã cập nhật thứ tự lịch trình", "modified": 3, "orderedIds": ["..."] } }
 ```
 
 ## Chức năng còn thiếu hoặc chưa hoàn chỉnh

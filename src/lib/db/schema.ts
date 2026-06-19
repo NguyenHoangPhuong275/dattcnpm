@@ -33,8 +33,17 @@ export interface User {
   preferredDestinations?: string[];
   interests?: string[];
 
+  weatherAlerts?: WeatherAlertThresholds | null;
+
 
   twoFactorEnabled?: boolean | null;
+}
+
+export interface WeatherAlertThresholds {
+  maxTemp?: number | null;
+  minTemp?: number | null;
+  maxRainProbability?: number | null;
+  maxWindKmh?: number | null;
 }
 
 export interface TripCollaborator {

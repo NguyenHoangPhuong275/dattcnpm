@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import type { 
+import { env } from '@/lib/env';
+import type {
   User as PlainUser,
   Trip as PlainTrip,
   Place as PlainPlace,
@@ -21,7 +22,7 @@ import type {
 } from './schema';
 
 import { createCollection } from './collections';
-import { 
+import {
   User,
   Trip,
   Place,
@@ -49,10 +50,7 @@ let collectionsEnsured = false;
 export async function connectMongo(): Promise<'connected'> {
   if (isConnected) return 'connected';
 
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
-  if (!uri) {
-    throw new Error('MONGODB_URI (or MONGO_URI) is not defined in environment variables');
-  }
+  const uri = env.MONGODB_URI;
 
   try {
     await mongoose.connect(uri);

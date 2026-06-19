@@ -30,12 +30,18 @@ export interface IUser extends Document {
   budgetLevel?: string | null | undefined;
   preferredDestinations?: string[];
   interests?: string[];
+  weatherAlerts?: {
+    maxTemp?: number | null;
+    minTemp?: number | null;
+    maxRainProbability?: number | null;
+    maxWindKmh?: number | null;
+  } | null;
   twoFactorEnabled?: boolean | null | undefined;
 }
 
 export const UserSchema = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, required: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     fullName: { type: String, required: true, trim: true },
     avatarUrl: { type: String, default: null },
@@ -58,10 +64,26 @@ export const UserSchema = new Schema<IUser>(
     budgetLevel: { type: String, default: null },
     preferredDestinations: { type: [String], default: [] },
     interests: { type: [String], default: [] },
+    weatherAlerts: {
+      type: {
+        maxTemp: { type: Number, default: null },
+        minTemp: { type: Number, default: null },
+        maxRainProbability: { type: Number, default: null },
+        maxWindKmh: { type: Number, default: null },
+      },
+      default: null,
+    },
     twoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true, collection: COLLECTIONS.users }
 );
+
+UserSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { deletedAt: null } }
+);
+
+UserSchema.index({ email: 1, deletedAt: 1 });
 
 export type PlainUserWithId = PlainUser & { id: string };
 

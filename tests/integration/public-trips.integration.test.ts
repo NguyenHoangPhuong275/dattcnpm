@@ -24,7 +24,7 @@ describe('Integration Tests - Public Trips Discovery API', () => {
     const userAId = new mongoose.Types.ObjectId();
     const userBId = new mongoose.Types.ObjectId();
 
-    
+
     await db.trips.insertMany([
       {
         userId: userAId as any,
@@ -55,7 +55,7 @@ describe('Integration Tests - Public Trips Discovery API', () => {
       },
     ]);
 
-    
+
     const request = new Request('http://localhost/api/trips/public?page=1&limit=2');
     const response = await publicTripsGET(request as any);
     expect(response.status).toBe(200);
@@ -64,13 +64,13 @@ describe('Integration Tests - Public Trips Discovery API', () => {
     expect(body.success).toBe(true);
     expect(body.data.data).toHaveLength(2);
 
-    
+
     for (const trip of body.data.data) {
       expect(trip.userId).toBeUndefined();
       expect(trip.isPublic).toBe(true);
     }
 
-    
+
     const requestFilter = new Request('http://localhost/api/trips/public?destination=ha%20noi');
     const responseFilter = await publicTripsGET(requestFilter as any);
     expect(responseFilter.status).toBe(200);

@@ -18,9 +18,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     const skip  = (page - 1) * limit;
 
     const db = await getDb();
-    
+
     const allFavs = (await db.favorites.find({ userId })) as FavoritePlace[];
-    
+
     const sortedFavs = allFavs
       .sort((a, b) => {
         const da = new Date(a.createdAt ?? 0).getTime();

@@ -8,8 +8,8 @@ import { escapeRegex } from '@/lib/string';
 export async function GET(request: NextRequest): Promise<Response> {
   try {
     const ip = getClientIp(request);
-    
-    
+
+
     const rate = await checkRateLimit({
       key: `rl:public-trips:${ip}`,
       limit: 60,

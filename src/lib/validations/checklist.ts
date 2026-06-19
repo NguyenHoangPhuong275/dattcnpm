@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { dateStringSchema, trimString } from './common';
 
+// Chuẩn hóa nhãn checklist về NFC + trim trước khi lưu (giá trị hiển thị, giữ hoa/thường).
+// NFC bảo đảm chuỗi precomposed/decomposed (vd "Vẽ") cùng một dạng → khớp với DB index.
+export function normalizeChecklistLabel(label: string): string {
+  return label.normalize('NFC').trim();
+}
+
+// Khóa khử trùng tầng app: NFC + trim + lowercase (đồng nhất với collation strength:2 ở DB).
+export function checklistLabelKey(label: string): string {
+  return normalizeChecklistLabel(label).toLowerCase();
+}
+
 export const createChecklistItemSchema = z.object({
   title: trimString(1, 200),
   dueDate: dateStringSchema,
@@ -17,5 +28,15 @@ export const updateChecklistItemSchema = z
     { message: 'Không có trường hợp lệ để cập nhật' }
   );
 
+export const bulkChecklistSchema = z
+  .object({
+    templateId: trimString(1, 50).optional(),
+    items: z.array(trimString(1, 200)).max(100).optional(),
+  })
+  .refine((data) => Boolean(data.templateId) || (Array.isArray(data.items) && data.items.length > 0), {
+    message: 'Cần templateId hoặc danh sách items không rỗng',
+  });
+
 export type CreateChecklistItemInput = z.infer<typeof createChecklistItemSchema>;
 export type UpdateChecklistItemInput = z.infer<typeof updateChecklistItemSchema>;
+export type BulkChecklistInput = z.infer<typeof bulkChecklistSchema>;

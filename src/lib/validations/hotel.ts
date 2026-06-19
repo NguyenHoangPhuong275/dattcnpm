@@ -8,6 +8,9 @@ export const hotelSearchSchema = z
     lat: z.coerce.number().min(-90).max(90).optional(),
     lng: z.coerce.number().min(-180).max(180).optional(),
     limit: z.coerce.number().int().min(1).max(50).optional(),
+    page: z.coerce.number().int().min(1).optional(),
+    priceLevel: z.enum(['budget', 'mid', 'luxury']).optional(),
+    minRating: z.coerce.number().min(0).max(5).optional(),
   })
   .refine(
     (data) =>

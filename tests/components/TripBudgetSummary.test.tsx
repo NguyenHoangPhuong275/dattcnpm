@@ -59,6 +59,59 @@ describe('TripBudgetSummary', () => {
     expect(screen.getByText('Vượt')).toBeTruthy();
   });
 
+  it('hiển thị banner cảnh báo (role=alert) với số tiền và % vượt', async () => {
+    mockBudgetResponse({
+      items: [{ id: '1', amount: 1500000, currency: 'VND', type: 'actual' }],
+      totalPlanned: 1000000,
+      totalActual: 1500000,
+    });
+    render(<TripBudgetSummary tripId="t1" userId="u1" />);
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('50%');
+    expect(alert.textContent).toMatch(/vượt ngân sách/i);
+    expect(alert.textContent ?? '').not.toContain('NaN');
+  });
+
+  it('KHÔNG hiển thị banner cảnh báo khi chi trong mức dự kiến', async () => {
+    mockBudgetResponse({
+      items: [{ id: '1', amount: 600000, currency: 'VND', type: 'actual' }],
+      totalPlanned: 1000000,
+      totalActual: 600000,
+    });
+    render(<TripBudgetSummary tripId="t1" userId="u1" />);
+    expect(await screen.findByText('60%')).toBeTruthy();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('hiển thị doughnut tỷ trọng chi tiêu theo danh mục (Task 3.1)', async () => {
+    mockBudgetResponse({
+      items: [
+        { id: '1', amount: 300000, currency: 'VND', type: 'actual', category: 'food' },
+        { id: '2', amount: 100000, currency: 'VND', type: 'actual', category: 'transport' },
+        { id: '3', amount: 500000, currency: 'VND', type: 'planned', category: 'accommodation' },
+      ],
+      totalPlanned: 500000,
+      totalActual: 400000,
+    });
+    render(<TripBudgetSummary tripId="t1" userId="u1" />);
+    expect(await screen.findByText('Tỷ trọng chi tiêu thực tế')).toBeTruthy();
+    expect(screen.getByRole('img', { name: /Biểu đồ tỷ trọng chi tiêu/ })).toBeTruthy();
+    expect(screen.getByText(/75%/)).toBeTruthy();
+    expect(screen.getByText('Ăn uống')).toBeTruthy();
+    expect(screen.getByText('Di chuyển')).toBeTruthy();
+  });
+
+  it('không hiển thị doughnut khi chưa có chi tiêu thực tế', async () => {
+    mockBudgetResponse({
+      items: [{ id: '1', amount: 500000, currency: 'VND', type: 'planned', category: 'food' }],
+      totalPlanned: 500000,
+      totalActual: 0,
+    });
+    render(<TripBudgetSummary tripId="t1" userId="u1" />);
+    await screen.findByText('Dự kiến');
+    expect(screen.queryByText('Tỷ trọng chi tiêu thực tế')).toBeNull();
+  });
+
   it('hiển thị thông báo lỗi khi API thất bại', async () => {
     mockBudgetResponse({}, false, false);
     render(<TripBudgetSummary tripId="t1" userId="u1" />);

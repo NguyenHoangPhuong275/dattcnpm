@@ -122,7 +122,7 @@ export default async function SharedTripPage({ params }: SharePageProps) {
                         </div>
                         {(item.startTime || item.endTime) && (
                           <div className="mt-1 text-xs text-slate-500">
-                            {item.startTime ? new Date(item.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''} 
+                            {item.startTime ? new Date(item.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
                             {item.endTime ? ` - ${new Date(item.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}` : ''}
                           </div>
                         )}

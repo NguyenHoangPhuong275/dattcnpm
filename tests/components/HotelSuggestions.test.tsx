@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import HotelSuggestions from '@/components/hotels/HotelSuggestions';
 import { apiRequest } from '@/lib/api-client';
@@ -20,7 +21,13 @@ interface PendingCall {
 let calls: PendingCall[] = [];
 
 function makeResponse(hotels: unknown[]) {
-  return { response: { ok: true } as Response, data: { success: true, data: { hotels, total: hotels.length, matchedBy: 'province' } } };
+  return {
+    response: { ok: true } as Response,
+    data: {
+      success: true,
+      data: { data: hotels, total: hotels.length, page: 1, totalPages: 1, matchedBy: 'province' },
+    },
+  };
 }
 
 afterEach(cleanup);
@@ -46,13 +53,11 @@ describe('HotelSuggestions — chống race condition', () => {
     rerender(<HotelSuggestions destination="Hạ Long" />);
     expect(calls.length).toBe(2);
 
-    // Resolve request MỚI (Hạ Long) trước
     await act(async () => {
       calls[1].resolve(makeResponse(haLong));
     });
     expect(await screen.findByText('Vinpearl Hạ Long')).toBeTruthy();
 
-    // Sau đó resolve request CŨ (Đà Nẵng) — phải bị bỏ qua vì signal đã abort
     await act(async () => {
       calls[0].resolve(makeResponse(daNang));
     });
@@ -74,5 +79,24 @@ describe('HotelSuggestions — chống race condition', () => {
     render(<HotelSuggestions />);
     expect(mockedApiRequest).not.toHaveBeenCalled();
     expect(screen.getByText(/Nhập điểm đến hoặc tỉnh\/thành/)).toBeTruthy();
+  });
+
+  it('gắn bộ lọc priceLevel và minRating vào query khi bấm chip (Task 2.8)', async () => {
+    const user = userEvent.setup();
+    render(<HotelSuggestions destination="Đà Nẵng" />);
+    expect(calls.length).toBe(1);
+    expect(calls[0].url).not.toContain('priceLevel');
+
+    await user.click(screen.getByText('Cao cấp'));
+    await waitFor(() => {
+      const last = calls[calls.length - 1].url;
+      expect(last).toContain('priceLevel=luxury');
+    });
+
+    await user.click(screen.getByText('★ Từ 3 sao'));
+    await waitFor(() => {
+      const last = calls[calls.length - 1].url;
+      expect(last).toContain('minRating=3');
+    });
   });
 });
