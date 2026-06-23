@@ -7,6 +7,7 @@ import { sendSuccess, sendError, handleApiError, AppError } from '@/lib/api-resp
 import { searchTourismPlaces, provinceCenter } from '@/lib/vietnam-tourism';
 import { LOCALITIES } from '@/data/localities';
 import { normalizeVietnameseText } from '@/lib/string';
+import { pruneSearchHistory } from '@/lib/search-history';
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
@@ -235,16 +236,7 @@ async function recordSearchHistory(userId: string | null, query: string, resultC
       metadata: null,
       createdAt: new Date(),
     });
-    const histories = await db.searchHistories.find({ userId });
-    histories
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(50)
-      .forEach((item) => {
-        db.searchHistories.deleteOne(item._id).catch((err) => {
-          console.error('Lỗi khi xóa lịch sử tìm kiếm thừa:', err);
-          return null;
-        });
-      });
+    await pruneSearchHistory(db, userId);
   } catch (error) {
     console.error('Lỗi khi ghi lại lịch sử tìm kiếm:', error);
     return;

@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
           throw new AppError('VALIDATION_ERROR', 'Missing notification content', 400);
         }
 
-        const users = await db.users.find();
+        const users = await db.users.find({}, { projection: { _id: 1 } });
         const notificationCount = users.length;
 
         if (notificationCount > 0) {
@@ -295,9 +295,10 @@ export async function POST(request: NextRequest) {
       }
 
       case 'system.logs': {
-        const logs = (await db.auditLogs.find())
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .slice(0, 15);
+        const logs = await db.auditLogs.find(
+          {},
+          { sortBy: 'createdAt', sortOrder: -1, limit: 15 }
+        );
 
         return sendSuccess({
           logs,
@@ -473,8 +474,15 @@ export async function POST(request: NextRequest) {
         const redis = getRedis();
         const geoKeys = await redis.keys('geo:search:*');
         const poiKeys = await redis.keys('poi:live:*');
-        if (geoKeys.length > 0) await redis.del(...geoKeys);
-        if (poiKeys.length > 0) await redis.del(...poiKeys);
+        // Xóa theo cụm để tránh spread mảng khổng lồ gây tràn call stack của V8.
+        const REDIS_DEL_BATCH = 1000;
+        const delInBatches = async (keys: string[]): Promise<void> => {
+          for (let i = 0; i < keys.length; i += REDIS_DEL_BATCH) {
+            await redis.del(...keys.slice(i, i + REDIS_DEL_BATCH));
+          }
+        };
+        await delInBatches(geoKeys);
+        await delInBatches(poiKeys);
 
         return sendSuccess({
           message: `Đã xóa cache trong database places (dùng reset). Cleared ${geoKeys.length} geo caches and ${poiKeys.length} poi caches in Redis. Giờ search sẽ dùng dữ liệu thật 100% từ API (không sample). Re-seed admin nếu cần với event 'locations.seed-vn'.`,

@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
 
   devIndicators: false,
 
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "commons.wikimedia.org" },
+      { protocol: "https", hostname: "upload.wikimedia.org" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
+  },
+
   async headers() {
     if (isDev) return [];
 

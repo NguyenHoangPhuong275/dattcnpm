@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { objectIdSchema } from '@/lib/validations/common';
 
 function generateShareCode(): string {
   return randomBytes(12).toString('base64url').slice(0, 12);
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest, ctx: RouteContext): Promise<Res
     const userId = String(user._id ?? user.id);
 
     const { id: tripId } = await ctx.params;
+    objectIdSchema.parse(tripId);
     const trip = await findOwnedTrip(tripId, userId);
     if (!trip) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền chia sẻ chuyến đi này', 403);
@@ -73,6 +75,7 @@ export async function DELETE(request: NextRequest, ctx: RouteContext): Promise<R
     const userId = String(user._id ?? user.id);
 
     const { id: tripId } = await ctx.params;
+    objectIdSchema.parse(tripId);
     const trip = await findOwnedTrip(tripId, userId);
     if (!trip) {
       throw new AppError('FORBIDDEN', 'Bạn không có quyền thu hồi chia sẻ', 403);

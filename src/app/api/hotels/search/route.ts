@@ -10,8 +10,28 @@ import { escapeRegex, normalizeVietnameseText } from '@/lib/string';
 const CACHE_TTL = 60 * 60;
 const DEFAULT_LIMIT = 20;
 const SCAN_CAP = 500;
+const EARTH_RADIUS_KM = 6378.1;
 
-function toHotelResponse(hotel: Hotel) {
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (deg: number): number => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function toHotelResponse(hotel: Hotel, distanceKm: number | null = null) {
   return {
     id: hotel._id,
     name: hotel.name,
@@ -22,6 +42,9 @@ function toHotelResponse(hotel: Hotel) {
     lng: typeof hotel.lng === 'number' ? hotel.lng : null,
     rating: typeof hotel.rating === 'number' ? hotel.rating : null,
     priceLevel: hotel.priceLevel ?? null,
+    amenities: Array.isArray(hotel.amenities) ? hotel.amenities : [],
+    image: Array.isArray(hotel.images) && hotel.images.length > 0 ? hotel.images[0] : null,
+    distanceKm,
     source: hotel.source,
   };
 }
@@ -39,7 +62,13 @@ export async function GET(request: NextRequest): Promise<Response> {
       page: params.get('page') ?? undefined,
       priceLevel: params.get('priceLevel') ?? undefined,
       minRating: params.get('minRating') ?? undefined,
+      radiusKm: params.get('radiusKm') ?? undefined,
+      amenities: params.get('amenities') ?? undefined,
+      sort: params.get('sort') ?? undefined,
+      featured: params.get('featured') ?? undefined,
     });
+
+    const featured = parsed.featured === true;
 
     const userId = await getAuthUserId(request);
     const rateIdentity = userId || getClientIp(request);
@@ -60,14 +89,17 @@ export async function GET(request: NextRequest): Promise<Response> {
       lng: parsed.lng ?? null,
     };
 
-    const provinceFilterKey = resolveHotelProvinceFilterKey(criteria);
+    const geoMode = typeof parsed.radiusKm === 'number' && typeof parsed.lat === 'number' && typeof parsed.lng === 'number';
+    const provinceFilterKey = geoMode || featured ? null : resolveHotelProvinceFilterKey(criteria);
+    const matchedBy = featured ? 'featured' : geoMode ? 'geo' : provinceFilterKey ? 'province' : 'keyword';
 
-    const cacheKey = `hotels:search:v2:${normalizeVietnameseText(
-      `${parsed.province ?? ''}|${parsed.destination ?? ''}|${parsed.district ?? ''}|${parsed.lat ?? ''}|${parsed.lng ?? ''}|${parsed.priceLevel ?? ''}|${parsed.minRating ?? ''}`
+    const cacheKey = `hotels:search:v3:${normalizeVietnameseText(
+      `${parsed.province ?? ''}|${parsed.destination ?? ''}|${parsed.district ?? ''}|${parsed.lat ?? ''}|${parsed.lng ?? ''}|${parsed.priceLevel ?? ''}|${parsed.minRating ?? ''}|${parsed.radiusKm ?? ''}|${(parsed.amenities ?? []).join('+')}|${parsed.sort ?? ''}`
     )}`;
 
     let allItems: ReturnType<typeof toHotelResponse>[] | null = null;
-    const cached = await cacheGet(cacheKey);
+    // featured bỏ cache để mỗi lần tải lại trộn một danh sách mới.
+    const cached = featured ? null : await cacheGet(cacheKey);
     if (cached) {
       try {
         allItems = JSON.parse(cached) as ReturnType<typeof toHotelResponse>[];
@@ -79,7 +111,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     if (!allItems) {
       const db = await getDb();
       const filter: Record<string, unknown> = {};
-      if (provinceFilterKey) {
+      if (geoMode) {
+        filter.location = {
+          $geoWithin: { $centerSphere: [[parsed.lng, parsed.lat], (parsed.radiusKm as number) / EARTH_RADIUS_KM] },
+        };
+      } else if (provinceFilterKey) {
         filter.provinceKey = provinceFilterKey;
       } else {
         const term = (parsed.destination || parsed.province || '').trim();
@@ -98,11 +134,36 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
       if (typeof parsed.minRating === 'number') {
         filter.rating = { $gte: parsed.minRating };
+      } else if (featured) {
+        filter.rating = { $gt: 0 };
+      }
+      if (parsed.amenities && parsed.amenities.length > 0) {
+        filter.amenities = { $all: parsed.amenities };
       }
 
-      const scanned = await db.hotels.findPaginated(filter, { page: 1, limit: SCAN_CAP });
-      const candidates = scanned.data as Hotel[];
-      allItems = matchHotels(candidates, criteria).map(toHotelResponse);
+      // featured xếp theo rating toàn collection rồi trộn từng bậc sao; còn lại xếp theo độ khớp.
+      const candidates = (await db.hotels.find(
+        filter,
+        featured ? { sortBy: 'rating', sortOrder: -1, limit: SCAN_CAP } : { limit: SCAN_CAP }
+      )) as Hotel[];
+      const ranked = geoMode ? candidates : featured ? shuffle(candidates) : matchHotels(candidates, criteria);
+
+      const hasOrigin = typeof parsed.lat === 'number' && typeof parsed.lng === 'number';
+      let items = ranked.map((hotel) => {
+        const distance =
+          hasOrigin && typeof hotel.lat === 'number' && typeof hotel.lng === 'number'
+            ? Math.round(haversineKm(parsed.lat as number, parsed.lng as number, hotel.lat, hotel.lng) * 10) / 10
+            : null;
+        return toHotelResponse(hotel, distance);
+      });
+
+      if (parsed.sort === 'rating' || (featured && !parsed.sort)) {
+        items = [...items].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+      } else if (parsed.sort === 'distance' || (geoMode && !parsed.sort)) {
+        items = [...items].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+      }
+
+      allItems = items;
       await cacheSet(cacheKey, JSON.stringify(allItems), CACHE_TTL);
     }
 
@@ -116,7 +177,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       total,
       page,
       totalPages: total === 0 ? 0 : Math.ceil(total / limit),
-      matchedBy: provinceFilterKey ? 'province' : 'keyword',
+      matchedBy,
     });
   } catch (error) {
     return handleApiError(error);

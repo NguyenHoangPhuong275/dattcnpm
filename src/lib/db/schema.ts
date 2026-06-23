@@ -101,7 +101,23 @@ export interface Hotel {
   rating?: number | null;
   priceLevel?: 'budget' | 'mid' | 'luxury' | null;
   tags?: string[] | null;
+  images?: string[] | null;
+  phone?: string | null;
+  website?: string | null;
+  amenities?: string[] | null;
+  location?: { type: 'Point'; coordinates: [number, number] } | null;
   source: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface HotelReview {
+  _id: MongoId;
+  hotelId: MongoId;
+  userId: MongoId;
+  rating: number;
+  comment?: string | null;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

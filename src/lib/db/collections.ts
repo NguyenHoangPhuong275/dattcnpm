@@ -7,6 +7,7 @@ export const COLLECTIONS = {
   trips: 'trips',
   places: 'places',
   hotels: 'hotels',
+  hotelReviews: 'hotel_reviews',
   itineraryItems: 'itinerary_items',
   favorites: 'favorite_places',
   reviews: 'reviews',
@@ -43,6 +44,13 @@ export type PaginationOptions = {
   sortOrder?: 1 | -1;
 };
 
+export type FindOptions = {
+  sortBy?: string;
+  sortOrder?: 1 | -1;
+  limit?: number;
+  projection?: Record<string, 0 | 1>;
+};
+
 export const PAGINATION_DEFAULT_LIMIT = 20;
 export const PAGINATION_MAX_LIMIT = 100;
 
@@ -76,8 +84,13 @@ export function createCollection<T extends { _id: MongoId }>(mongooseModel: Mode
       const doc = await mongooseModel.findOne(filter).lean();
       return doc ? toPlain<T>(doc) : undefined;
     },
-    async find(filter: CollectionFilter = {}): Promise<T[]> {
-      const docs = await mongooseModel.find(filter).lean();
+    async find(filter: CollectionFilter = {}, options: FindOptions = {}): Promise<T[]> {
+      let query = options.projection
+        ? mongooseModel.find(filter, options.projection)
+        : mongooseModel.find(filter);
+      if (options.sortBy) query = query.sort({ [options.sortBy]: options.sortOrder ?? 1 });
+      if (typeof options.limit === 'number' && options.limit > 0) query = query.limit(options.limit);
+      const docs = await query.lean();
       return docs.map((d: unknown) => toPlain<T>(d)).filter((d): d is T => !!d);
     },
     async findPaginated(filter: CollectionFilter = {}, options: PaginationOptions): Promise<PaginatedResult<T>> {

@@ -8,6 +8,8 @@ import AppHeader from '@/components/AppHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import ChangePlaceModal from '@/components/trips/ChangePlaceModal';
+import TripBudgetSummary from '@/components/trips/TripBudgetSummary';
+import TripAccommodationSection from '@/components/trips/TripAccommodationSection';
 import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, ShareIcon, TrashIcon, UsersIcon } from '@/components/icons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -116,7 +118,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [changePlaceItem, setChangePlaceItem] = useState<ItineraryItem | null>(null);
-  const [activeTab, setActiveTab] = useState<'itinerary' | 'budget'>('itinerary');
+  const [activeTab, setActiveTab] = useState<'itinerary' | 'budget' | 'hotel'>('itinerary');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const tripId = params?.id;
@@ -311,6 +313,14 @@ export default function ItineraryDetailPage(): React.JSX.Element {
               >
                 Chi phí dự tính
               </button>
+              <button
+                id="tab-button-hotel"
+                type="button"
+                onClick={() => setActiveTab('hotel')}
+                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'hotel' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                Khách sạn
+              </button>
             </div>
           </div>
 
@@ -393,31 +403,43 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   description="Thêm địa điểm từ trang Khám phá để bắt đầu."
                 />
               )
+            ) : activeTab === 'hotel' ? (
+              <TripAccommodationSection
+                tripId={trip._id}
+                userId={user?.id ?? null}
+                destination={trip.destination}
+                startDate={trip.startDate}
+                endDate={trip.endDate}
+              />
             ) : (
-              <div className="rounded-lg border border-slate-200 bg-white p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-extrabold text-slate-955">Chi phí dự tính</h2>
-                    <p className="text-sm text-slate-500">{items.length} hạng mục trong lịch trình</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-bold uppercase text-slate-400">Tổng</div>
-                    <div className="text-xl font-extrabold text-[var(--color-primary-dark)]">{formatMoney(totalCost)}</div>
-                  </div>
-                </div>
-
-                <div className="divide-y divide-slate-100">
-                  {items.length > 0 ? items.map((item, index) => (
-                    <div key={item._id} className="flex items-center justify-between gap-4 py-3 text-sm">
-                      <div>
-                        <div className="font-bold text-slate-800">{displayName(item, trip, index)}</div>
-                        <div className="text-xs text-slate-555">Ngày {item.day}</div>
-                      </div>
-                      <div className="font-bold text-slate-900">{formatMoney(Number(item.cost) || 0)}</div>
+              <div className="space-y-6">
+                <div className="rounded-lg border border-slate-200 bg-white p-5">
+                  <div className="mb-1 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-extrabold text-slate-955">Chi phí dự tính</h2>
+                      <p className="text-sm text-slate-500">{items.length} hạng mục trong lịch trình</p>
                     </div>
-                  )) : (
-                    <div className="py-8 text-center text-sm font-semibold text-slate-500">Chưa có chi phí nào được ghi nhận.</div>
-                  )}
+                    <div className="text-right">
+                      <div className="text-xs font-bold uppercase text-slate-400">Tổng theo điểm dừng</div>
+                      <div className="text-xl font-extrabold text-[var(--color-primary-dark)]">{formatMoney(totalCost)}</div>
+                    </div>
+                  </div>
+
+                  <div className="divide-y divide-slate-100">
+                    {items.length > 0 ? items.map((item, index) => (
+                      <div key={item._id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                        <div>
+                          <div className="font-bold text-slate-800">{displayName(item, trip, index)}</div>
+                          <div className="text-xs text-slate-555">Ngày {item.day}</div>
+                        </div>
+                        <div className="font-bold text-slate-900">{formatMoney(Number(item.cost) || 0)}</div>
+                      </div>
+                    )) : (
+                      <div className="py-8 text-center text-sm font-semibold text-slate-500">Chưa có chi phí nào được ghi nhận.</div>
+                    )}
+                  </div>
+
+                  <TripBudgetSummary tripId={trip._id} userId={user?.id ?? null} />
                 </div>
               </div>
             )}

@@ -35,8 +35,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
 
     const db = await getDb();
-    const reports = (await db.reviewReports.find(filter)) as ReviewReport[];
-    reports.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Sắp xếp tại MongoDB thay vì in-memory để tránh tốn RAM/CPU khi số report lớn.
+    const reports = (await db.reviewReports.find(filter, {
+      sortBy: 'createdAt',
+      sortOrder: -1,
+    })) as ReviewReport[];
 
     return sendSuccess(reports.map(toReportResponse));
   } catch (error) {

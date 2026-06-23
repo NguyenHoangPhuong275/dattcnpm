@@ -3,6 +3,7 @@ import type {
   Trip as TripType,
   Place as PlaceType,
   Hotel as HotelType,
+  HotelReview as HotelReviewType,
   Review as ReviewType,
   ItineraryItem as ItineraryItemType,
   FavoritePlace as FavoritePlaceType,
@@ -24,6 +25,7 @@ import {
   Trip as TripModel,
   Place as PlaceModel,
   Hotel as HotelModel,
+  HotelReview as HotelReviewModel,
   Review as ReviewModel,
   ItineraryItem as ItineraryItemModel,
   FavoritePlace as FavoritePlaceModel,
@@ -52,6 +54,9 @@ const Place = PlaceModel;
 
 type Hotel = HotelType;
 const Hotel = HotelModel;
+
+type HotelReview = HotelReviewType;
+const HotelReview = HotelReviewModel;
 
 type Review = ReviewType;
 const Review = ReviewModel;
@@ -100,6 +105,7 @@ export {
   Trip,
   Place,
   Hotel,
+  HotelReview,
   Review,
   ItineraryItem,
   FavoritePlace,

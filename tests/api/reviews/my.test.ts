@@ -71,7 +71,10 @@ describe('GET /api/reviews/my', () => {
     const response = await GET(request() as never);
     const body = await response.json();
 
-    expect(reviewsFind).toHaveBeenCalledWith({ userId: 'user-1', deletedAt: null });
+    expect(reviewsFind).toHaveBeenCalledWith(
+      { userId: 'user-1', deletedAt: null },
+      { sortBy: 'createdAt', sortOrder: -1 }
+    );
     expect(placesFind).toHaveBeenCalledTimes(1);
     expect(placesFind).toHaveBeenCalledWith({ _id: { $in: ['place-1', 'place-2'] } });
     expect(body.success).toBe(true);

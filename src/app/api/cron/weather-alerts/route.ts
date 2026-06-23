@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb, getRedis, getUserById, type ItineraryItem, type Place, type Trip } from '@/lib/db';
+import { getDb, getRedis, type ItineraryItem, type Place, type Trip } from '@/lib/db';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { evaluateWeatherAlert, fetchDailyForecast } from '@/lib/weather-alerts';
 import { getResend } from '@/lib/resend';
@@ -23,6 +23,22 @@ async function sendWeatherAlertEmail(tripTitle: string, dateKey: string, reasons
 
 const UPCOMING_WINDOW_MS = 24 * 60 * 60 * 1000;
 const ALERT_DEDUP_TTL_SECONDS = 24 * 60 * 60;
+const CONCURRENCY_LIMIT = 8;
+
+/**
+ * Chạy các tác vụ async theo nhóm song song có giới hạn (concurrency pool) để
+ * tránh gọi API ngoài/DB tuần tự gây timeout, đồng thời không spam request.
+ */
+async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
+  let cursor = 0;
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor++;
+      await worker(items[index]);
+    }
+  });
+  await Promise.all(runners);
+}
 
 function getCronSecret(): string {
   const secret =
@@ -57,52 +73,76 @@ export async function POST(request: NextRequest): Promise<Response> {
     let skippedNoLocation = 0;
     let skippedUnavailable = 0;
 
-    for (const trip of trips) {
+    // Lấy toàn bộ thông tin chủ chuyến đi một lần thay vì query trong vòng lặp (tránh N+1).
+    const ownerIds = [...new Set(trips.map((t) => String(t.userId)).filter(Boolean))];
+    const owners = ownerIds.length ? await db.users.find({ _id: { $in: ownerIds }, deletedAt: null }) : [];
+    const ownerMap = new Map(owners.map((o) => [String(o._id), o]));
+
+    // Cache dự báo theo tọa độ để các chuyến đi cùng địa danh không gọi lại Open-Meteo.
+    const forecastCache = new Map<string, Promise<Awaited<ReturnType<typeof fetchDailyForecast>>>>();
+    const getForecast = (lat: number, lng: number) => {
+      const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+      let pending = forecastCache.get(key);
+      if (!pending) {
+        pending = fetchDailyForecast(lat, lng);
+        forecastCache.set(key, pending);
+      }
+      return pending;
+    };
+
+    const processTrip = async (trip: Trip): Promise<void> => {
       scanned++;
-      const tripId = String(trip._id);
+      // Cô lập lỗi từng chuyến đi để một trip lỗi không phá hỏng cả lượt cron.
+      try {
+        const tripId = String(trip._id);
 
-      const items = (await db.itineraryItems.find({ tripId })) as ItineraryItem[];
-      const placeIds = [...new Set(items.map((i) => String(i.placeId)).filter(Boolean))];
-      const places = placeIds.length ? ((await db.places.find({ _id: { $in: placeIds } })) as Place[]) : [];
-      const located = places.find((p) => typeof p.lat === 'number' && typeof p.lng === 'number');
-      if (!located) {
-        skippedNoLocation++;
-        continue;
+        const items = (await db.itineraryItems.find({ tripId })) as ItineraryItem[];
+        const placeIds = [...new Set(items.map((i) => String(i.placeId)).filter(Boolean))];
+        const places = placeIds.length ? ((await db.places.find({ _id: { $in: placeIds } })) as Place[]) : [];
+        const located = places.find((p) => typeof p.lat === 'number' && typeof p.lng === 'number');
+        if (!located) {
+          skippedNoLocation++;
+          return;
+        }
+
+        const forecast = await getForecast(located.lat, located.lng);
+        if (!forecast) {
+          skippedUnavailable++;
+          return;
+        }
+
+        const startDateKey = new Date(trip.startDate).toISOString().slice(0, 10);
+        const day = forecast.find((d) => d.date === startDateKey);
+        if (!day) return;
+
+        const owner = ownerMap.get(String(trip.userId)) ?? null;
+        const { alert, reasons } = evaluateWeatherAlert(day, owner?.weatherAlerts ?? null);
+        if (!alert) return;
+
+        const dedupKey = `weather_alert_sent:${tripId}:${startDateKey}`;
+        const already = await redis.get(dedupKey).catch(() => null);
+        if (already) return;
+
+        await db.notifications.insertOne({
+          userId: trip.userId,
+          title: 'Cảnh báo thời tiết cho chuyến đi',
+          content: `Chuyến đi "${trip.title}" (${startDateKey}): ${reasons.join('; ')}`,
+          type: 'WEATHER_ALERT',
+          isRead: false,
+          metadata: { tripId, date: startDateKey, reasons },
+          createdAt: now,
+        });
+
+        await sendWeatherAlertEmail(trip.title, startDateKey, reasons, owner?.email ?? null);
+
+        await redis.set(dedupKey, '1', 'EX', ALERT_DEDUP_TTL_SECONDS).catch(() => null);
+        alertsSent++;
+      } catch (error) {
+        console.error(`Lỗi khi xử lý cảnh báo thời tiết cho chuyến đi ${String(trip._id)}:`, error instanceof Error ? error.message : 'unknown');
       }
+    };
 
-      const forecast = await fetchDailyForecast(located.lat, located.lng);
-      if (!forecast) {
-        skippedUnavailable++;
-        continue;
-      }
-
-      const startDateKey = new Date(trip.startDate).toISOString().slice(0, 10);
-      const day = forecast.find((d) => d.date === startDateKey);
-      if (!day) continue;
-
-      const owner = await getUserById(String(trip.userId));
-      const { alert, reasons } = evaluateWeatherAlert(day, owner?.weatherAlerts ?? null);
-      if (!alert) continue;
-
-      const dedupKey = `weather_alert_sent:${tripId}:${startDateKey}`;
-      const already = await redis.get(dedupKey).catch(() => null);
-      if (already) continue;
-
-      await db.notifications.insertOne({
-        userId: trip.userId,
-        title: 'Cảnh báo thời tiết cho chuyến đi',
-        content: `Chuyến đi "${trip.title}" (${startDateKey}): ${reasons.join('; ')}`,
-        type: 'WEATHER_ALERT',
-        isRead: false,
-        metadata: { tripId, date: startDateKey, reasons },
-        createdAt: now,
-      });
-
-      await sendWeatherAlertEmail(trip.title, startDateKey, reasons, owner?.email ?? null);
-
-      await redis.set(dedupKey, '1', 'EX', ALERT_DEDUP_TTL_SECONDS).catch(() => null);
-      alertsSent++;
-    }
+    await runWithConcurrency(trips, CONCURRENCY_LIMIT, processTrip);
 
     return sendSuccess({ scanned, alertsSent, skippedNoLocation, skippedUnavailable });
   } catch (error) {

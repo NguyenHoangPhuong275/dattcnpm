@@ -282,12 +282,6 @@ export default function SearchHistorySection({ userId, trips }: SearchHistorySec
                       </span>
                       <span>•</span>
                       <span className="font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg)] px-1.5 py-0.5 rounded-md">{item.resultCount ?? 0} kết quả</span>
-                      {item.lat != null && item.lng != null && !isNaN(Number(item.lat)) && (
-                        <>
-                          <span>•</span>
-                          <span className="text-xs text-[var(--color-text-muted)] font-mono">Tọa độ: ({Number(item.lat).toFixed(2)}, {Number(item.lng).toFixed(2)})</span>
-                        </>
-                      )}
                     </div>
                   </div>
 

@@ -15,21 +15,16 @@ export async function GET(request: NextRequest): Promise<Response> {
     const { searchParams } = new URL(request.url);
     const page  = Math.max(1, parseInt(searchParams.get('page')  ?? '1', 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
-    const skip  = (page - 1) * limit;
 
     const db = await getDb();
 
-    const allFavs = (await db.favorites.find({ userId })) as FavoritePlace[];
-
-    const sortedFavs = allFavs
-      .sort((a, b) => {
-        const da = new Date(a.createdAt ?? 0).getTime();
-        const dateB = new Date(b.createdAt ?? 0).getTime();
-        return dateB - da;
-      });
-
-    const total = sortedFavs.length;
-    const items = sortedFavs.slice(skip, skip + limit);
+    // Phân trang, sắp xếp tại MongoDB thay vì in-memory để tránh tải toàn bộ bản ghi.
+    const paged = await db.favorites.findPaginated(
+      { userId },
+      { page, limit, sortBy: 'createdAt', sortOrder: -1 }
+    );
+    const total = paged.total;
+    const items = paged.data as FavoritePlace[];
 
     const placeIds = items
       .map((f) => f.placeId)

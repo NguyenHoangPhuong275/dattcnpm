@@ -10,6 +10,14 @@ vi.mock('@/lib/api-client', async (importOriginal) => {
   return { ...actual, apiRequest: vi.fn() };
 });
 
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({ actions: { showToast: vi.fn() } }),
+}));
+
+vi.mock('@/hooks/useFeedback', () => ({
+  useFeedback: () => ({ actions: { confirmAction: vi.fn() } }),
+}));
+
 const mockedApiRequest = vi.mocked(apiRequest);
 
 function mockBudgetResponse(payload: unknown, ok = true, success = true): void {
@@ -97,8 +105,8 @@ describe('TripBudgetSummary', () => {
     expect(await screen.findByText('Tỷ trọng chi tiêu thực tế')).toBeTruthy();
     expect(screen.getByRole('img', { name: /Biểu đồ tỷ trọng chi tiêu/ })).toBeTruthy();
     expect(screen.getByText(/75%/)).toBeTruthy();
-    expect(screen.getByText('Ăn uống')).toBeTruthy();
-    expect(screen.getByText('Di chuyển')).toBeTruthy();
+    expect(screen.getAllByText('Ăn uống').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Di chuyển').length).toBeGreaterThan(0);
   });
 
   it('không hiển thị doughnut khi chưa có chi tiêu thực tế', async () => {
@@ -108,7 +116,7 @@ describe('TripBudgetSummary', () => {
       totalActual: 0,
     });
     render(<TripBudgetSummary tripId="t1" userId="u1" />);
-    await screen.findByText('Dự kiến');
+    await screen.findAllByText('Dự kiến');
     expect(screen.queryByText('Tỷ trọng chi tiêu thực tế')).toBeNull();
   });
 

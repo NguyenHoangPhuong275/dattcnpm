@@ -11,9 +11,26 @@ export const hotelSearchSchema = z
     page: z.coerce.number().int().min(1).optional(),
     priceLevel: z.enum(['budget', 'mid', 'luxury']).optional(),
     minRating: z.coerce.number().min(0).max(5).optional(),
+    radiusKm: z.coerce.number().min(0.5).max(50).optional(),
+    amenities: z
+      .string()
+      .trim()
+      .max(200)
+      .optional()
+      .transform((value) =>
+        value
+          ? [...new Set(value.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean))]
+          : undefined
+      ),
+    sort: z.enum(['relevance', 'rating', 'distance']).optional(),
+    featured: z
+      .union([z.literal('1'), z.literal('true'), z.boolean()])
+      .optional()
+      .transform((value) => value === '1' || value === 'true' || value === true),
   })
   .refine(
     (data) =>
+      data.featured === true ||
       Boolean(data.destination) ||
       Boolean(data.province) ||
       (typeof data.lat === 'number' && typeof data.lng === 'number'),

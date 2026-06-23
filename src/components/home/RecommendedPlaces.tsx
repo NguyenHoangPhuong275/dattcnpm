@@ -135,8 +135,8 @@ function PlaceCard({ place }: { place: RecommendedPlace }): React.JSX.Element {
       </div>
       {place.ratingCount > 0 && (
         <div className="mt-3 text-sm font-bold text-[var(--color-primary-darker)]">
-          ★ {place.ratingAvg.toFixed(1)}
-          <span className="ml-1 font-medium text-[var(--color-text-muted)]">({place.ratingCount})</span>
+          {place.ratingAvg.toFixed(1)} sao
+          <span className="ml-1 font-medium text-[var(--color-text-muted)]">({place.ratingCount} đánh giá)</span>
         </div>
       )}
     </Link>

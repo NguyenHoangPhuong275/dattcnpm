@@ -142,7 +142,14 @@ function extractToken(request: NextRequest): string | null {
   if (!token) {
     const cookieHeader = request.headers.get('cookie') ?? '';
     const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE}=([^;]+)`));
-    token = match ? decodeURIComponent(match[1]) : null;
+    if (match) {
+      try {
+        token = decodeURIComponent(match[1]);
+      } catch {
+        // Cookie chứa ký tự % không hợp lệ → coi như không có token thay vì crash 500.
+        token = null;
+      }
+    }
   }
 
   if (!token) {

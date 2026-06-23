@@ -5,6 +5,7 @@ import type {
   Trip as PlainTrip,
   Place as PlainPlace,
   Hotel as PlainHotel,
+  HotelReview as PlainHotelReview,
   ItineraryItem as PlainItineraryItem,
   FavoritePlace as PlainFavoritePlace,
   Review as PlainReview,
@@ -27,6 +28,7 @@ import {
   Trip,
   Place,
   Hotel,
+  HotelReview,
   Review,
   ItineraryItem,
   FavoritePlace,
@@ -78,6 +80,7 @@ export type AppDatabase = {
   trips: ReturnType<typeof createCollection<PlainTrip>>;
   places: ReturnType<typeof createCollection<PlainPlace>>;
   hotels: ReturnType<typeof createCollection<PlainHotel>>;
+  hotelReviews: ReturnType<typeof createCollection<PlainHotelReview>>;
   itineraryItems: ReturnType<typeof createCollection<PlainItineraryItem>>;
   favorites: ReturnType<typeof createCollection<PlainFavoritePlace>>;
   reviews: ReturnType<typeof createCollection<PlainReview>>;
@@ -105,6 +108,7 @@ export async function getDb(): Promise<AppDatabase> {
       trips: createCollection<PlainTrip>(Trip),
       places: createCollection<PlainPlace>(Place),
       hotels: createCollection<PlainHotel>(Hotel),
+      hotelReviews: createCollection<PlainHotelReview>(HotelReview),
       itineraryItems: createCollection<PlainItineraryItem>(ItineraryItem),
       favorites: createCollection<PlainFavoritePlace>(FavoritePlace),
       reviews: createCollection<PlainReview>(Review),

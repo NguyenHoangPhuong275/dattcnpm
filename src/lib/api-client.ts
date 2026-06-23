@@ -10,7 +10,13 @@ export type ApiEnvelope<T = unknown> = {
   error?: string | { message?: string } | null;
 };
 
-export function getApiErrorMessage(payload: unknown, fallback: string): string {
+// Việt hóa các thông báo kỹ thuật từ backend để không lộ chuỗi tiếng Anh cho người dùng.
+const FRIENDLY_MESSAGES: Record<string, string> = {
+  'Missing authorization credentials or user is locked':
+    'Phiên đăng nhập đã hết hạn hoặc tài khoản bị khóa. Vui lòng đăng nhập lại.',
+};
+
+function resolveRawMessage(payload: unknown, fallback: string): string {
   if (!payload) return fallback;
   if (payload instanceof Error) return payload.message || fallback;
 
@@ -22,6 +28,11 @@ export function getApiErrorMessage(payload: unknown, fallback: string): string {
   if (typeof data.message === 'string') return data.message;
 
   return fallback;
+}
+
+export function getApiErrorMessage(payload: unknown, fallback: string): string {
+  const raw = resolveRawMessage(payload, fallback);
+  return FRIENDLY_MESSAGES[raw] ?? raw;
 }
 
 export function isAbortError(error: unknown): boolean {

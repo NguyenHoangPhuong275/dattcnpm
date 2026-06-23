@@ -49,6 +49,11 @@ interface HotelDoc {
   rating: number | null;
   priceLevel: 'budget' | 'mid' | 'luxury' | null;
   tags: string[];
+  images: string[];
+  phone: string | null;
+  website: string | null;
+  amenities: string[];
+  location: { type: 'Point'; coordinates: [number, number] } | null;
   source: string;
 }
 
@@ -77,6 +82,48 @@ function priceLevelFromStars(stars: number | null): 'budget' | 'mid' | 'luxury' 
   return 'budget';
 }
 
+function commonsFileUrl(fileName: string): string {
+  const clean = fileName.replace(/^File:/i, '').trim().replace(/ /g, '_');
+  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(clean)}`;
+}
+
+function extractImages(tags: Record<string, string>): string[] {
+  const images: string[] = [];
+  const commons = tags['wikimedia_commons'];
+  if (commons && /^File:/i.test(commons)) {
+    images.push(commonsFileUrl(commons));
+  }
+  const image = tags['image'];
+  if (image) {
+    if (/^https?:\/\//i.test(image)) {
+      images.push(image.replace(/^http:\/\//i, 'https://'));
+    } else if (/^File:/i.test(image)) {
+      images.push(commonsFileUrl(image));
+    }
+  }
+  return [...new Set(images)];
+}
+
+function extractContact(tags: Record<string, string>): { phone: string | null; website: string | null } {
+  const phone = tags['phone'] || tags['contact:phone'] || tags['contact:mobile'] || null;
+  const website = tags['website'] || tags['contact:website'] || tags['url'] || null;
+  return { phone: phone?.trim() || null, website: website?.trim() || null };
+}
+
+function extractAmenities(tags: Record<string, string>): string[] {
+  const amenities: string[] = [];
+  const yes = (value?: string): boolean => value === 'yes' || value === 'wlan' || value === 'wifi' || value === 'included' || value === 'free';
+  if (yes(tags['internet_access']) || yes(tags['internet_access:wlan']) || yes(tags['wifi'])) amenities.push('wifi');
+  if (yes(tags['air_conditioning'])) amenities.push('ac');
+  if (yes(tags['swimming_pool']) || tags['leisure'] === 'swimming_pool') amenities.push('pool');
+  if (yes(tags['parking']) || tags['parking'] === 'surface' || tags['parking'] === 'underground') amenities.push('parking');
+  if (yes(tags['restaurant'])) amenities.push('restaurant');
+  if (yes(tags['bar'])) amenities.push('bar');
+  if (yes(tags['breakfast'])) amenities.push('breakfast');
+  if (yes(tags['wheelchair'])) amenities.push('wheelchair');
+  return [...new Set(amenities)];
+}
+
 function buildAddress(tags: Record<string, string>): string | null {
   const parts = [tags['addr:housenumber'], tags['addr:street'], tags['addr:ward'], tags['addr:district'], tags['addr:city']]
     .filter(Boolean);
@@ -103,6 +150,7 @@ async function fetchHotels(hub: ProvinceHub, radius: number): Promise<HotelDoc[]
     const lat = typeof el.lat === 'number' ? el.lat : el.center?.lat ?? null;
     const lng = typeof el.lon === 'number' ? el.lon : el.center?.lon ?? null;
     const stars = tags.stars && /^\d+$/.test(tags.stars) ? Number(tags.stars) : null;
+    const { phone, website } = extractContact(tags);
     docs.push({
       osmId: `${el.type}/${el.id}`,
       name,
@@ -115,6 +163,11 @@ async function fetchHotels(hub: ProvinceHub, radius: number): Promise<HotelDoc[]
       rating: stars,
       priceLevel: priceLevelFromStars(stars),
       tags: [tags.tourism || 'hotel'],
+      images: extractImages(tags),
+      phone,
+      website,
+      amenities: extractAmenities(tags),
+      location: typeof lat === 'number' && typeof lng === 'number' ? { type: 'Point', coordinates: [lng, lat] } : null,
       source: 'osm',
     });
   }
@@ -155,11 +208,12 @@ async function main(): Promise<void> {
   const missingDistrict = unique.filter((doc) => !doc.district).length;
   const missingCoords = unique.filter((doc) => doc.lat === null || doc.lng === null).length;
   const missingRating = unique.filter((doc) => doc.rating === null).length;
+  const withImages = unique.filter((doc) => doc.images.length > 0).length;
 
   console.log('--- Tổng kết coverage ---');
   console.log(`Khách sạn lấy được (có tên/hợp lệ): ${collected.length}`);
   console.log(`Sau loại trùng osmId: ${unique.length}`);
-  console.log(`Thiếu district: ${missingDistrict} | Thiếu tọa độ: ${missingCoords} | Thiếu rating: ${missingRating}`);
+  console.log(`Thiếu district: ${missingDistrict} | Thiếu tọa độ: ${missingCoords} | Thiếu rating: ${missingRating} | Có ảnh: ${withImages}`);
   console.log(`Số tỉnh lỗi: ${errorCount}`);
 
   if (!doImport) {

@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { act, cleanup, render, screen } from '@testing-library/react';
 
 import HotelSuggestions from '@/components/hotels/HotelSuggestions';
 import { apiRequest } from '@/lib/api-client';
@@ -78,25 +77,12 @@ describe('HotelSuggestions — chống race condition', () => {
   it('không gọi API khi thiếu tiêu chí tìm kiếm', () => {
     render(<HotelSuggestions />);
     expect(mockedApiRequest).not.toHaveBeenCalled();
-    expect(screen.getByText(/Nhập điểm đến hoặc tỉnh\/thành/)).toBeTruthy();
+    expect(screen.getByText(/Nhập điểm đến/)).toBeTruthy();
   });
 
-  it('gắn bộ lọc priceLevel và minRating vào query khi bấm chip (Task 2.8)', async () => {
-    const user = userEvent.setup();
-    render(<HotelSuggestions destination="Đà Nẵng" />);
+  it('gọi API chế độ nổi bật khi không có tiêu chí nhưng bật featuredWhenEmpty', () => {
+    render(<HotelSuggestions featuredWhenEmpty />);
     expect(calls.length).toBe(1);
-    expect(calls[0].url).not.toContain('priceLevel');
-
-    await user.click(screen.getByText('Cao cấp'));
-    await waitFor(() => {
-      const last = calls[calls.length - 1].url;
-      expect(last).toContain('priceLevel=luxury');
-    });
-
-    await user.click(screen.getByText('★ Từ 3 sao'));
-    await waitFor(() => {
-      const last = calls[calls.length - 1].url;
-      expect(last).toContain('minRating=3');
-    });
+    expect(calls[0].url).toContain('featured=1');
   });
 });

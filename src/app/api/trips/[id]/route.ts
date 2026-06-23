@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createAuditLog, findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
+import { getTripForView, getTripForEdit } from '@/lib/trip-permission';
 import { updateTripSchema } from '@/lib/validations/trip';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -23,10 +24,7 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
     const { id } = await ctx.params;
     objectIdSchema.parse(id);
 
-    const trip = await findOwnedTrip(id, userId);
-    if (!trip) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
+    const trip = await getTripForView(id, userId);
 
     return sendSuccess(toTripResponse(trip));
   } catch (error) {
@@ -54,10 +52,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     const { id } = await ctx.params;
     objectIdSchema.parse(id);
 
-    const existing = await findOwnedTrip(id, userId);
-    if (!existing) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-    }
+    const existing = await getTripForEdit(id, userId);
 
     const body = await request.json().catch(() => ({}));
     const parsed = updateTripSchema.parse(body);

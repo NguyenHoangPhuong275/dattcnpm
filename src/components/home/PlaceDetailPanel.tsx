@@ -90,7 +90,7 @@ export default function PlaceDetailPanel({
                 <button
                   type="button"
                   aria-label={`Thêm ${selectedPlace.name} vào lịch trình`}
-                  onClick={() => onOpenAddToTripModal(selectedPlace)}
+                  onClick={() => (isLoggedIn ? onOpenAddToTripModal(selectedPlace) : onLogin())}
                   className="inline-flex min-h-10 items-center rounded-2xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]"
                 >
                   + Thêm vào lịch trình

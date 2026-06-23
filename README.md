@@ -182,7 +182,13 @@ npx tsx scripts/import-hotels-osm.ts --import --radius=10000        # bán kính
 npx tsx scripts/import-hotels-osm.ts --import --limit=200           # giới hạn số khách sạn/tỉnh, clamp 1–5000
 ```
 
-Mặc định là dry-run (không ghi DB). Upsert theo `osmId` nên chạy lại an toàn. Lỗi mạng/Overpass 429/504 được bỏ qua từng tỉnh, không làm hỏng các tỉnh khác. Mỗi lần chạy in tổng kết coverage: số lấy được, sau loại trùng, số thiếu district/tọa độ/rating, số tỉnh lỗi (và số upsert/cập nhật nếu `--import`). API `/api/hotels/search` (query `destination`/`province`/`district`/`lat`/`lng`/`limit`) match khách sạn theo khu vực, không trả sai tỉnh khi đã rõ tỉnh.
+Mặc định là dry-run (không ghi DB). Upsert theo `osmId` nên chạy lại an toàn. Lỗi mạng/Overpass 429/504 được bỏ qua từng tỉnh, không làm hỏng các tỉnh khác. Mỗi lần chạy in tổng kết coverage: số lấy được, sau loại trùng, số thiếu district/tọa độ/rating, số có ảnh, số tỉnh lỗi (và số upsert/cập nhật nếu `--import`). API `/api/hotels/search` (query `destination`/`province`/`district`/`lat`/`lng`/`limit`) match khách sạn theo khu vực, không trả sai tỉnh khi đã rõ tỉnh. Import cũng lấy tag `image`/`wikimedia_commons` của OSM làm ảnh thật (độ phủ thấp ~1%); khách sạn không có ảnh OSM dùng ảnh đại diện từ bộ ảnh khách sạn Unsplash (`src/data/hotel-photos.ts`, gán cố định theo id, hotlink free) — fallback gradient nếu ảnh lỗi tải.
+
+### Trang chi tiết khách sạn + đánh giá
+
+`/hotels/[id]` hiển thị chi tiết một khách sạn (gallery, địa chỉ, Google Maps), **đánh giá thật do người dùng app viết** và "Khách sạn khác cùng tỉnh".
+
+Review là user-generated (collection `hotel_reviews`): người dùng đăng nhập tự chấm sao (1–5) + viết nhận xét, mỗi người 1 đánh giá/khách sạn (sửa/xoá được của mình). Trang hiển thị điểm trung bình, **phân bố theo từng mức sao (5★→1★) + lọc review theo sao**, và danh sách kèm tên người đánh giá + thời gian. API: `GET/POST /api/hotels/[id]/reviews`, `DELETE /api/hotels/[id]/reviews/[reviewId]`. Miễn phí, không cần key.
 
 ## API chính hiện có
 
@@ -201,6 +207,9 @@ Mặc định là dry-run (không ghi DB). Upsert theo `osmId` nên chạy lại
 | GET | `/api/places/search` | Tìm địa điểm bằng Nominatim/Overpass, Redis cache, rate limit |
 | GET | `/api/places/poi` | Tìm POI quanh tọa độ |
 | GET | `/api/hotels/search` | Tìm khách sạn theo khu vực (collection `hotels`), Redis cache, rate limit |
+| GET | `/api/hotels/[id]` | Chi tiết 1 khách sạn |
+| GET/POST | `/api/hotels/[id]/reviews` | Đánh giá thật của người dùng: liệt kê + tổng hợp + phân bố sao / đăng (upsert) |
+| DELETE | `/api/hotels/[id]/reviews/[reviewId]` | Xoá đánh giá của chính mình |
 | GET | `/api/weather` | Thời tiết Open-Meteo |
 | GET | `/api/trips` | Danh sách trip |
 | POST | `/api/trips` | Tạo trip |

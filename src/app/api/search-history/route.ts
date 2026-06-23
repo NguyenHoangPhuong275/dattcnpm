@@ -3,6 +3,7 @@ import { getAuthUserFull } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { searchHistoryCreateSchema } from '@/lib/validations/search';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { pruneSearchHistory } from '@/lib/search-history';
 
 function toHistoryResponse(item: Record<string, unknown>) {
   return {
@@ -25,11 +26,11 @@ export async function GET(request: NextRequest) {
     const userId = String(user._id ?? user.id);
 
     const db = await getDb();
-    const histories = await db.searchHistories.find({ userId });
-    const data = histories
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 50)
-      .map((item) => toHistoryResponse(item as unknown as Record<string, unknown>));
+    const histories = await db.searchHistories.find(
+      { userId },
+      { sortBy: 'createdAt', sortOrder: -1, limit: 50 }
+    );
+    const data = histories.map((item) => toHistoryResponse(item as unknown as Record<string, unknown>));
 
     return sendSuccess(data);
   } catch (error) {
@@ -59,15 +60,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
     });
 
-    const histories = await db.searchHistories.find({ userId });
-    const excessIds = histories
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(50)
-      .map((item) => item._id);
-
-    if (excessIds.length > 0) {
-      await db.searchHistories.deleteMany({ _id: { $in: excessIds } });
-    }
+    await pruneSearchHistory(db, userId);
 
     return sendSuccess(toHistoryResponse(created as unknown as Record<string, unknown>), 201);
   } catch (error) {

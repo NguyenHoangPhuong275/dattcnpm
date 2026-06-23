@@ -30,13 +30,10 @@ export async function GET(request: NextRequest) {
     const userId = String(user._id);
 
     const db = await getDb();
-    const reviews = await db.reviews.find({ userId, deletedAt: null });
-
-    reviews.sort((a: ReviewListItem, b: ReviewListItem) => {
-      const da = new Date(a.createdAt || 0).getTime();
-      const dbt = new Date(b.createdAt || 0).getTime();
-      return dbt - da;
-    });
+    const reviews = await db.reviews.find(
+      { userId, deletedAt: null },
+      { sortBy: 'createdAt', sortOrder: -1 }
+    );
 
     const placeIds = Array.from(
       new Set(reviews.map((review: ReviewListItem) => review.placeId).filter(Boolean))

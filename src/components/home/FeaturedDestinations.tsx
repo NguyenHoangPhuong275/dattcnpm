@@ -40,7 +40,7 @@ export default function FeaturedDestinations({ onSelect }: FeaturedDestinationsP
                 </h3>
                 <p className="mt-1 text-sm font-medium text-slate-500">{item.description}</p>
                 <span className="mt-2 inline-block text-xs font-semibold text-[var(--color-primary-darker)]">
-                  Chọn điểm đến →
+                  Chọn điểm đến
                 </span>
               </div>
             </button>

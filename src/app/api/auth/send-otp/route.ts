@@ -87,7 +87,10 @@ export async function POST(request: NextRequest) {
     const redis = getRedis();
     const rateLimitKey = `otp:limit:${normalizedEmail}`;
     const currentCount = await redis.incr(rateLimitKey);
-    await redis.expire(rateLimitKey, OTP_SEND_WINDOW_SECONDS);
+    // Chỉ đặt TTL khi key mới khởi tạo để tránh gia hạn vô hạn (sliding window).
+    if (currentCount === 1) {
+      await redis.expire(rateLimitKey, OTP_SEND_WINDOW_SECONDS);
+    }
 
     if (currentCount > OTP_SEND_LIMIT) {
       throw new AppError('RATE_LIMITED', 'Bạn đã gửi quá nhiều mã xác minh. Vui lòng thử lại sau 10 phút.', 429);

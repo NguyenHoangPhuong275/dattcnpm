@@ -17,6 +17,11 @@ export interface IHotel extends Document {
   rating?: number | null;
   priceLevel?: (typeof HOTEL_PRICE_LEVELS)[number] | null;
   tags?: string[] | null;
+  images?: string[] | null;
+  phone?: string | null;
+  website?: string | null;
+  amenities?: string[] | null;
+  location?: { type: 'Point'; coordinates: [number, number] } | null;
   source: string;
   createdAt: Date;
   updatedAt: Date;
@@ -34,10 +39,19 @@ export const HotelSchema = new Schema<IHotel>({
   rating: { type: Number, default: null },
   priceLevel: { type: String, enum: [...HOTEL_PRICE_LEVELS, null], default: null },
   tags: { type: [String], default: null },
+  images: { type: [String], default: null },
+  phone: { type: String, default: null },
+  website: { type: String, default: null },
+  amenities: { type: [String], default: [] },
+  location: {
+    type: { type: String, enum: ['Point'], default: undefined },
+    coordinates: { type: [Number], default: undefined },
+  },
   source: { type: String, default: 'osm' },
 }, { timestamps: true, collection: COLLECTIONS.hotels });
 
 HotelSchema.index({ provinceKey: 1 });
+HotelSchema.index({ location: '2dsphere' });
 HotelSchema.index(
   { osmId: 1 },
   { unique: true, partialFilterExpression: { osmId: { $type: 'string' } } }

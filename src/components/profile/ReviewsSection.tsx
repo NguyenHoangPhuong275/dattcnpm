@@ -3,7 +3,6 @@
 import { memo, useState } from 'react';
 import { MyReview } from '@/types/profile';
 import EmptyState from '@/components/ui/EmptyState';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate } from '@/lib/date';
 
 export type { MyReview };
@@ -53,9 +52,13 @@ const ReviewsSection = memo(({
   return (
     <div>
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-8 text-sm text-[var(--color-text-muted)]">
-          <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />
-          Đang tải đánh giá...
+        <div className="space-y-3" role="status" aria-label="Đang tải đánh giá">
+          {[0, 1, 2].map((row) => (
+            <div key={row} className="rounded-2xl border border-[var(--color-border)] p-4">
+              <div className="h-4 w-1/3 animate-pulse rounded bg-[var(--color-border)]" />
+              <div className="mt-3 h-3 w-2/3 animate-pulse rounded bg-[var(--color-border)]" />
+            </div>
+          ))}
         </div>
       ) : reviews.length > 0 ? (
         <div className="space-y-3">
@@ -69,7 +72,7 @@ const ReviewsSection = memo(({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-[var(--color-primary-dark)]">★ {review.rating}/5</span>
+                      <span className="rounded-md bg-[var(--color-primary-lightest)] px-1.5 py-0.5 text-xs font-bold text-[var(--color-primary-darker)]">{review.rating}/5</span>
                       <span className="text-sm text-[var(--color-text-muted)]">{formatDate(review.createdAt)}</span>
                     </div>
                     {review.place?.name && (

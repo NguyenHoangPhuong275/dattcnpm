@@ -92,7 +92,10 @@ export async function POST(request: NextRequest) {
     const redis = getRedis();
     const sendLimitKey = `otp:reset:limit:${normalizedEmail}`;
     const currentCount = await redis.incr(sendLimitKey);
-    await redis.expire(sendLimitKey, OTP_SEND_WINDOW_SECONDS);
+    // Chỉ đặt TTL khi key mới khởi tạo để tránh gia hạn vô hạn (sliding window).
+    if (currentCount === 1) {
+      await redis.expire(sendLimitKey, OTP_SEND_WINDOW_SECONDS);
+    }
     if (currentCount > OTP_SEND_LIMIT) {
       throw new AppError('RATE_LIMITED', 'Bạn đã yêu cầu quá nhiều mã. Vui lòng thử lại sau 15 phút.', 429);
     }

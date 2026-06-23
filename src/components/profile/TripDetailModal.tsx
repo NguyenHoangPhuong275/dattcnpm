@@ -16,7 +16,7 @@ import { usePlaceSearch, type SearchResult } from '@/hooks/usePlaceSearch';
 import TripChecklistSection from '@/components/trips/TripChecklistSection';
 import TripBudgetSummary from '@/components/trips/TripBudgetSummary';
 import TripCollaboratorsSection from '@/components/trips/TripCollaboratorsSection';
-import HotelSuggestions, { type HotelResult } from '@/components/hotels/HotelSuggestions';
+import TripAccommodationSection from '@/components/trips/TripAccommodationSection';
 
 interface TripDetailModalProps {
   trip: TripSummary | null;
@@ -377,37 +377,6 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     }
   };
 
-  const handleSelectHotel = async (hotel: HotelResult): Promise<void> => {
-    if (!trip || !userId) return;
-    const checkInDate = new Date(trip.startDate);
-    let checkOutDate = new Date(trip.endDate);
-    if (!(checkOutDate.getTime() > checkInDate.getTime())) {
-      checkOutDate = new Date(checkInDate.getTime() + 24 * 60 * 60 * 1000);
-    }
-    try {
-      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/accommodation`, {
-        method: 'POST',
-        userId,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: hotel.name,
-          address: hotel.address ?? undefined,
-          checkIn: checkInDate.toISOString(),
-          checkOut: checkOutDate.toISOString(),
-        }),
-      });
-      try {
-        ensureApiSuccess(response, data, 'Không thể lưu khách sạn vào chuyến đi');
-      } catch {
-        showToast(getApiErrorMessage(data, 'Không thể lưu khách sạn vào chuyến đi'), 'error');
-        return;
-      }
-      showToast('Đã lưu khách sạn vào chuyến đi', 'success');
-    } catch {
-      showToast('Không thể lưu khách sạn vào chuyến đi', 'error');
-    }
-  };
-
   if (!trip) return null;
 
   const scheduleBadge = getTripScheduleBadge(trip.startDate, trip.endDate);
@@ -761,8 +730,14 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
         <TripCollaboratorsSection tripId={trip._id} userId={userId} />
 
         <div className="border-t border-[var(--color-border)] pt-4 mt-6">
-          <div className="font-semibold text-sm text-[var(--color-text)] mb-3">Khách sạn gợi ý tại {trip.destination}</div>
-          <HotelSuggestions destination={trip.destination} limit={6} onSelect={handleSelectHotel} />
+          <div className="font-semibold text-sm text-[var(--color-text)] mb-3">Khách sạn</div>
+          <TripAccommodationSection
+            tripId={trip._id}
+            userId={userId}
+            destination={trip.destination}
+            startDate={trip.startDate}
+            endDate={trip.endDate}
+          />
         </div>
       </div>
     </div>

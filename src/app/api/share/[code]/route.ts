@@ -11,8 +11,7 @@ export async function GET(request: NextRequest, ctx: RouteContext) {
     const { code } = await ctx.params;
     const db = await getDb();
 
-    const shares = await db.tripShares.find({ shareCode: code, isActive: true });
-    const share = shares[0];
+    const share = await db.tripShares.findOne({ shareCode: code, isActive: true });
 
     if (!share) {
       throw new AppError('NOT_FOUND', 'Liên kết chia sẻ không tồn tại hoặc đã bị thu hồi', 404);

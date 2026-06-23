@@ -18,10 +18,10 @@ beforeAll(async () => {
   const db = await getDb();
   await db.hotels.deleteMany({ source: SOURCE });
   await db.hotels.insertMany([
-    { name: 'Mường Thanh Đà Nẵng', province: 'Đà Nẵng', provinceKey: 'da nang', district: 'Hải Châu', lat: 16.06, lng: 108.22, rating: 4, priceLevel: 'mid', source: SOURCE },
-    { name: 'Furama Resort', province: 'Đà Nẵng', provinceKey: 'da nang', district: 'Ngũ Hành Sơn', lat: 16.03, lng: 108.25, rating: 5, priceLevel: 'luxury', source: SOURCE },
-    { name: 'Vinpearl Hạ Long', province: 'Quảng Ninh', provinceKey: 'quang ninh', district: 'Hạ Long', lat: 20.94, lng: 107.08, rating: 4, priceLevel: 'luxury', source: SOURCE },
-    { name: 'Khách sạn Sài Gòn', province: 'TP. Hồ Chí Minh', provinceKey: 'tp ho chi minh', district: 'Quận 1', lat: 10.77, lng: 106.7, rating: 3, priceLevel: 'budget', source: SOURCE },
+    { name: 'Mường Thanh Đà Nẵng', province: 'Đà Nẵng', provinceKey: 'da nang', district: 'Hải Châu', lat: 16.06, lng: 108.22, rating: 4, priceLevel: 'mid', amenities: ['wifi', 'pool'], location: { type: 'Point', coordinates: [108.22, 16.06] }, source: SOURCE },
+    { name: 'Furama Resort', province: 'Đà Nẵng', provinceKey: 'da nang', district: 'Ngũ Hành Sơn', lat: 16.03, lng: 108.25, rating: 5, priceLevel: 'luxury', amenities: ['wifi', 'pool', 'bar'], location: { type: 'Point', coordinates: [108.25, 16.03] }, source: SOURCE },
+    { name: 'Vinpearl Hạ Long', province: 'Quảng Ninh', provinceKey: 'quang ninh', district: 'Hạ Long', lat: 20.94, lng: 107.08, rating: 4, priceLevel: 'luxury', amenities: ['wifi'], location: { type: 'Point', coordinates: [107.08, 20.94] }, source: SOURCE },
+    { name: 'Khách sạn Sài Gòn', province: 'TP. Hồ Chí Minh', provinceKey: 'tp ho chi minh', district: 'Quận 1', lat: 10.77, lng: 106.7, rating: 3, priceLevel: 'budget', amenities: ['parking'], location: { type: 'Point', coordinates: [106.7, 10.77] }, source: SOURCE },
   ]);
 });
 
@@ -120,5 +120,49 @@ describe('GET /api/hotels/search', () => {
       expect(Number.isNaN(hotel.lat)).toBe(false);
       expect(hotel.rating === null || typeof hotel.rating === 'number').toBe(true);
     }
+  });
+
+  it('lọc amenities=pool,wifi chỉ trả khách sạn có đủ cả hai', async () => {
+    const res = await hotelSearchGET(req('?destination=' + encodeURIComponent('Đà Nẵng') + '&amenities=pool,wifi'));
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.data.length).toBe(2);
+    expect(body.data.data.every((h: { amenities: string[] }) => h.amenities.includes('pool') && h.amenities.includes('wifi'))).toBe(true);
+  });
+
+  it('lọc amenities=bar chỉ trả Furama', async () => {
+    const res = await hotelSearchGET(req('?destination=' + encodeURIComponent('Đà Nẵng') + '&amenities=bar'));
+    const body = await res.json();
+    expect(body.data.data.length).toBe(1);
+    expect(body.data.data[0].name).toBe('Furama Resort');
+  });
+
+  it('sort=rating xếp khách sạn điểm cao trước', async () => {
+    const res = await hotelSearchGET(req('?destination=' + encodeURIComponent('Đà Nẵng') + '&sort=rating'));
+    const body = await res.json();
+    expect(body.data.data[0].name).toBe('Furama Resort');
+    expect(body.data.data[0].rating).toBeGreaterThanOrEqual(body.data.data[1].rating);
+  });
+
+  it('tìm theo bán kính (geo) chỉ trả khách sạn trong vùng + có distanceKm', async () => {
+    const res = await hotelSearchGET(req('?lat=16.05&lng=108.22&radiusKm=12'));
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.matchedBy).toBe('geo');
+    const names = body.data.data.map((h: { name: string }) => h.name);
+    expect(names).toContain('Mường Thanh Đà Nẵng');
+    expect(names).toContain('Furama Resort');
+    expect(names).not.toContain('Vinpearl Hạ Long');
+    expect(names).not.toContain('Khách sạn Sài Gòn');
+    expect(typeof body.data.data[0].distanceKm).toBe('number');
+    expect(body.data.data[0].distanceKm).toBeLessThanOrEqual(body.data.data[1].distanceKm);
+  });
+
+  it('bán kính nhỏ quanh Hạ Long chỉ trả Vinpearl Hạ Long', async () => {
+    const res = await hotelSearchGET(req('?lat=20.94&lng=107.08&radiusKm=5'));
+    const body = await res.json();
+    expect(body.data.matchedBy).toBe('geo');
+    expect(body.data.data.length).toBe(1);
+    expect(body.data.data[0].name).toBe('Vinpearl Hạ Long');
   });
 });
