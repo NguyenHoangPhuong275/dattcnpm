@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apiRequest, ensureApiSuccess } from '@/lib/api-client';
-import { getHotelPhoto } from '@/lib/hotel-utils';
+import { getHotelPhoto, estimateHotelPricePerNight, formatHotelPrice } from '@/lib/hotel-utils';
 import HotelImage from '@/components/hotels/HotelImage';
 
 export interface HotelResult {
@@ -252,6 +252,10 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
                 {hotel.address && (
                   <div className="text-xs text-[var(--color-text-muted)] break-words">{hotel.address}</div>
                 )}
+                <div className="mt-1 text-sm font-bold text-[var(--color-primary-darker)]">
+                  ~{formatHotelPrice(estimateHotelPricePerNight(hotel.priceLevel, hotel.rating, hotel.id))}
+                  <span className="text-[11px] font-normal text-[var(--color-text-muted)]"> /đêm · ước tính</span>
+                </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1">
                   {hotel.priceLevel && (
                     <span className="rounded-full bg-[var(--color-primary-lightest)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-primary-darker)]">

@@ -237,8 +237,7 @@ async function recordSearchHistory(userId: string | null, query: string, resultC
       createdAt: new Date(),
     });
     await pruneSearchHistory(db, userId);
-  } catch (error) {
-    console.error('Lỗi khi ghi lại lịch sử tìm kiếm:', error);
+  } catch {
     return;
   }
 }
@@ -594,8 +593,7 @@ export async function GET(request: NextRequest): Promise<Response> {
             cached: true
           });
         }
-      } catch (error) {
-        console.error('Lỗi phân tích cú pháp cache tìm kiếm địa điểm:', error);
+      } catch {
         await cacheSet(cacheKey, JSON.stringify([]), 1);
       }
     }
@@ -616,8 +614,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       if (cachedPois) {
         try {
           rawPois = JSON.parse(cachedPois);
-        } catch (error) {
-          console.error('Lỗi phân tích cú pháp POI từ cache:', error);
+        } catch {
           rawPois = [];
         }
       } else {
@@ -636,9 +633,7 @@ export async function GET(request: NextRequest): Promise<Response> {
               .filter((poi): poi is RawPoi => poi !== null);
             await cacheSet(poiCacheKey, JSON.stringify(rawPois), 43200);
           }
-        } catch (error) {
-          console.error('Lỗi khi fetch địa điểm từ Overpass:', error);
-        }
+        } catch {}
       }
 
       for (const poi of sortRawPoisByLocationName(rawPois, mainLocationName)) {

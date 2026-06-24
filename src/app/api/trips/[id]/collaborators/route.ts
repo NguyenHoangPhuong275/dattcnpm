@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
       tripId: id,
       collaboratorId: inviteeId,
       permission: parsed.permission,
-    }).catch((err) => console.error('Lỗi khi ghi audit log ADD_COLLABORATOR:', err));
+    }).catch(() => {});
 
     return sendSuccess(
       { userId: inviteeId, permission: parsed.permission },

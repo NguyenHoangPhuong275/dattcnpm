@@ -306,7 +306,10 @@ export async function POST(request: NextRequest) {
       }
 
       case 'system.users': {
-        const users = (await db.users.find()).map((u) => ({
+        const users = (await db.users.find(
+          { deletedAt: null },
+          { projection: { _id: 1, email: 1, fullName: 1, role: 1, isLocked: 1, emailVerified: 1, createdAt: 1 } }
+        )).map((u) => ({
           _id: u._id,
           email: u.email,
           fullName: u.fullName,

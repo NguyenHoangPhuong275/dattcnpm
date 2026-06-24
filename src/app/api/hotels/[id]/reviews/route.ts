@@ -125,7 +125,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     await createAuditLog(userId, existing ? 'UPDATE_HOTEL_REVIEW' : 'CREATE_HOTEL_REVIEW', 'HOTEL_REVIEW', saved._id, {
       hotelId: id,
       rating: parsed.rating,
-    }).catch((err) => console.error('Lỗi khi ghi audit log HOTEL_REVIEW:', err));
+    }).catch(() => {});
 
     return sendSuccess({ id: String(saved._id) }, undefined, existing ? 200 : 201);
   } catch (error) {

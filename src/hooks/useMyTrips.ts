@@ -28,7 +28,7 @@ export interface UseMyTripsReturn {
   creating: boolean;
   actions: {
     loadTrips: (uid?: string) => Promise<void>;
-    createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string }>;
+    createTrip: (payload: CreateTripPayload) => Promise<{ success: boolean; message?: string; trip?: TripSummary }>;
     deleteTrip: (id: string) => Promise<void>;
     setTrips: Dispatch<SetStateAction<TripSummary[]>>;
   };
@@ -40,7 +40,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
 
   const creating = createStatus === 'loading';
 
-  const createTrip = useCallback(async (payload: CreateTripPayload): Promise<{ success: boolean; message?: string }> => {
+  const createTrip = useCallback(async (payload: CreateTripPayload): Promise<{ success: boolean; message?: string; trip?: TripSummary }> => {
     if (!userId) return { success: false, message: 'No user' };
 
     const trimmedTitle = payload.title.trim();
@@ -91,7 +91,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
           return [createdTrip, ...prev];
         });
         setCreateStatus('success');
-        return { success: true };
+        return { success: true, trip: createdTrip };
       }
 
       setCreateStatus('error');

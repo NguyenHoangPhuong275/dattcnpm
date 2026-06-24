@@ -90,7 +90,7 @@ export function useHomepageTripActions({
     }
   }, [loadMyTrips, selectedPlace, userId]);
 
-  const addSelectedPlaceToTrip = useCallback(async (tripId: string): Promise<boolean> => {
+  const addSelectedPlaceToTrip = useCallback(async (tripId: string, focusHotel = false): Promise<boolean> => {
     if (!userId || !selectedPlace) return false;
     if (tripActionStatus === 'loading') return false;
 
@@ -123,7 +123,7 @@ export function useHomepageTripActions({
       }
 
       setTripActionStatus('success');
-      router.push(`${ROUTES.scheduleReference}/${tripId}`);
+      router.push(`${ROUTES.scheduleReference}/${tripId}${focusHotel ? '?focus=hotel' : ''}`);
       return true;
     } catch {
       setTripActionMessage('Không thể thêm địa điểm vào chuyến đi lúc này');
@@ -172,7 +172,7 @@ export function useHomepageTripActions({
         return;
       }
 
-      await addSelectedPlaceToTrip(data.data._id);
+      await addSelectedPlaceToTrip(data.data._id, true);
     } catch {
       setTripActionMessage('Không thể tạo lịch trình lúc này');
       setTripActionStatus('error');

@@ -158,8 +158,7 @@ export async function checkRateLimit(options: RateLimitOptions): Promise<{ limit
       limit,
       fallback: false,
     };
-  } catch (error) {
-    console.error('Lỗi khi kiểm tra rate limit từ Redis, chuyển sang bộ nhớ đệm dự phòng:', error);
+  } catch {
     const now = Date.now();
     const current = memoryLimits.get(key);
 

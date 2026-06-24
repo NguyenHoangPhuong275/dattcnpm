@@ -7,20 +7,37 @@ let redisClient: Redis | null = null;
 function getRedisClient(): Redis {
   if (!redisClient) {
     const redisUrl = env.REDIS_URL;
+    const isTest = process.env.NODE_ENV === 'test';
     redisClient = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: isTest ? 3 : 2,
       lazyConnect: true,
+      // Redis trục trặc (mất kết nối, hết slot) thì fail nhanh thay vì treo request.
+      // Không áp ở test để hành vi Redis trong test giữ nguyên (tránh false timeout).
+      ...(isTest ? {} : { connectTimeout: 3000, commandTimeout: 3000 }),
     });
 
-    redisClient.on('error', (error) => {
-      console.error('[redis] connection error:', error);
-    });
+    redisClient.on('error', () => {});
   }
   return redisClient;
 }
 
 export function getRedis(): Redis {
   return getRedisClient();
+}
+
+// Circuit breaker: khi Redis lỗi, mở mạch trong một khoảng để các request sau bỏ qua
+// Redis (fail-fast) thay vì chờ timeout lặp lại — giữ app phản hồi nhanh khi Redis hỏng.
+const CIRCUIT_COOLDOWN_MS = 15000;
+let circuitOpenUntil = 0;
+
+export function redisCircuitOpen(): boolean {
+  if (process.env.NODE_ENV === 'test') return false;
+  return Date.now() < circuitOpenUntil;
+}
+
+function tripCircuit(): void {
+  if (process.env.NODE_ENV === 'test') return;
+  circuitOpenUntil = Date.now() + CIRCUIT_COOLDOWN_MS;
 }
 
 export async function connectRedis(): Promise<'connected'> {
@@ -39,17 +56,30 @@ export async function disconnectRedis(): Promise<void> {
   }
 }
 
+// Cache là best-effort: Redis trục trặc (mất kết nối, hết slot...) thì coi như cache miss,
+// không để request bị 500.
 export async function cacheGet(key: string): Promise<string | null> {
-  const client = getRedisClient();
-  return client.get(key);
+  if (redisCircuitOpen()) return null;
+  try {
+    const client = getRedisClient();
+    return await client.get(key);
+  } catch {
+    tripCircuit();
+    return null;
+  }
 }
 
 export async function cacheSet(key: string, value: string, ttlSeconds = 3600): Promise<'OK'> {
-  const client = getRedisClient();
-  if (ttlSeconds > 0) {
-    await client.set(key, value, 'EX', ttlSeconds);
-  } else {
-    await client.set(key, value);
+  if (redisCircuitOpen()) return 'OK';
+  try {
+    const client = getRedisClient();
+    if (ttlSeconds > 0) {
+      await client.set(key, value, 'EX', ttlSeconds);
+    } else {
+      await client.set(key, value);
+    }
+  } catch {
+    tripCircuit();
   }
   return 'OK';
 }
@@ -63,9 +93,15 @@ return current
 `;
 
 export async function rateLimitIncr(key: string, windowSeconds = 900): Promise<number> {
-  const client = getRedisClient();
-  const count = await client.eval(RATE_LIMIT_INCR_LUA, 1, key, String(windowSeconds));
-  return typeof count === 'number' ? count : Number(count ?? 0);
+  if (redisCircuitOpen()) throw new Error('redis circuit open');
+  try {
+    const client = getRedisClient();
+    const count = await client.eval(RATE_LIMIT_INCR_LUA, 1, key, String(windowSeconds));
+    return typeof count === 'number' ? count : Number(count ?? 0);
+  } catch (error) {
+    tripCircuit();
+    throw error;
+  }
 }
 
 export async function blacklistToken(jti: string, ttlSeconds: number): Promise<'OK'> {
@@ -75,9 +111,15 @@ export async function blacklistToken(jti: string, ttlSeconds: number): Promise<'
 }
 
 export async function isTokenBlacklisted(jti: string): Promise<boolean> {
-  const client = getRedisClient();
-  const val = await client.get(`blacklist:${jti}`);
-  return val === '1';
+  if (redisCircuitOpen()) return false;
+  try {
+    const client = getRedisClient();
+    const val = await client.get(`blacklist:${jti}`);
+    return val === '1';
+  } catch {
+    tripCircuit();
+    return false;
+  }
 }
 
 function otpKey(email: string): string {

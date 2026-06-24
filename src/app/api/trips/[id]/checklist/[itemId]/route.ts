@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     await createAuditLog(userId, 'UPDATE_CHECKLIST_ITEM', 'TRIP_CHECKLIST', itemId, {
       tripId: id,
       fields: Object.keys(updates),
-    }).catch((err) => console.error('Lỗi khi ghi audit log UPDATE_CHECKLIST_ITEM:', err));
+    }).catch(() => {});
 
     return sendSuccess(toChecklistResponse(updated));
   } catch (error) {
@@ -101,7 +101,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     }
 
     await createAuditLog(userId, 'DELETE_CHECKLIST_ITEM', 'TRIP_CHECKLIST', itemId, { tripId: id }).catch(
-      (err) => console.error('Lỗi khi ghi audit log DELETE_CHECKLIST_ITEM:', err)
+      () => {}
     );
 
     return sendSuccess({ message: 'Đã xóa mục checklist' });

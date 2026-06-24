@@ -73,7 +73,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     })) as TripAccommodation;
 
     await createAuditLog(userId, 'CREATE_ACCOMMODATION', 'TRIP_ACCOMMODATION', created._id, { tripId: id }).catch(
-      (err) => console.error('Lỗi khi ghi audit log CREATE_ACCOMMODATION:', err)
+      () => {}
     );
 
     return sendSuccess(toAccommodationResponse(created), undefined, 201);

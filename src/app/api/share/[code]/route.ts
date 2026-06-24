@@ -23,8 +23,8 @@ export async function GET(request: NextRequest, ctx: RouteContext) {
     }
 
     const trip = await db.trips.findById(share.tripId);
-    if (!trip) {
-      throw new AppError('NOT_FOUND', 'Chuyến đi không tồn tại', 404);
+    if (!trip || trip.deletedAt) {
+      throw new AppError('NOT_FOUND', 'Chuyến đi không tồn tại hoặc đã bị xóa', 404);
     }
 
     const items = await db.itineraryItems.find({ tripId: share.tripId });

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -106,6 +106,7 @@ function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlac
 export default function ItineraryDetailPage(): React.JSX.Element {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const userHook = useCurrentUser({ redirectIfNone: true });
   const user = userHook.data;
   const userLoading = userHook.status === 'loading';
@@ -118,7 +119,9 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [changePlaceItem, setChangePlaceItem] = useState<ItineraryItem | null>(null);
-  const [activeTab, setActiveTab] = useState<'itinerary' | 'budget' | 'hotel'>('itinerary');
+  const [activeTab, setActiveTab] = useState<'itinerary' | 'budget' | 'hotel'>(
+    searchParams.get('focus') === 'hotel' ? 'hotel' : 'itinerary',
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const tripId = params?.id;

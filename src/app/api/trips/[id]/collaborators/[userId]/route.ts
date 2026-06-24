@@ -37,7 +37,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     await createAuditLog(ownerId, 'REMOVE_COLLABORATOR', 'TRIP', id, {
       tripId: id,
       collaboratorId,
-    }).catch((err) => console.error('Lỗi khi ghi audit log REMOVE_COLLABORATOR:', err));
+    }).catch(() => {});
 
     return sendSuccess({ message: 'Đã xóa cộng tác viên' });
   } catch (error) {

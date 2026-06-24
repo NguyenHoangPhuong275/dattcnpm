@@ -59,8 +59,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
       throw err;
     }
 
-    await createAuditLog(userId, 'REPORT_REVIEW', 'REVIEW', reviewId, { reason: parsed.reason }).catch((e) =>
-      console.error('Lỗi khi ghi audit log REPORT_REVIEW:', e)
+    await createAuditLog(userId, 'REPORT_REVIEW', 'REVIEW', reviewId, { reason: parsed.reason }).catch(() => {}
     );
 
     return sendSuccess({ id: String(created._id), status: created.status }, 'Đã gửi báo cáo', 201);

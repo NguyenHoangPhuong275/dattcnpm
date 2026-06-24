@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
     await invalidateUserCache(userId);
     await createAuditLog(userId, 'UPDATE_PREFERENCES', 'USER', userId, {
       fields: Object.keys(updates),
-    }).catch((err) => console.error('Lỗi khi ghi audit log UPDATE_PREFERENCES:', err));
+    }).catch(() => {});
 
     return sendSuccess({
       interests: updated.interests ?? [],

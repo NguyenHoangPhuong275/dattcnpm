@@ -76,8 +76,7 @@ async function fetchOverpassElements(query: string): Promise<OverpassElement[]> 
 
     const data = await response.json();
     return Array.isArray(data.elements) ? data.elements : [];
-  } catch (err) {
-    console.error('Lỗi khi fetch POIs từ Overpass:', err);
+  } catch {
     return [];
   }
 }
@@ -154,9 +153,7 @@ export async function GET(request: NextRequest): Promise<Response> {
           results: JSON.parse(cached),
           cached: true,
         });
-      } catch (error) {
-        console.error('Lỗi phân tích cú pháp POI từ cache:', error);
-      }
+      } catch {}
     }
 
     const query = buildOverpassQuery(type, radius, parsed.lat, parsed.lng);

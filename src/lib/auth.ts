@@ -249,9 +249,8 @@ export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | 
   const cacheKey = userCacheKey(userId);
 
   try {
-    const { getRedis } = await import('@/lib/db');
-    const redis = await getRedis();
-    const cached = await redis.get(cacheKey);
+    const { cacheGet } = await import('@/lib/db');
+    const cached = await cacheGet(cacheKey);
     if (cached) {
       const parsed: AuthUser & { isLocked?: boolean; deletedAt?: unknown } = JSON.parse(cached);
       if (parsed.isLocked || parsed.deletedAt) return null;
@@ -273,9 +272,8 @@ export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | 
   };
 
   try {
-    const { getRedis } = await import('@/lib/db');
-    const redis = await getRedis();
-    await redis.set(cacheKey, JSON.stringify(result), 'EX', USER_CACHE_TTL_SECONDS);
+    const { cacheSet } = await import('@/lib/db');
+    await cacheSet(cacheKey, JSON.stringify(result), USER_CACHE_TTL_SECONDS);
   } catch {
   }
 

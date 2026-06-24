@@ -31,8 +31,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
 
     await db.hotelReviews.updateOne(reviewId, { $set: { deletedAt: new Date() } });
 
-    await createAuditLog(userId, 'DELETE_HOTEL_REVIEW', 'HOTEL_REVIEW', reviewId, { hotelId: id }).catch((err) =>
-      console.error('Lỗi khi ghi audit log DELETE_HOTEL_REVIEW:', err)
+    await createAuditLog(userId, 'DELETE_HOTEL_REVIEW', 'HOTEL_REVIEW', reviewId, { hotelId: id }).catch(() => {}
     );
 
     return sendSuccess({ message: 'Đã xóa đánh giá' });

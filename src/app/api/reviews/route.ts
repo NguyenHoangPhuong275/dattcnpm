@@ -64,9 +64,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         placeId: parsed.placeId,
         rating: parsed.rating,
       });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log CREATE_REVIEW:', err);
-    }
+    } catch {}
 
     return sendSuccess(created, undefined, 201);
   } catch (error) {

@@ -60,7 +60,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     await createAuditLog(userId, 'UPDATE_BUDGET', 'TRIP_BUDGET', budgetId, {
       tripId: id,
       fields: Object.keys(updates),
-    }).catch((err) => console.error('Lỗi khi ghi audit log UPDATE_BUDGET:', err));
+    }).catch(() => {});
 
     return sendSuccess(toBudgetResponse(updated));
   } catch (error) {
@@ -93,8 +93,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
       throw new AppError('NOT_FOUND', 'Không tìm thấy khoản chi', 404);
     }
 
-    await createAuditLog(userId, 'DELETE_BUDGET', 'TRIP_BUDGET', budgetId, { tripId: id }).catch((err) =>
-      console.error('Lỗi khi ghi audit log DELETE_BUDGET:', err)
+    await createAuditLog(userId, 'DELETE_BUDGET', 'TRIP_BUDGET', budgetId, { tripId: id }).catch(() => {}
     );
 
     return sendSuccess({ message: 'Đã xóa khoản chi' });

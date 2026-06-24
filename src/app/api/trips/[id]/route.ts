@@ -87,9 +87,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
 
     try {
       await createAuditLog(userId, 'UPDATE_TRIP', 'TRIP', id, { fields: Object.keys(updates) });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log UPDATE_TRIP:', err);
-    }
+    } catch {}
 
     return sendSuccess(toTripResponse(updated));
   } catch (error) {
@@ -137,9 +135,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
         title: existing.title,
         cascadeCounts,
       });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log DELETE_TRIP:', err);
-    }
+    } catch {}
 
     return sendSuccess({ message: 'Trip deleted' });
   } catch (error) {

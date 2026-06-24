@@ -16,7 +16,5 @@ export async function recalculatePlaceRating(
         ratingCount: count,
       },
     });
-  } catch (err) {
-    console.error('recalculatePlaceRating failed for placeId', placeId, err);
-  }
+  } catch {}
 }

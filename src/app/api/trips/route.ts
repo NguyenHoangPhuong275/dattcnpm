@@ -91,9 +91,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         title: parsed.title,
         destination: parsed.destination,
       });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log CREATE_TRIP:', err);
-    }
+    } catch {}
 
     return sendSuccess(toTripResponse(created), undefined, 201);
   } catch (error) {

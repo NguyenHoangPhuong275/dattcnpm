@@ -16,9 +16,7 @@ async function sendWeatherAlertEmail(tripTitle: string, dateKey: string, reasons
       subject: `Cảnh báo thời tiết cho chuyến đi "${tripTitle}"`,
       html: `<p>Xin chào,</p><p>Chuyến đi <strong>"${tripTitle}"</strong> (ngày ${dateKey}) có cảnh báo thời tiết:</p><ul>${reasonsHtml}</ul><p>Vui lòng kiểm tra dự báo và chuẩn bị phù hợp trước khi khởi hành.</p><p>— LOTUS TRAVEL</p>`,
     });
-  } catch (error) {
-    console.error('Lỗi khi gửi email cảnh báo thời tiết:', error instanceof Error ? error.message : 'unknown');
-  }
+  } catch {}
 }
 
 const UPCOMING_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -78,6 +76,24 @@ export async function POST(request: NextRequest): Promise<Response> {
     const owners = ownerIds.length ? await db.users.find({ _id: { $in: ownerIds }, deletedAt: null }) : [];
     const ownerMap = new Map(owners.map((o) => [String(o._id), o]));
 
+    // Nạp trước toàn bộ itinerary items + place của các chuyến đi để tránh N+1 trong vòng lặp.
+    const tripIds = trips.map((t) => String(t._id));
+    const allItems = tripIds.length
+      ? ((await db.itineraryItems.find({ tripId: { $in: tripIds } })) as ItineraryItem[])
+      : [];
+    const itemsByTrip = new Map<string, ItineraryItem[]>();
+    for (const item of allItems) {
+      const key = String(item.tripId);
+      const list = itemsByTrip.get(key);
+      if (list) list.push(item);
+      else itemsByTrip.set(key, [item]);
+    }
+    const allPlaceIds = [...new Set(allItems.map((i) => String(i.placeId)).filter(Boolean))];
+    const allPlaces = allPlaceIds.length
+      ? ((await db.places.find({ _id: { $in: allPlaceIds } })) as Place[])
+      : [];
+    const placeById = new Map(allPlaces.map((p) => [String(p._id), p]));
+
     // Cache dự báo theo tọa độ để các chuyến đi cùng địa danh không gọi lại Open-Meteo.
     const forecastCache = new Map<string, Promise<Awaited<ReturnType<typeof fetchDailyForecast>>>>();
     const getForecast = (lat: number, lng: number) => {
@@ -96,10 +112,10 @@ export async function POST(request: NextRequest): Promise<Response> {
       try {
         const tripId = String(trip._id);
 
-        const items = (await db.itineraryItems.find({ tripId })) as ItineraryItem[];
-        const placeIds = [...new Set(items.map((i) => String(i.placeId)).filter(Boolean))];
-        const places = placeIds.length ? ((await db.places.find({ _id: { $in: placeIds } })) as Place[]) : [];
-        const located = places.find((p) => typeof p.lat === 'number' && typeof p.lng === 'number');
+        const items = itemsByTrip.get(tripId) ?? [];
+        const located = items
+          .map((i) => placeById.get(String(i.placeId)))
+          .find((p): p is Place => !!p && typeof p.lat === 'number' && typeof p.lng === 'number');
         if (!located) {
           skippedNoLocation++;
           return;
@@ -137,9 +153,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
         await redis.set(dedupKey, '1', 'EX', ALERT_DEDUP_TTL_SECONDS).catch(() => null);
         alertsSent++;
-      } catch (error) {
-        console.error(`Lỗi khi xử lý cảnh báo thời tiết cho chuyến đi ${String(trip._id)}:`, error instanceof Error ? error.message : 'unknown');
-      }
+      } catch {}
     };
 
     await runWithConcurrency(trips, CONCURRENCY_LIMIT, processTrip);

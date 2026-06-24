@@ -12,6 +12,7 @@ import ReviewsSection from '@/components/profile/ReviewsSection';
 import SearchHistorySection from '@/components/profile/SearchHistorySection';
 import SecuritySection from '@/components/profile/SecuritySection';
 import CreateTripModal from '@/components/profile/CreateTripModal';
+import BookHotelAfterCreateModal from '@/components/trips/BookHotelAfterCreateModal';
 import PasswordChangeModal from '@/components/profile/PasswordChangeModal';
 import TripDetailModal from '@/components/profile/TripDetailModal';
 import ProfileLoading from '@/components/profile/ProfileLoading';
@@ -74,6 +75,7 @@ function ProfilePageContent() {
   const reviewsHook = useMyReviews({ userId: shouldLoadReviews ? user?.id ?? null : null });
 
   const [showCreateTripModal, setShowCreateTripModal] = useState(false);
+  const [hotelTrip, setHotelTrip] = useState<TripSummary | null>(null);
   const [newTripTitle, setNewTripTitle] = useState('');
   const [newTripDest, setNewTripDest] = useState('');
   const { startDate: defaultStart, endDate: defaultEnd } = getDefaultTripDates(3);
@@ -252,6 +254,7 @@ function ProfilePageContent() {
       resetCreateTripForm();
       showToast('Chuyến đi mới đã được tạo', 'success');
       loadTrips();
+      if (result.trip) setHotelTrip(result.trip);
     } else {
       showToast(result.message || 'Tạo chuyến đi thất bại', 'error');
     }
@@ -493,6 +496,18 @@ function ProfilePageContent() {
           onIsPublicChange={setNewTripIsPublic}
           onCreate={handleCreateNewTrip}
         />
+
+        {hotelTrip && (
+          <BookHotelAfterCreateModal
+            open
+            tripId={hotelTrip._id}
+            destination={hotelTrip.destination}
+            userId={user?.id ?? null}
+            startDate={hotelTrip.startDate}
+            endDate={hotelTrip.endDate}
+            onClose={() => setHotelTrip(null)}
+          />
+        )}
 
         <PasswordChangeModal
           open={showPasswordModal}

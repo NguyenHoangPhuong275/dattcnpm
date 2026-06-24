@@ -72,9 +72,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
         placeId: review.placeId,
         fields: Object.keys(updates),
       });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log UPDATE_REVIEW:', err);
-    }
+    } catch {}
 
     return sendSuccess(updated);
   } catch (error) {
@@ -113,9 +111,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
       await createAuditLog(userId, 'DELETE_REVIEW', 'REVIEW', id, {
         placeId: review.placeId,
       });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log DELETE_REVIEW:', err);
-    }
+    } catch {}
 
     return sendSuccess({ message: 'Review deleted successfully' });
   } catch (error) {

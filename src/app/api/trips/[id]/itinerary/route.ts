@@ -104,9 +104,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
         tripId: id,
         placeId: parsed.placeId,
       });
-    } catch (err) {
-      console.error('Lỗi khi ghi audit log CREATE_ITINERARY_ITEM:', err);
-    }
+    } catch {}
 
     return sendSuccess(toItineraryItemResponse(created), 201);
   } catch (error) {

@@ -107,7 +107,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
       templateId: parsed.templateId ?? null,
       added: created.length,
       skipped,
-    }).catch((err) => console.error('Lỗi khi ghi audit log BULK_ADD_CHECKLIST:', err));
+    }).catch(() => {});
 
     return sendSuccess(
       { added: created.length, skipped, items: created.map(toChecklistResponse) },

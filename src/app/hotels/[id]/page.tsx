@@ -10,7 +10,7 @@ import HotelReviews from '@/components/hotels/HotelReviews';
 import HotelImage from '@/components/hotels/HotelImage';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
-import { getHotelPhotos } from '@/lib/hotel-utils';
+import { getHotelPhotos, estimateHotelPricePerNight, formatHotelPrice } from '@/lib/hotel-utils';
 
 interface HotelDetail {
   id: string;
@@ -150,6 +150,11 @@ export default function HotelDetailPage(): React.JSX.Element {
                       {PRICE_LABELS[hotel.priceLevel]}
                     </span>
                   )}
+                </div>
+
+                <div className="text-lg font-bold text-[var(--color-primary-darker)]">
+                  ~{formatHotelPrice(estimateHotelPricePerNight(hotel.priceLevel, hotel.rating, hotel.id))}
+                  <span className="ml-1 text-xs font-normal text-[var(--color-text-muted)]">/đêm · giá ước tính</span>
                 </div>
 
                 {hotel.address && (

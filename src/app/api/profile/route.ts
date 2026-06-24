@@ -10,9 +10,7 @@ const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_DATA_URL_RE = /^data:image\/(jpeg|png|webp|jpg);base64,([a-zA-Z0-9+/=]+)$/;
 
 function toSafeDateString(value: unknown): string {
-  return formatUtcDateOnly(value, '', (error) => {
-    console.error('Lỗi khi định dạng ngày sinh:', error);
-  });
+  return formatUtcDateOnly(value, '', () => {});
 }
 
 function validateAvatarDataUrl(value: string): void {
@@ -45,8 +43,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         await storeAvatar(userId, user.avatarUrl);
         avatarUrl = user.avatarUrl;
       }
-    } catch (error) {
-      console.error('Lỗi khi lấy/lưu avatar từ Redis:', error);
+    } catch {
       avatarUrl = user.avatarUrl || null;
     }
     const profile = {
@@ -118,8 +115,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
         try {
           await storeAvatar(userId, parsed.avatarUrl);
           updates.avatarUrl = `redis:avatar:${userId}`;
-        } catch (error) {
-          console.error('Lỗi khi lưu avatar vào Redis:', error);
+        } catch {
           updates.avatarUrl = parsed.avatarUrl;
         }
       } else {
@@ -148,9 +144,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
       try {
         const fromRedis = await getAvatar(userId);
         if (fromRedis) resolvedAvatar = fromRedis;
-      } catch (error) {
-        console.error('Lỗi khi lấy avatar cập nhật từ Redis:', error);
-      }
+      } catch {}
     }
 
     return sendSuccess({

@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import AppHeader from '@/components/AppHeader';
 import CreateTripModal from '@/components/profile/CreateTripModal';
+import BookHotelAfterCreateModal from '@/components/trips/BookHotelAfterCreateModal';
 import TripCard from '@/components/trips/TripCard';
+import type { TripSummary } from '@/types/profile';
 import { PlusIcon } from '@/components/icons';
 import EmptyState from '@/components/ui/EmptyState';
 import PageSkeleton from '@/components/ui/PageSkeleton';
@@ -30,6 +32,7 @@ export default function MyTripsPage(): React.JSX.Element {
   const [newTitle, setNewTitle] = useState('');
   const [newDest, setNewDest] = useState('');
   const [creating, setCreating] = useState(false);
+  const [hotelTrip, setHotelTrip] = useState<TripSummary | null>(null);
   const { startDate: initialStart, endDate: initialEnd } = getDefaultTripDates(3);
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(initialEnd);
@@ -80,6 +83,7 @@ export default function MyTripsPage(): React.JSX.Element {
       closeCreateModal();
       showToast('Chuyến đi mới đã được tạo', 'success');
       loadTrips();
+      if (result.trip) setHotelTrip(result.trip);
     } else {
       showToast(result.message || 'Tạo chuyến đi thất bại', 'error');
     }
@@ -160,6 +164,18 @@ export default function MyTripsPage(): React.JSX.Element {
         onIsPublicChange={setIsPublic}
         onCreate={handleCreate}
       />
+
+      {hotelTrip && (
+        <BookHotelAfterCreateModal
+          open
+          tripId={hotelTrip._id}
+          destination={hotelTrip.destination}
+          userId={user?.id ?? null}
+          startDate={hotelTrip.startDate}
+          endDate={hotelTrip.endDate}
+          onClose={() => setHotelTrip(null)}
+        />
+      )}
     </div>
   );
 }

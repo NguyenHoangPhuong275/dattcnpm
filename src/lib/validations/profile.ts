@@ -5,7 +5,7 @@ export const updateProfileSchema = z.object({
   fullName: optionalTrimString(100),
   phone: optionalPhoneString,
   dateOfBirth: z.string().date().or(z.literal('')).transform(v => v || null).optional().nullable(),
-  gender: z.enum(['Nam', 'Nữ', 'Khác']).optional().nullable(),
+  gender: z.enum(['Nam', 'Nữ', 'Khác']).or(z.literal('')).transform((v) => v || null).optional().nullable(),
   nationality: optionalTrimString(60),
   preferredLanguage: optionalTrimString(30),
   homeCity: optionalTrimString(80),
@@ -41,7 +41,7 @@ export const updateProfileSchema = z.object({
     .or(z.literal(''))
     .transform((v) => v || null),
   travelStyles: z.array(z.string().trim()).max(10).optional(),
-  budgetLevel: z.enum(['Thấp', 'Trung bình', 'Cao']).optional().nullable(),
+  budgetLevel: z.enum(['Thấp', 'Trung bình', 'Cao']).or(z.literal('')).transform((v) => v || null).optional().nullable(),
   preferredDestinations: z.array(z.string().trim()).max(10).optional(),
   interests: z.array(z.string().trim()).max(15).optional(),
 });

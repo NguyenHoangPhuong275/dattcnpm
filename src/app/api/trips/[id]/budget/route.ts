@@ -79,8 +79,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
       type: parsed.type,
     })) as TripBudget;
 
-    await createAuditLog(userId, 'CREATE_BUDGET', 'TRIP_BUDGET', created._id, { tripId: id }).catch((err) =>
-      console.error('Lỗi khi ghi audit log CREATE_BUDGET:', err)
+    await createAuditLog(userId, 'CREATE_BUDGET', 'TRIP_BUDGET', created._id, { tripId: id }).catch(() => {}
     );
 
     return sendSuccess(toBudgetResponse(created), undefined, 201);

@@ -76,39 +76,33 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
       },
     }));
 
-    const compensate = async (phase: 1 | 2): Promise<void> => {
+    const compensate = async (): Promise<void> => {
       try {
         await db.itineraryItems.bulkWrite(restoreOps);
-      } catch (rollbackErr) {
-        // Rollback cũng thất bại: orderIndex có thể còn ở trạng thái âm. Log để xử lý thủ công.
-        console.error(
-          `Rollback reorder itinerary thất bại sau lỗi pha ${phase} (orderIndex có thể còn âm, cần audit):`,
-          rollbackErr,
-        );
+      } catch {
+        // Rollback cũng thất bại: orderIndex có thể còn ở trạng thái âm, cần xử lý thủ công.
       }
     };
 
     let result: { modifiedCount: number };
     try {
       await db.itineraryItems.bulkWrite(tempOps);
-    } catch (phase1Err) {
-      console.error('Reorder itinerary thất bại ở pha 1:', { phase: 1, failedOps: tempOps.length, error: phase1Err });
-      await compensate(1);
+    } catch {
+      await compensate();
       throw new AppError('INTERNAL_ERROR', 'Không thể cập nhật thứ tự lịch trình, đã hoàn tác thay đổi.', 500);
     }
 
     try {
       result = await db.itineraryItems.bulkWrite(finalOps);
-    } catch (phase2Err) {
-      console.error('Reorder itinerary thất bại ở pha 2:', { phase: 2, failedOps: finalOps.length, error: phase2Err });
-      await compensate(2);
+    } catch {
+      await compensate();
       throw new AppError('INTERNAL_ERROR', 'Không thể cập nhật thứ tự lịch trình, đã hoàn tác thay đổi.', 500);
     }
 
     await createAuditLog(userId, 'REORDER_ITINERARY', 'TRIP', id, {
       tripId: id,
       count: orderedIds.length,
-    }).catch((err) => console.error('Lỗi khi ghi audit log REORDER_ITINERARY:', err));
+    }).catch(() => {});
 
     return sendSuccess({
       message: 'Đã cập nhật thứ tự lịch trình',

@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     })) as TripChecklist;
 
     await createAuditLog(userId, 'CREATE_CHECKLIST_ITEM', 'TRIP_CHECKLIST', created._id, { tripId: id }).catch(
-      (err) => console.error('Lỗi khi ghi audit log CREATE_CHECKLIST_ITEM:', err)
+      () => {}
     );
 
     return sendSuccess(toChecklistResponse(created), undefined, 201);
