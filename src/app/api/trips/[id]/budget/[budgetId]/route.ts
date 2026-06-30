@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { createAuditLog, getDb, type TripBudget } from '@/lib/db';
+import { createAuditLog, type TripBudget } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
-import { getTripForEdit } from '@/lib/trip-permission';
+import { getTripSubItemForEdit } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
 import { updateBudgetSchema } from '@/lib/validations/budget';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -33,13 +33,13 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     objectIdSchema.parse(id);
     objectIdSchema.parse(budgetId);
 
-    await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = (await db.tripBudgets.findById(budgetId)) as TripBudget | null;
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy khoản chi', 404);
-    }
+    const { db } = await getTripSubItemForEdit<TripBudget>({
+      tripId: id,
+      itemId: budgetId,
+      userId,
+      select: (d) => d.tripBudgets,
+      notFoundMessage: 'Không tìm thấy khoản chi',
+    });
 
     const body = await request.json().catch(() => ({}));
     const parsed = updateBudgetSchema.parse(body);
@@ -80,13 +80,13 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     objectIdSchema.parse(id);
     objectIdSchema.parse(budgetId);
 
-    await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = (await db.tripBudgets.findById(budgetId)) as TripBudget | null;
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy khoản chi', 404);
-    }
+    const { db } = await getTripSubItemForEdit<TripBudget>({
+      tripId: id,
+      itemId: budgetId,
+      userId,
+      select: (d) => d.tripBudgets,
+      notFoundMessage: 'Không tìm thấy khoản chi',
+    });
 
     const deleted = await db.tripBudgets.deleteOne(budgetId);
     if (!deleted) {

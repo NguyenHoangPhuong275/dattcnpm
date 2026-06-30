@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { createAuditLog, getDb, type TripAccommodation } from '@/lib/db';
+import { createAuditLog, type TripAccommodation } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
-import { getTripForEdit } from '@/lib/trip-permission';
+import { getTripSubItemForEdit } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
 import { updateAccommodationSchema } from '@/lib/validations/accommodation';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -33,13 +33,13 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     objectIdSchema.parse(id);
     objectIdSchema.parse(accommodationId);
 
-    await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = (await db.tripAccommodations.findById(accommodationId)) as TripAccommodation | null;
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy nơi lưu trú', 404);
-    }
+    const { item, db } = await getTripSubItemForEdit<TripAccommodation>({
+      tripId: id,
+      itemId: accommodationId,
+      userId,
+      select: (d) => d.tripAccommodations,
+      notFoundMessage: 'Không tìm thấy nơi lưu trú',
+    });
 
     const body = await request.json().catch(() => ({}));
     const parsed = updateAccommodationSchema.parse(body);
@@ -87,13 +87,13 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     objectIdSchema.parse(id);
     objectIdSchema.parse(accommodationId);
 
-    await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = (await db.tripAccommodations.findById(accommodationId)) as TripAccommodation | null;
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy nơi lưu trú', 404);
-    }
+    const { db } = await getTripSubItemForEdit<TripAccommodation>({
+      tripId: id,
+      itemId: accommodationId,
+      userId,
+      select: (d) => d.tripAccommodations,
+      notFoundMessage: 'Không tìm thấy nơi lưu trú',
+    });
 
     const deleted = await db.tripAccommodations.deleteOne(accommodationId);
     if (!deleted) {

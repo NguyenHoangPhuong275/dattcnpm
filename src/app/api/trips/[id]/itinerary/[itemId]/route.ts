@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { createAuditLog, getDb, type ItineraryItem } from '@/lib/db';
+import { createAuditLog, type ItineraryItem } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
-import { getTripForEdit } from '@/lib/trip-permission';
+import { getTripSubItemForEdit } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
 import { updateItineraryItemSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -34,13 +34,13 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    const trip = await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = (await db.itineraryItems.findById(itemId)) as ItineraryItem | null;
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
-    }
+    const { trip, item, db } = await getTripSubItemForEdit<ItineraryItem>({
+      tripId: id,
+      itemId,
+      userId,
+      select: (d) => d.itineraryItems,
+      notFoundMessage: 'Không tìm thấy hoạt động lịch trình',
+    });
 
     const body = await request.json().catch(() => ({}));
     const parsed = updateItineraryItemSchema.parse(body);
@@ -112,13 +112,13 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = await db.itineraryItems.findById(itemId);
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy hoạt động lịch trình', 404);
-    }
+    const { item, db } = await getTripSubItemForEdit<ItineraryItem>({
+      tripId: id,
+      itemId,
+      userId,
+      select: (d) => d.itineraryItems,
+      notFoundMessage: 'Không tìm thấy hoạt động lịch trình',
+    });
 
     const deleted = await db.itineraryItems.deleteOne(itemId);
     if (!deleted) {

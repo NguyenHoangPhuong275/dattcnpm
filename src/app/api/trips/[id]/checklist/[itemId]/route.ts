@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { createAuditLog, getDb, type TripChecklist } from '@/lib/db';
+import { createAuditLog, type TripChecklist } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
-import { getTripForEdit } from '@/lib/trip-permission';
+import { getTripSubItemForEdit } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
 import { updateChecklistItemSchema, normalizeChecklistLabel } from '@/lib/validations/checklist';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -43,13 +43,13 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = (await db.tripChecklists.findById(itemId)) as TripChecklist | null;
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy mục checklist', 404);
-    }
+    const { db } = await getTripSubItemForEdit<TripChecklist>({
+      tripId: id,
+      itemId,
+      userId,
+      select: (d) => d.tripChecklists,
+      notFoundMessage: 'Không tìm thấy mục checklist',
+    });
 
     const body = await request.json().catch(() => ({}));
     const parsed = updateChecklistItemSchema.parse(body);
@@ -87,13 +87,13 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     objectIdSchema.parse(id);
     objectIdSchema.parse(itemId);
 
-    await getTripForEdit(id, userId);
-
-    const db = await getDb();
-    const item = (await db.tripChecklists.findById(itemId)) as TripChecklist | null;
-    if (!item || String(item.tripId) !== id) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy mục checklist', 404);
-    }
+    const { db } = await getTripSubItemForEdit<TripChecklist>({
+      tripId: id,
+      itemId,
+      userId,
+      select: (d) => d.tripChecklists,
+      notFoundMessage: 'Không tìm thấy mục checklist',
+    });
 
     const deleted = await db.tripChecklists.deleteOne(itemId);
     if (!deleted) {

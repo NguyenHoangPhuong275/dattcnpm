@@ -45,3 +45,21 @@ export async function getTripForEdit(tripId: string, userId: string): Promise<Tr
   }
   return trip;
 }
+
+type AppDb = Awaited<ReturnType<typeof getDb>>;
+
+export async function getTripSubItemForEdit<T extends { tripId: unknown }>(params: {
+  tripId: string;
+  itemId: string;
+  userId: string;
+  select: (db: AppDb) => { findById: (id: string) => Promise<T | undefined> };
+  notFoundMessage: string;
+}): Promise<{ trip: Trip; item: T; db: AppDb }> {
+  const trip = await getTripForEdit(params.tripId, params.userId);
+  const db = await getDb();
+  const item = await params.select(db).findById(params.itemId);
+  if (!item || String(item.tripId) !== params.tripId) {
+    throw new AppError('NOT_FOUND', params.notFoundMessage, 404);
+  }
+  return { trip, item, db };
+}
