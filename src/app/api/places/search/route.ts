@@ -8,6 +8,7 @@ import { searchTourismPlaces, provinceCenter } from '@/lib/vietnam-tourism';
 import { LOCALITIES } from '@/data/localities';
 import { normalizeVietnameseText } from '@/lib/string';
 import { pruneSearchHistory } from '@/lib/search-history';
+import { fetchJsonWithTimeout } from '@/lib/external/http';
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
@@ -343,13 +344,10 @@ function buildNominatimParams(query: string): URLSearchParams {
 
 async function fetchNominatim(query: string): Promise<NominatimResult[]> {
   const params = buildNominatimParams(query);
-  const response = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
-    headers: { 'User-Agent': USER_AGENT, 'Accept': 'application/json' },
-    signal: AbortSignal.timeout(8000),
+  const data = await fetchJsonWithTimeout<NominatimResult[]>(`${NOMINATIM_URL}?${params.toString()}`, {
+    timeoutMs: 8000,
+    headers: { 'User-Agent': USER_AGENT },
   });
-
-  if (!response.ok) return [];
-  const data = await response.json();
   return Array.isArray(data) ? data : [];
 }
 
@@ -615,21 +613,18 @@ export async function GET(request: NextRequest): Promise<Response> {
         }
       } else {
         const overpassQuery = `[out:json][timeout:20];(node["tourism"](around:50000,${centerLat},${centerLng});way["tourism"](around:50000,${centerLat},${centerLng});node["historic"](around:50000,${centerLat},${centerLng});way["historic"](around:50000,${centerLat},${centerLng});node["amenity"="place_of_worship"](around:50000,${centerLat},${centerLng}););out center 50;`;
-        try {
-          const res = await fetch(`${OVERPASS_URL}?data=${encodeURIComponent(overpassQuery)}`, {
-            headers: { 'User-Agent': USER_AGENT, 'Accept': 'application/json' },
-            signal: AbortSignal.timeout(12000),
-          });
-          if (res.ok) {
-            const data = await res.json() as OverpassSearchResponse;
-            const elements = Array.isArray(data.elements) ? data.elements : [];
-            rawPois = elements
-              .filter(isNamedOverpassElement)
-              .map(mapOverpassElementToRawPoi)
-              .filter((poi): poi is RawPoi => poi !== null);
-            await cacheSet(poiCacheKey, JSON.stringify(rawPois), 43200);
-          }
-        } catch {}
+        const data = await fetchJsonWithTimeout<OverpassSearchResponse>(
+          `${OVERPASS_URL}?data=${encodeURIComponent(overpassQuery)}`,
+          { timeoutMs: 12000, headers: { 'User-Agent': USER_AGENT } },
+        );
+        if (data) {
+          const elements = Array.isArray(data.elements) ? data.elements : [];
+          rawPois = elements
+            .filter(isNamedOverpassElement)
+            .map(mapOverpassElementToRawPoi)
+            .filter((poi): poi is RawPoi => poi !== null);
+          await cacheSet(poiCacheKey, JSON.stringify(rawPois), 43200);
+        }
       }
 
       for (const poi of sortRawPoisByLocationName(rawPois, mainLocationName)) {

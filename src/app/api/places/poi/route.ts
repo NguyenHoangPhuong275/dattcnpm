@@ -3,6 +3,7 @@ import { cacheGet, cacheSet } from '@/lib/db';
 import { sendSuccess, handleApiError } from '@/lib/api-response';
 import { placesPoiSchema } from '@/lib/validations/place';
 import { getTourismDestinationsByRegion } from '@/lib/vietnam-tourism';
+import { fetchJsonWithTimeout } from '@/lib/external/http';
 
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const CACHE_TTL = 43200;
@@ -63,22 +64,14 @@ function buildOverpassQuery(type: string, radius: number, lat: number, lng: numb
 }
 
 async function fetchOverpassElements(query: string): Promise<OverpassElement[]> {
-  try {
-    const response = await fetch(`${OVERPASS_URL}?data=${encodeURIComponent(query)}`, {
-      headers: {
-        'User-Agent': 'LotusTravel/1.0 (contact@lotus-travel.example.com)',
-        Accept: 'application/json',
-      },
-      signal: AbortSignal.timeout(15000),
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return Array.isArray(data.elements) ? data.elements : [];
-  } catch {
-    return [];
-  }
+  const data = await fetchJsonWithTimeout<{ elements?: OverpassElement[] }>(
+    `${OVERPASS_URL}?data=${encodeURIComponent(query)}`,
+    {
+      timeoutMs: 15000,
+      headers: { 'User-Agent': 'LotusTravel/1.0 (contact@lotus-travel.example.com)' },
+    },
+  );
+  return Array.isArray(data?.elements) ? data.elements : [];
 }
 
 function mapOverpassElements(elements: OverpassElement[]): PoiResult[] {

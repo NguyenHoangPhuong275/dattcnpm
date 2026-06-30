@@ -1,6 +1,19 @@
 import { cacheGet, cacheSet, type WeatherAlertThresholds } from '@/lib/db';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getWeatherDescription } from '@/lib/weather';
+import { fetchJsonWithTimeout } from '@/lib/external/http';
+
+type OpenMeteoDailyResponse = {
+  daily?: {
+    time?: string[];
+    weathercode?: number[];
+    precipitation_sum?: number[];
+    precipitation_probability_max?: number[];
+    temperature_2m_max?: (number | null)[];
+    temperature_2m_min?: (number | null)[];
+    windspeed_10m_max?: (number | null)[];
+  };
+};
 
 export type DailyForecast = {
   date: string;
@@ -65,30 +78,26 @@ export async function fetchDailyForecast(lat: number, lng: number): Promise<Dail
   }).catch(() => ({ limited: false }));
   if (limiter.limited) return null;
 
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,windspeed_10m_max&forecast_days=7&timezone=Asia%2FHo_Chi_Minh`;
+  const data = await fetchJsonWithTimeout<OpenMeteoDailyResponse>(url, { timeoutMs: 5000 });
+  if (!data) return null;
+
+  const daily = data.daily;
+  const days: string[] = daily?.time ?? [];
+  const forecast: DailyForecast[] = days.map((date, i) => ({
+    date,
+    weathercode: daily?.weathercode?.[i] ?? 0,
+    precipitationMm: daily?.precipitation_sum?.[i] ?? 0,
+    precipitationProbability: daily?.precipitation_probability_max?.[i] ?? 0,
+    tempMax: daily?.temperature_2m_max?.[i] ?? null,
+    tempMin: daily?.temperature_2m_min?.[i] ?? null,
+    windspeedKmh: daily?.windspeed_10m_max?.[i] ?? null,
+  }));
+
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,windspeed_10m_max&forecast_days=7&timezone=Asia%2FHo_Chi_Minh`;
-    const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(5000) });
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    const days: string[] = data.daily?.time ?? [];
-    const forecast: DailyForecast[] = days.map((date, i) => ({
-      date,
-      weathercode: data.daily.weathercode?.[i] ?? 0,
-      precipitationMm: data.daily.precipitation_sum?.[i] ?? 0,
-      precipitationProbability: data.daily.precipitation_probability_max?.[i] ?? 0,
-      tempMax: data.daily.temperature_2m_max?.[i] ?? null,
-      tempMin: data.daily.temperature_2m_min?.[i] ?? null,
-      windspeedKmh: data.daily.windspeed_10m_max?.[i] ?? null,
-    }));
-
-    try {
-      await cacheSet(cacheKey, JSON.stringify(forecast), FORECAST_CACHE_TTL);
-    } catch {
-    }
-
-    return forecast;
+    await cacheSet(cacheKey, JSON.stringify(forecast), FORECAST_CACHE_TTL);
   } catch {
-    return null;
   }
+
+  return forecast;
 }
