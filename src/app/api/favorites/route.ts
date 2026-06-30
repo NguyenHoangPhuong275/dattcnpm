@@ -30,7 +30,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       .filter((id): id is string => Boolean(id));
 
     const places = await db.places.find({ _id: { $in: placeIds } });
-    const placeMap = new Map(places.map((p: any) => [String(p._id), p]));
+    const placeMap = new Map(places.map((p) => [String(p._id), p]));
 
     const data = items.map((f: FavoritePlace) => {
       const place = f.placeId ? placeMap.get(String(f.placeId)) : null;
