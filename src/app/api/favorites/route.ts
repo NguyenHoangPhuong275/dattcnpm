@@ -18,7 +18,6 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const db = await getDb();
 
-    // Phân trang, sắp xếp tại MongoDB thay vì in-memory để tránh tải toàn bộ bản ghi.
     const paged = await db.favorites.findPaginated(
       { userId },
       { page, limit, sortBy: 'createdAt', sortOrder: -1 }

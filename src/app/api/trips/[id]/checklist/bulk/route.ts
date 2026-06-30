@@ -23,7 +23,6 @@ function toChecklistResponse(item: TripChecklist) {
   };
 }
 
-// Khử trùng theo NFC + trim + lowercase (parity với collation index ở DB).
 const norm = (value: string): string => checklistLabelKey(value);
 
 export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Response> {
@@ -88,8 +87,6 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
         toInsert.map((label) => ({ tripId: id, label, isDone: false, dueDate: null })),
       )) as TripChecklist[];
     } catch (err) {
-      // Race condition: một request song song vừa thêm cùng nhãn → unique index { tripId, label }
-      // bắn lỗi 11000. Trả 409 với danh sách nhãn thay vì 500.
       const code = (err as { code?: number } | null)?.code;
       if (code === 11000 || code === 11001) {
         throw new AppError(

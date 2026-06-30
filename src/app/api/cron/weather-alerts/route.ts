@@ -23,10 +23,6 @@ const UPCOMING_WINDOW_MS = 24 * 60 * 60 * 1000;
 const ALERT_DEDUP_TTL_SECONDS = 24 * 60 * 60;
 const CONCURRENCY_LIMIT = 8;
 
-/**
- * Chạy các tác vụ async theo nhóm song song có giới hạn (concurrency pool) để
- * tránh gọi API ngoài/DB tuần tự gây timeout, đồng thời không spam request.
- */
 async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
   let cursor = 0;
   const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
@@ -71,12 +67,10 @@ export async function POST(request: NextRequest): Promise<Response> {
     let skippedNoLocation = 0;
     let skippedUnavailable = 0;
 
-    // Lấy toàn bộ thông tin chủ chuyến đi một lần thay vì query trong vòng lặp (tránh N+1).
     const ownerIds = [...new Set(trips.map((t) => String(t.userId)).filter(Boolean))];
     const owners = ownerIds.length ? await db.users.find({ _id: { $in: ownerIds }, deletedAt: null }) : [];
     const ownerMap = new Map(owners.map((o) => [String(o._id), o]));
 
-    // Nạp trước toàn bộ itinerary items + place của các chuyến đi để tránh N+1 trong vòng lặp.
     const tripIds = trips.map((t) => String(t._id));
     const allItems = tripIds.length
       ? ((await db.itineraryItems.find({ tripId: { $in: tripIds } })) as ItineraryItem[])
@@ -94,7 +88,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       : [];
     const placeById = new Map(allPlaces.map((p) => [String(p._id), p]));
 
-    // Cache dự báo theo tọa độ để các chuyến đi cùng địa danh không gọi lại Open-Meteo.
     const forecastCache = new Map<string, Promise<Awaited<ReturnType<typeof fetchDailyForecast>>>>();
     const getForecast = (lat: number, lng: number) => {
       const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
@@ -108,7 +101,6 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const processTrip = async (trip: Trip): Promise<void> => {
       scanned++;
-      // Cô lập lỗi từng chuyến đi để một trip lỗi không phá hỏng cả lượt cron.
       try {
         const tripId = String(trip._id);
 

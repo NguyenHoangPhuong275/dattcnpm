@@ -1,13 +1,10 @@
 import { z } from 'zod';
 import { dateStringSchema, trimString } from './common';
 
-// Chuẩn hóa nhãn checklist về NFC + trim trước khi lưu (giá trị hiển thị, giữ hoa/thường).
-// NFC bảo đảm chuỗi precomposed/decomposed (vd "Vẽ") cùng một dạng → khớp với DB index.
 export function normalizeChecklistLabel(label: string): string {
   return label.normalize('NFC').trim();
 }
 
-// Khóa khử trùng tầng app: NFC + trim + lowercase (đồng nhất với collation strength:2 ở DB).
 export function checklistLabelKey(label: string): string {
   return normalizeChecklistLabel(label).toLowerCase();
 }

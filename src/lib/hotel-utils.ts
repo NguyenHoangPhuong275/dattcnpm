@@ -12,8 +12,6 @@ export function getHotelPhoto(seed: string): string {
   return HOTEL_PHOTOS[hashString(seed || 'hotel') % HOTEL_PHOTOS.length];
 }
 
-// Giá ước tính/đêm (VND): OSM không có giá thật nên suy ra theo hạng giá + số sao,
-// thêm chênh lệch ổn định theo seed để mỗi khách sạn có giá khác nhau nhưng không đổi mỗi lần tải.
 const PRICE_BASE_BY_LEVEL: Record<string, number> = {
   budget: 450_000,
   mid: 1_100_000,
@@ -26,10 +24,10 @@ export function estimateHotelPricePerNight(
   seed: string,
 ): number {
   const base = PRICE_BASE_BY_LEVEL[priceLevel ?? ''] ?? 700_000;
-  const ratingFactor = 1 + Math.max(0, (rating ?? 3) - 3) * 0.12; // 3★ = 1.0, 5★ ≈ 1.24
-  const variance = 0.85 + (hashString(seed || 'hotel') % 30) / 100; // 0.85–1.14, ổn định theo seed
+  const ratingFactor = 1 + Math.max(0, (rating ?? 3) - 3) * 0.12;
+  const variance = 0.85 + (hashString(seed || 'hotel') % 30) / 100;
   const price = base * ratingFactor * variance;
-  return Math.round(price / 10_000) * 10_000; // làm tròn 10k
+  return Math.round(price / 10_000) * 10_000;
 }
 
 export function formatHotelPrice(price: number): string {
@@ -53,7 +51,6 @@ export function getHotelInitial(name: string): string {
   return trimmed ? trimmed.charAt(0).toUpperCase() : 'K';
 }
 
-// Phải khớp images.remotePatterns trong next.config.ts.
 const OPTIMIZABLE_IMAGE_HOSTS = new Set([
   'commons.wikimedia.org',
   'upload.wikimedia.org',

@@ -20,7 +20,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     const limit = Math.max(1, Math.min(100, Number(searchParams.get('limit') || 20)));
 
     const db = await getDb();
-    // Hiển thị cả chuyến đi do user sở hữu lẫn chuyến đi user là cộng tác viên.
     const paginated = await db.trips.findPaginated(
       { $or: [{ userId }, { 'collaborators.userId': userId }] },
       { page, limit, sortBy: 'updatedAt', sortOrder: -1 }
@@ -62,7 +61,6 @@ export async function POST(request: NextRequest): Promise<Response> {
     const body = await request.json().catch(() => ({}));
     const parsed = createTripSchema.parse(body);
 
-    // Mặc định lấy ngày local (YYYY-MM-DD) rồi parse về midnight UTC để không lệch lùi 1 ngày.
     const todayStr = new Date().toLocaleDateString('sv-SE');
     const startDate: Date = parsed.startDate ? new Date(parsed.startDate) : new Date(todayStr);
     const endDate: Date = parsed.endDate

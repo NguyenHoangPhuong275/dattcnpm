@@ -32,7 +32,6 @@ export default function HotelImage({ src, seed, name, sizes, className, priority
     );
   }
 
-  // Host ngoài danh sách remotePatterns sẽ làm next/image throw lúc render; dùng <img> thường để tránh.
   if (!isOptimizableImage(src)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element

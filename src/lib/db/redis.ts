@@ -11,8 +11,6 @@ function getRedisClient(): Redis {
     redisClient = new Redis(redisUrl, {
       maxRetriesPerRequest: isTest ? 3 : 2,
       lazyConnect: true,
-      // Redis trục trặc (mất kết nối, hết slot) thì fail nhanh thay vì treo request.
-      // Không áp ở test để hành vi Redis trong test giữ nguyên (tránh false timeout).
       ...(isTest ? {} : { connectTimeout: 3000, commandTimeout: 3000 }),
     });
 
@@ -25,8 +23,6 @@ export function getRedis(): Redis {
   return getRedisClient();
 }
 
-// Circuit breaker: khi Redis lỗi, mở mạch trong một khoảng để các request sau bỏ qua
-// Redis (fail-fast) thay vì chờ timeout lặp lại — giữ app phản hồi nhanh khi Redis hỏng.
 const CIRCUIT_COOLDOWN_MS = 15000;
 let circuitOpenUntil = 0;
 
@@ -56,8 +52,6 @@ export async function disconnectRedis(): Promise<void> {
   }
 }
 
-// Cache là best-effort: Redis trục trặc (mất kết nối, hết slot...) thì coi như cache miss,
-// không để request bị 500.
 export async function cacheGet(key: string): Promise<string | null> {
   if (redisCircuitOpen()) return null;
   try {

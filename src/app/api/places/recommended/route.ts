@@ -45,8 +45,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     const start = (page - 1) * limit;
     const pageItems = ranked.slice(start, start + limit);
 
-    // Tổng số bản ghi phải là kích thước pool đã xếp hạng (tối đa CANDIDATE_POOL_SIZE),
-    // không phải tổng số địa điểm trong DB — nếu không các trang sau sẽ trả về mảng rỗng.
     const total = ranked.length;
 
     return sendSuccess({

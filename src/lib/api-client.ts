@@ -10,7 +10,6 @@ export type ApiEnvelope<T = unknown> = {
   error?: string | { message?: string } | null;
 };
 
-// Việt hóa các thông báo kỹ thuật từ backend để không lộ chuỗi tiếng Anh cho người dùng.
 const FRIENDLY_MESSAGES: Record<string, string> = {
   'Missing authorization credentials or user is locked':
     'Phiên đăng nhập đã hết hạn hoặc tài khoản bị khóa. Vui lòng đăng nhập lại.',

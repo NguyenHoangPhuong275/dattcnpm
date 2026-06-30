@@ -51,8 +51,6 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     }
 
     const now = new Date();
-    // Pha 1: gán orderIndex âm tạm thời để tránh vi phạm unique index { tripId, day, orderIndex }
-    // khi hoán vị. Pha 2: gán giá trị cuối cùng theo vị trí mảng.
     const tempOps = orderedIds.map((itemId, index) => ({
       updateOne: {
         filter: { _id: itemId },
@@ -66,9 +64,6 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
       },
     }));
 
-    // MongoDB ở môi trường này chạy standalone (docker compose) → không có replica set,
-    // không dùng được session.withTransaction(). Vì vậy dùng compensating write thủ công:
-    // nếu pha nào thất bại, khôi phục orderIndex về giá trị gốc để tránh kẹt ở giá trị âm.
     const restoreOps = existing.map((item) => ({
       updateOne: {
         filter: { _id: String(item._id) },

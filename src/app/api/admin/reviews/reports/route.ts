@@ -35,7 +35,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
 
     const db = await getDb();
-    // Sắp xếp tại MongoDB thay vì in-memory để tránh tốn RAM/CPU khi số report lớn.
     const reports = (await db.reviewReports.find(filter, {
       sortBy: 'createdAt',
       sortOrder: -1,

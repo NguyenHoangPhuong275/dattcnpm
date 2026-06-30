@@ -98,7 +98,6 @@ export async function GET(request: NextRequest): Promise<Response> {
     )}`;
 
     let allItems: ReturnType<typeof toHotelResponse>[] | null = null;
-    // featured bỏ cache để mỗi lần tải lại trộn một danh sách mới.
     const cached = featured ? null : await cacheGet(cacheKey);
     if (cached) {
       try {
@@ -141,7 +140,6 @@ export async function GET(request: NextRequest): Promise<Response> {
         filter.amenities = { $all: parsed.amenities };
       }
 
-      // featured xếp theo rating toàn collection rồi trộn từng bậc sao; còn lại xếp theo độ khớp.
       const candidates = (await db.hotels.find(
         filter,
         featured ? { sortBy: 'rating', sortOrder: -1, limit: SCAN_CAP } : { limit: SCAN_CAP }

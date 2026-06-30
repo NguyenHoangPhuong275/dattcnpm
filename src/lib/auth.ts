@@ -146,7 +146,6 @@ function extractToken(request: NextRequest): string | null {
       try {
         token = decodeURIComponent(match[1]);
       } catch {
-        // Cookie chứa ký tự % không hợp lệ → coi như không có token thay vì crash 500.
         token = null;
       }
     }

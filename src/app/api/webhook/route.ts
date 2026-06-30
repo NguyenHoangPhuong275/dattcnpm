@@ -118,8 +118,6 @@ export async function POST(request: NextRequest) {
 
     async function findUserOrFail(email: string) {
       const normalized = normalizeEmail(email);
-      // Chỉ nhắm tài khoản còn hoạt động: nếu email cũ đã soft-delete rồi đăng ký lại,
-      // webhook lock/delete phải tác động đúng user active, không nhắm nhầm user cũ.
       const user = await db.users.findOne({ email: normalized, deletedAt: null });
       if (!user) {
         throw new Error('User not found');
@@ -477,7 +475,6 @@ export async function POST(request: NextRequest) {
         const redis = getRedis();
         const geoKeys = await redis.keys('geo:search:*');
         const poiKeys = await redis.keys('poi:live:*');
-        // Xóa theo cụm để tránh spread mảng khổng lồ gây tràn call stack của V8.
         const REDIS_DEL_BATCH = 1000;
         const delInBatches = async (keys: string[]): Promise<void> => {
           for (let i = 0; i < keys.length; i += REDIS_DEL_BATCH) {

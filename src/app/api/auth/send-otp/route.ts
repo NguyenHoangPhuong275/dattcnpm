@@ -87,7 +87,6 @@ export async function POST(request: NextRequest) {
     const redis = getRedis();
     const rateLimitKey = `otp:limit:${normalizedEmail}`;
     const currentCount = await redis.incr(rateLimitKey);
-    // Chỉ đặt TTL khi key mới khởi tạo để tránh gia hạn vô hạn (sliding window).
     if (currentCount === 1) {
       await redis.expire(rateLimitKey, OTP_SEND_WINDOW_SECONDS);
     }
