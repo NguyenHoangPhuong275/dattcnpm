@@ -52,7 +52,6 @@ DATTCNPM/
     types/
   .env.example
   docker-compose.yml
-  API_REPORT.md
   KE_HOACH_DU_AN.md
   package.json
   README.md

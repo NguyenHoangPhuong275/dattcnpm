@@ -476,6 +476,18 @@ function sortTourismResults(results: PlaceDraft[], query: string, normalized: st
 
 type SavedPlace = PlaceDraft & { _id: string; createdAt: Date; updatedAt: Date };
 
+function toResultPayload(place: SavedPlace) {
+  return {
+    _id: place._id,
+    name: place.name,
+    type: place.type,
+    lat: place.lat,
+    lng: place.lng,
+    address: place.address,
+    osmId: place.osmId,
+  };
+}
+
 async function savePlaces(places: PlaceDraft[]): Promise<SavedPlace[]> {
   const db = await getDb();
   return Promise.all(places.map(async (item) => {
@@ -541,15 +553,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         osmTags: {},
         tags: item.tags,
       })));
-      const payload = savedCuratedResults.map((place) => ({
-        _id: place._id,
-        name: place.name,
-        type: place.type,
-        lat: place.lat,
-        lng: place.lng,
-        address: place.address,
-        osmId: place.osmId,
-      }));
+      const payload = savedCuratedResults.map(toResultPayload);
 
       await cacheSet(cacheKey, JSON.stringify(payload), CACHE_TTL);
       await recordSearchHistory(userId, q, payload.length, payload[0]?.lat ?? null, payload[0]?.lng ?? null);
@@ -563,15 +567,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const priorityResults = getPriorityLocalityResults(q);
     if (priorityResults.length > 0) {
       const savedPriorityResults = await savePlaces(priorityResults);
-      const payload = savedPriorityResults.map((place) => ({
-        _id: place._id,
-        name: place.name,
-        type: place.type,
-        lat: place.lat,
-        lng: place.lng,
-        address: place.address,
-        osmId: place.osmId,
-      }));
+      const payload = savedPriorityResults.map(toResultPayload);
 
       await cacheSet(cacheKey, JSON.stringify(payload), CACHE_TTL);
       await recordSearchHistory(userId, q, payload.length, payload[0]?.lat ?? null, payload[0]?.lng ?? null);
@@ -638,14 +634,6 @@ export async function GET(request: NextRequest): Promise<Response> {
 
       for (const poi of sortRawPoisByLocationName(rawPois, mainLocationName)) {
         if (isBlockedRawPoi(poi)) continue;
-        const amenity = (poi.amenity || '').toLowerCase();
-        const shop = (poi.shop || '').toLowerCase();
-        const pname = (poi.name || '').toLowerCase();
-
-        if (amenity === 'fuel' || amenity.includes('fuel') || amenity === 'massage') continue;
-        if (shop === 'convenience' || shop === 'supermarket' || shop === 'kiosk') continue;
-        if (pname.includes('massage') || pname.includes('xoa bóp') || pname.includes('cây xăng') || pname.includes('trạm xăng')) continue;
-
         if (!isValidTourismPOI(poi.name, poi.type)) continue;
         if (additionalPOIs.length >= 30) break;
 
@@ -674,16 +662,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     let tourismResults = additionalPOIs.length > 0 ? [...additionalPOIs] : [...parsedPlaces];
 
-    tourismResults = tourismResults.filter(item => {
-      if (!isSearchResultAllowed(item)) return false;
-      const type = (item.type || '').toLowerCase();
-      const iname = (item.name || '').toLowerCase();
-      const badTypes = ['administrative', 'province', 'city', 'town', 'district', 'ward', 'place', 'suburb', 'hotel', 'guest_house', 'hostel', 'motel', 'resort'];
-      if (badTypes.includes(type)) return false;
-      if (iname.includes('massage') || iname.includes('xoa bóp') || iname.includes('cây xăng') || iname.includes('trạm xăng')) return false;
-      if (!isValidTourismPOI(item.name || '', type)) return false;
-      return true;
-    });
+    tourismResults = tourismResults.filter(isSearchResultAllowed);
 
     if (tourismResults.length === 0) {
       tourismResults = getLocalFallbackResults(q);
@@ -693,15 +672,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const savedPayload = await savePlaces(slicedResults);
 
-    const cachePayload = savedPayload.map(p => ({
-      _id: p._id,
-      name: p.name,
-      type: p.type,
-      lat: p.lat,
-      lng: p.lng,
-      address: p.address,
-      osmId: p.osmId,
-    }));
+    const cachePayload = savedPayload.map(toResultPayload);
 
     await cacheSet(cacheKey, JSON.stringify(cachePayload), CACHE_TTL);
 

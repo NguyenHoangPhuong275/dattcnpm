@@ -102,6 +102,8 @@ export function handleApiError(err: unknown): NextResponse<ApiError> {
     return sendError('CONFLICT', 'Dữ liệu bị trùng lặp', 409);
   }
 
+  console.error('[handleApiError] Unhandled error:', err);
+
   const message = process.env.NODE_ENV === 'production'
     ? 'Đã xảy ra lỗi hệ thống'
     : errorLike?.message || 'Lỗi hệ thống';

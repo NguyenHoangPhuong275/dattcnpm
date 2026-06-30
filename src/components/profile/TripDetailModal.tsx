@@ -58,7 +58,6 @@ type TripEditDraft = {
   startDate: string;
   endDate: string;
   isPublic: boolean;
-  description: string;
 };
 
 type ApiListResponse<T> = {
@@ -86,7 +85,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   const [reordering, setReordering] = useState(false);
 
   const [isEditingTrip, setIsEditingTrip] = useState(false);
-  const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false, description: '' });
+  const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false });
   const [savingTrip, setSavingTrip] = useState(false);
   const { actions: feedback } = useFeedback();
   const { actions: { showToast } } = useToast();
@@ -321,7 +320,6 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
       startDate: formatDateInputValue(trip.startDate, { timeZone: 'utc' }),
       endDate: formatDateInputValue(trip.endDate, { timeZone: 'utc' }),
       isPublic: trip.isPublic,
-      description: '',
     });
     setIsEditingTrip(true);
   };

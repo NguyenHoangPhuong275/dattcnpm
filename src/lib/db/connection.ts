@@ -48,29 +48,91 @@ import { createAllCollections } from './maintenance';
 
 export let isConnected = false;
 let collectionsEnsured = false;
+let connectPromise: Promise<unknown> | null = null;
 
-export async function connectMongo(): Promise<'connected'> {
-  if (isConnected) return 'connected';
+const CONNECT_OPTIONS = {
+  serverSelectionTimeoutMS: 8000,
+};
 
-  const uri = env.MONGODB_URI;
+const PUBLIC_DNS_SERVERS = ['8.8.8.8', '1.1.1.1'];
+let dnsResolverEnsured = false;
 
+function ensureReliableDnsResolver(uri: string): void {
+  if (dnsResolverEnsured) return;
+  dnsResolverEnsured = true;
+  if (!uri.startsWith('mongodb+srv://')) return;
+  const getBuiltinModule = (globalThis as typeof globalThis & {
+    process?: { getBuiltinModule?: (id: string) => unknown };
+  }).process?.getBuiltinModule;
+  if (typeof getBuiltinModule !== 'function') return;
   try {
-    await mongoose.connect(uri);
-    isConnected = true;
-
-    if (!collectionsEnsured) {
-      await createAllCollections();
-      collectionsEnsured = true;
-    }
-
-    return 'connected';
-  } catch (error) {
-    throw error;
+    const dns = getBuiltinModule('node:dns') as typeof import('node:dns');
+    const current = dns.getServers();
+    if (PUBLIC_DNS_SERVERS.every((s) => current.includes(s))) return;
+    dns.setServers([...PUBLIC_DNS_SERVERS, ...current.filter((s) => !PUBLIC_DNS_SERVERS.includes(s))]);
+  } catch {
+    // Không set được thì giữ nguyên resolver hệ thống.
   }
 }
 
+async function connectWithRetry(uri: string): Promise<typeof mongoose> {
+  ensureReliableDnsResolver(uri);
+  const maxAttempts = 3;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await mongoose.connect(uri, CONNECT_OPTIONS);
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+      }
+    }
+  }
+  throw lastError;
+}
+
+async function ensureCollections(): Promise<void> {
+  if (!collectionsEnsured) {
+    await createAllCollections();
+    collectionsEnsured = true;
+  }
+}
+
+export async function connectMongo(): Promise<'connected'> {
+  if (mongoose.connection.readyState === 1) {
+    isConnected = true;
+    await ensureCollections();
+    return 'connected';
+  }
+
+  if (!connectPromise) {
+    connectPromise = (
+      mongoose.connection.readyState === 2
+        ? mongoose.connection.asPromise()
+        : connectWithRetry(env.MONGODB_URI)
+    ).finally(() => {
+      connectPromise = null;
+    });
+  }
+
+  try {
+    await connectPromise;
+    isConnected = true;
+  } catch (error) {
+    isConnected = false;
+    throw error;
+  }
+
+  await ensureCollections();
+  return 'connected';
+}
+
 export async function disconnectMongo(): Promise<void> {
-  if (!isConnected) return;
+  if (mongoose.connection.readyState === 0) {
+    isConnected = false;
+    return;
+  }
   await mongoose.disconnect();
   isConnected = false;
 }
@@ -133,4 +195,5 @@ export function resetConnectionState() {
   dbInstance = null;
   isConnected = false;
   collectionsEnsured = false;
+  connectPromise = null;
 }
