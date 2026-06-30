@@ -100,6 +100,22 @@ Code smell thật sự đo được khá thấp: chỉ **7 chỗ** `any`/`as any
 
 ---
 
+## 5b. Phase 2 — Kết quả audit IDOR/Auth (2026-07-01)
+
+Đã rà toàn bộ route thao tác tài nguyên user. **Không phát hiện lỗ hổng IDOR.**
+
+| Khu vực | Cơ chế phân quyền | Kết luận |
+|---|---|---|
+| trips/[id] + sub-routes (itinerary, budget, checklist, accommodation, weather) | `getTripForEdit/View(id, userId)` **kèm** `String(item.tripId) !== id` | ✅ chống IDOR lồng |
+| itinerary/reorder, checklist/bulk | lọc `foreign` item không thuộc trip | ✅ |
+| favorites/[id], search-history/[id], reviews/[id] | check `userId` sở hữu → 404/403 | ✅ |
+| collaborators (+/[userId]) | `findOwnedTrip` → chỉ chủ trip | ✅ collaborator không quản lý người khác |
+| forgot-password | message generic "nếu email tồn tại…", chỉ gửi mail khi user hợp lệ | ✅ chống user-enumeration |
+
+Quan sát minor (không sửa — rủi ro/UX):
+- forgot-password có timing side-channel nhẹ (skip gửi mail khi user không tồn tại). Fix đúng cần constant-time padding — rủi ro cao, lợi ích thấp cho đồ án.
+- send-otp (đăng ký) trả 409 "Email đã được đăng ký" — tradeoff UX chuẩn, không coi là lỗ hổng.
+
 ## 6. Nguyên tắc thực thi (theo doc)
 - Không đổi behavior công khai (response shape, route path, schema DB) trừ khi ghi rõ + giữ backward-compat.
 - Commit nhỏ theo Conventional Commits.
