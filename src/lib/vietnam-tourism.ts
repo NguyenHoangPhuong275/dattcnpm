@@ -98,7 +98,7 @@ const PROVINCE_ALIASES: Record<string, string> = {
   'quang ninh': 'quang ninh',
 };
 
-export function normalizeTourismText(value: string): string {
+function normalizeTourismText(value: string): string {
   return normalizeVietnameseText(value)
     .replace(/\bviet nam\b/g, '')
     .replace(/\b(thanh pho|tp)\b\.?/g, '')

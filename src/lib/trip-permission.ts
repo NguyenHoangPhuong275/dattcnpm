@@ -2,18 +2,14 @@ import { AppError } from '@/lib/api-response';
 import { getDb } from '@/lib/db';
 import type { Trip } from '@/lib/db';
 
-export function isTripOwner(userId: string, trip: Pick<Trip, 'userId'>): boolean {
-  return !!userId && String(trip.userId) === userId;
-}
-
-export function canViewTrip(userId: string, trip: Pick<Trip, 'userId' | 'collaborators' | 'isPublic'>): boolean {
+function canViewTrip(userId: string, trip: Pick<Trip, 'userId' | 'collaborators' | 'isPublic'>): boolean {
   if (trip.isPublic) return true;
   if (!userId) return false;
   if (String(trip.userId) === userId) return true;
   return (trip.collaborators ?? []).some((c) => String(c.userId) === userId);
 }
 
-export function canEditTrip(userId: string, trip: Pick<Trip, 'userId' | 'collaborators'>): boolean {
+function canEditTrip(userId: string, trip: Pick<Trip, 'userId' | 'collaborators'>): boolean {
   if (!userId) return false;
   if (String(trip.userId) === userId) return true;
   return (trip.collaborators ?? []).some((c) => String(c.userId) === userId && c.permission === 'EDIT');

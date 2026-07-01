@@ -55,10 +55,6 @@ export function getEnv(): Env {
   return cached;
 }
 
-export function resetEnvCache(): void {
-  cached = null;
-}
-
 export const env: Env = new Proxy({} as Env, {
   get(_target, prop: string) {
     return getEnv()[prop as keyof Env];

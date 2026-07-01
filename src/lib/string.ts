@@ -1,4 +1,4 @@
-export function removeVietnameseTones(str: string): string {
+function removeVietnameseTones(str: string): string {
   if (!str) return '';
   let result = str;
   result = result.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, 'a');

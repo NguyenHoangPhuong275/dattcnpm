@@ -25,7 +25,7 @@ export type DailyForecast = {
   windspeedKmh?: number | null;
 };
 
-export const WEATHER_ALERT_THRESHOLDS = {
+const WEATHER_ALERT_THRESHOLDS = {
   rainProbability: 70,
   stormCodeMin: 95,
   extremeTempMax: 40,

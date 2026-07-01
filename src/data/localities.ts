@@ -331,7 +331,7 @@ export function getLocalityBySlug(slug: string) {
   return LOCALITIES.find((locality) => locality.slug === slug);
 }
 
-export function getLocalitiesByRegion(region: RegionName) {
+function getLocalitiesByRegion(region: RegionName) {
   return LOCALITIES.filter((locality) => locality.region === region);
 }
 

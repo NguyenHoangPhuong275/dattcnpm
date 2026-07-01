@@ -1,14 +1,11 @@
 import type { Trip, AppDatabase } from '@/lib/db';
 import { LOCALITIES } from '@/data/localities';
-
+import { DEFAULT_TRIP_IMAGE, DEFAULT_LOCALE, DEFAULT_CURRENCY } from '@/lib/constants';
 
 import { normalizeVietnameseText } from './string';
 import { formatUtcDateOnly, parseValidDate } from './date';
 
-const DEFAULT_TRIP_IMAGE = '/images/hanoi_temple.jpg';
 const DAY_MS = 86_400_000;
-const DEFAULT_LOCALE = 'vi-VN';
-const DEFAULT_CURRENCY = 'VND';
 
 export interface TripDisplayInfo {
   destination: string;
