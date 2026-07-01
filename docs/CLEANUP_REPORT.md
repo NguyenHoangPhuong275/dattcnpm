@@ -113,3 +113,55 @@ Nhiều `*Input` (vd `TripCreateInput`, `HotelSearchInput`, ...) và interface r
 
 > Ghi chú: hiện `.env` trỏ Atlas qua internet (dạng non-SRV) nên suite chạy chậm (~270s) và dễ
 > flaky timeout. Nếu chạy Mongo local (`docker compose up -d`) sẽ nhanh và ổn định hơn.
+
+---
+
+## BƯỚC 2 — Xóa comment thông minh
+Toàn bộ `src/**/*.{ts,tsx}` chỉ còn **4 dòng comment**, tất cả đều thuộc nhóm **PHẢI GIỮ**:
+- `src/lib/validations/favorite.ts:14` — comment "tại sao" (ràng buộc nghiệp vụ, tránh tọa độ rác 0/0)
+- `src/lib/db/connection.ts:74` — comment "tại sao" (fallback khi không set được DNS resolver)
+- `src/app/api/trips/[id]/itinerary/reorder/route.ts:78` — comment "tại sao" (trạng thái khi rollback lỗi)
+- `src/components/hotels/HotelImage.tsx:37` — directive `// eslint-disable-next-line`
+
+→ **Không có comment thừa để xóa.** Không có block comment, JSDoc, code comment-out, TODO/FIXME.
+Codebase đã sạch comment từ các refactor trước.
+
+## BƯỚC 3 — Làm code tự diễn giải
+- `grep` toàn repo: **0 lần dùng `any` / `as any`** → không có ép kiểu không an toàn để bỏ.
+- Tên hàm/biến đã rõ nghĩa, nhất quán convention (`getTripForView`, `evaluateWeatherAlert`,
+  `fetchDailyForecast`, ...). Không có tên mơ hồ cần đổi.
+- Magic string/number ở route lớn đã là hằng có tên (`NOMINATIM_URL`, `CACHE_TTL`, `USER_AGENT`, ...).
+- Dedup đã xử lý ở BƯỚC 1 (A4: `DEFAULT_*`).
+- File lớn nhất là React component/route (JSX/handler nhiều dòng) — tách nhỏ sẽ đổi cấu trúc render,
+  rủi ro regression cao, lợi ích thấp → **không đụng** (đúng nguyên tắc "không đổi behavior",
+  "tránh trừu tượng hóa non").
+
+→ **Không có thay đổi an toàn & đáng giá ngoài BƯỚC 1.**
+
+## BƯỚC 4 — Nhất quán & format
+- Không có Prettier; `eslint-config-next` không bật rule stylistic (`no-multiple-empty-lines`, ...).
+- `npx eslint . --fix` → **0 thay đổi** (không có gì auto-fixable còn tồn).
+- Không file rỗng, không thư mục rỗng, không config trùng.
+- Còn vài dòng trắng liên tiếp (cosmetic) ở ~13 file nhưng **không có formatter cấu hình** để chuẩn hóa;
+  theo yêu cầu "không format thủ công lung tung" → để nguyên (có thể thêm `no-multiple-empty-lines`
+  vào eslint config nếu chủ dự án muốn — đây là thay đổi cấu hình cần bạn duyệt).
+
+## BƯỚC 5 — Tổng kết
+
+### Đã làm (commit `refactor: remove dead code and redundant exports (cleanup phase 1)`)
+- Xóa 1 devDependency thừa (`@types/bcryptjs`) + sync `package-lock.json`.
+- Xóa 6 hàm/biến chết + 3 icon không dùng.
+- Thu hẹp API surface: bỏ `export` cho 5 symbol chỉ dùng nội bộ.
+- Khử trùng lặp 3 hằng `DEFAULT_*`.
+- Thêm tài liệu `docs/CLEANUP_REPORT.md`.
+- Tổng: 12 file thay đổi (+122 / −63).
+
+### Không đổi (đã xác minh sạch)
+- Comment (BƯỚC 2), `any`/naming/magic-number (BƯỚC 3), format/cấu trúc (BƯỚC 4).
+
+### Còn chờ chủ dự án duyệt (đã thống nhất GIỮ ở lần trao đổi này)
+- B1 barrel có tài liệu, B2 script migration, B3/B4 re-export & type Zod/hook, B5 schema validation thừa,
+  B6 helper DB/redis → **giữ nguyên** theo quyết định của chủ dự án.
+
+### Gate cuối
+lint ✅ · typecheck ✅ · build ✅ · test 298/299 (1 flaky timeout do latency Atlas — không phải regression).
