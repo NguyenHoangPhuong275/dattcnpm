@@ -322,7 +322,7 @@ Sắp xếp lại thứ tự itinerary theo `orderedIds`. Chạy 2 pha (gán `or
 | --- | --- |
 | Bản đồ trực quan/marker/popup | **Đã loại bỏ** khỏi phạm vi theo yêu cầu |
 | Add-to-trip trực tiếp từ search result | ✅ Đã có (nút "Thêm" trên mỗi kết quả trong dropdown tìm kiếm) |
-| Cập nhật thông tin trip đầy đủ | API có, UI còn cơ bản |
+| Cập nhật thông tin trip đầy đủ | ✅ Form sửa trip đủ trường (title, điểm đến, ngày, mô tả, ảnh bìa, công khai) |
 | Test integration mở rộng (trips, itinerary, favorites...) | Có một số, cần bổ sung thêm |
 | Responsive + polish UI | Đang thực hiện |
 | Production deployment | Chưa có cấu hình riêng |

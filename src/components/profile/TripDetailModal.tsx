@@ -58,6 +58,8 @@ type TripEditDraft = {
   startDate: string;
   endDate: string;
   isPublic: boolean;
+  description: string;
+  coverImage: string;
 };
 
 type ApiListResponse<T> = {
@@ -85,7 +87,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   const [reordering, setReordering] = useState(false);
 
   const [isEditingTrip, setIsEditingTrip] = useState(false);
-  const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false });
+  const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false, description: '', coverImage: '' });
   const [savingTrip, setSavingTrip] = useState(false);
   const { actions: feedback } = useFeedback();
   const { actions: { showToast } } = useToast();
@@ -320,6 +322,8 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
       startDate: formatDateInputValue(trip.startDate, { timeZone: 'utc' }),
       endDate: formatDateInputValue(trip.endDate, { timeZone: 'utc' }),
       isPublic: trip.isPublic,
+      description: trip.description ?? '',
+      coverImage: trip.coverImage ?? '',
     });
     setIsEditingTrip(true);
   };
@@ -341,6 +345,15 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
       return;
     }
 
+    const coverImage = tripDraft.coverImage.trim();
+    if (coverImage && !/^https?:\/\//i.test(coverImage)) {
+      const message = 'Ảnh bìa phải là URL http(s) hợp lệ';
+      setError(message);
+      showToast(message, 'warning');
+      setSavingTrip(false);
+      return;
+    }
+
     try {
       const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}`, {
         method: 'PATCH',
@@ -352,6 +365,8 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
           startDate: tripDraft.startDate,
           endDate: tripDraft.endDate,
           isPublic: tripDraft.isPublic,
+          description: tripDraft.description.trim(),
+          coverImage: coverImage || null,
         }),
       });
 
@@ -466,6 +481,27 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                   className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
                 />
               </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Mô tả</label>
+                <textarea
+                  value={tripDraft.description}
+                  onChange={e => setTripDraft(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                  maxLength={2000}
+                  placeholder="Ghi chú, mục tiêu chuyến đi..."
+                  className="w-full resize-y border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Ảnh bìa (URL)</label>
+                <input
+                  type="url"
+                  value={tripDraft.coverImage}
+                  onChange={e => setTripDraft(prev => ({ ...prev, coverImage: e.target.value }))}
+                  placeholder="https://..."
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
             </div>
             <div className="mt-3 flex items-center gap-3">
               <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer">
@@ -521,6 +557,12 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
               <div className="text-xs text-[var(--color-text-muted)]">Số điểm dừng</div>
               <div className="font-medium text-[var(--color-text)]">{items.length}</div>
             </div>
+            {trip.description && (
+              <div className="sm:col-span-2 rounded-xl border border-[var(--color-border)] px-3 py-2">
+                <div className="text-xs text-[var(--color-text-muted)]">Mô tả</div>
+                <div className="whitespace-pre-wrap font-medium text-[var(--color-text)]">{trip.description}</div>
+              </div>
+            )}
           </div>
         )}
 

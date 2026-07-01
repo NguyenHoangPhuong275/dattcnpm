@@ -39,6 +39,7 @@ export interface TripSummary {
   startDate: string;
   endDate: string;
   isPublic: boolean;
+  description?: string;
   coverImage?: string | null;
 }
 
