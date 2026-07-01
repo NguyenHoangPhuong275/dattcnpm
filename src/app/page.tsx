@@ -81,6 +81,14 @@ function HomePageContent(): React.JSX.Element {
     }
   };
 
+  const handleAddToTripFromSearch = (place: SearchResult): void => {
+    if (!user) {
+      openAuth('login');
+      return;
+    }
+    handleOpenAddToTripModal(place);
+  };
+
   const handleSaveFavorite = useCallback(async (place: SearchResult): Promise<void> => {
     if (!user) {
       openAuth('login');
@@ -206,6 +214,7 @@ function HomePageContent(): React.JSX.Element {
         isCreating={tripActions.isTripActionLoading}
         isUserLoading={userLoading}
         destinationInputRef={destinationInputRef}
+        onAddToTrip={handleAddToTripFromSearch}
       />
 
       {search.selectedPlace && (

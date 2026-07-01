@@ -43,6 +43,7 @@ interface TripPlannerFormProps {
   isCreating: boolean;
   isUserLoading: boolean;
   destinationInputRef?: React.Ref<HTMLInputElement>;
+  onAddToTrip: (place: SearchResult) => void;
 }
 
 interface DateFieldProps {
@@ -58,6 +59,7 @@ interface SearchDropdownProps {
   query: string;
   selectedPlace: SearchResult | null;
   onSelect: (place: SearchResult) => void;
+  onAddToTrip: (place: SearchResult) => void;
 }
 
 export default function TripPlannerForm({
@@ -72,6 +74,7 @@ export default function TripPlannerForm({
   isCreating,
   isUserLoading,
   destinationInputRef,
+  onAddToTrip,
 }: TripPlannerFormProps) {
   const {
     searchQuery,
@@ -153,6 +156,7 @@ export default function TripPlannerForm({
               query={searchQuery}
               selectedPlace={selectedPlace}
               onSelect={handleSelectPlace}
+              onAddToTrip={onAddToTrip}
             />
           </div>
 
@@ -222,6 +226,7 @@ function SearchDropdown({
   query,
   selectedPlace,
   onSelect,
+  onAddToTrip,
 }: SearchDropdownProps) {
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
@@ -277,23 +282,37 @@ function SearchDropdown({
             const isSelected = selectedPlace?.osmId === place.osmId || selectedPlace?.name === place.name;
 
             return (
-              <button
+              <div
                 key={stableKey}
-                type="button"
-                onClick={() => onSelect(place)}
-                className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-[var(--color-bg)] ${isSelected ? 'bg-[var(--color-primary-lightest)]' : ''}`}
+                className={`flex w-full items-stretch transition hover:bg-[var(--color-bg)] ${isSelected ? 'bg-[var(--color-primary-lightest)]' : ''}`}
               >
-                <div className="mt-0.5 text-[var(--color-primary-darker)]">
-                  <Icons.MapPinIcon className="h-4 w-4" aria-hidden="true" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-semibold text-[var(--color-text)]">{place.name}</div>
-                  {place.address && place.address !== place.name && (
-                    <div className="truncate text-sm text-[var(--color-text-muted)]">{place.address}</div>
-                  )}
-                </div>
-                {isSelected && <div className="self-center text-xs font-bold text-[var(--color-success)]">ĐÃ CHỌN</div>}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => onSelect(place)}
+                  className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3 text-left"
+                >
+                  <div className="mt-0.5 text-[var(--color-primary-darker)]">
+                    <Icons.MapPinIcon className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-semibold text-[var(--color-text)]">{place.name}</div>
+                    {place.address && place.address !== place.name && (
+                      <div className="truncate text-sm text-[var(--color-text-muted)]">{place.address}</div>
+                    )}
+                  </div>
+                  {isSelected && <div className="self-center text-xs font-bold text-[var(--color-success)]">ĐÃ CHỌN</div>}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAddToTrip(place)}
+                  className="flex shrink-0 items-center gap-1.5 border-l border-[var(--color-border)] px-3 text-xs font-bold text-[var(--color-primary-darker)] transition hover:bg-[var(--color-primary-lightest)]"
+                  aria-label={`Thêm ${place.name} vào chuyến đi`}
+                  title="Thêm vào chuyến đi"
+                >
+                  <Icons.PlusIcon className="h-4 w-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">Thêm</span>
+                </button>
+              </div>
             );
           })}
         </div>
