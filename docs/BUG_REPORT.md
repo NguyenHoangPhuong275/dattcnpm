@@ -110,6 +110,17 @@ Triết lý: chứng minh lỗi trước, fix sau. Fix tối thiểu, không đ�
 
 ---
 
+## Cổng xanh (lint · typecheck · test · build)
+
+- `npm run lint` — ✅
+- `npm run typecheck` — ✅
+- `npm run build` — ✅
+- `npm test` — 304/305 xanh. **1 fail là flaky hạ tầng đã ghi nhận từ trước** (`docs/REFACTOR_SUMMARY.md`): `.env` trỏ Atlas shared-tier bị trần **500 collection**, suite tạo nhiều DB `*_test` nên `db.createCollection` (trong `ensureCollections`) fail ngẫu nhiên ở một file. **Không phải regression** — 3 test mới/sửa của đợt này đều pass khi chạy riêng, và các fix không đụng tới tầng tạo collection. Chạy Mongo local (`docker compose up -d`) sẽ hết flaky.
+
+Baseline trước khi fix: 299/299 xanh. Sau khi fix: 304 pass (thêm 5 test mới, 1 flaky Atlas).
+
+---
+
 ## Ghi chú các vùng đã kiểm tra và KHÔNG phát hiện lỗi đáng kể
 
 - **Authorization/ownership:** `getTripForView/Edit`, `findOwnedTrip`, kiểm tra `userId` ở favorites/search-history/reviews/hotel-reviews đều đúng; không thấy IDOR.
