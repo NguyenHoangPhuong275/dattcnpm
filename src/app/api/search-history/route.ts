@@ -4,6 +4,7 @@ import { getDb } from '@/lib/db';
 import { searchHistoryCreateSchema } from '@/lib/validations/search';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { pruneSearchHistory } from '@/lib/search-history';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 function toHistoryResponse(item: Record<string, unknown>) {
   return {
@@ -45,6 +46,15 @@ export async function POST(request: NextRequest) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
     const userId = String(user._id ?? user.id);
+
+    const rate = await checkRateLimit({
+      key: `rl:create-search-history:${userId}`,
+      limit: 60,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang thao tác quá nhanh. Vui lòng thử lại sau.', 429);
+    }
 
     const body = await request.json().catch(() => ({}));
     const parsed = searchHistoryCreateSchema.parse(body);
