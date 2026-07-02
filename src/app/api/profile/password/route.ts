@@ -4,6 +4,7 @@ import { User } from '@/lib/db';
 import { getAuthUserFull, invalidateUserCache, revokeAuthToken } from '@/lib/auth';
 import { passwordChangeSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +13,15 @@ export async function POST(request: NextRequest) {
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
     const userId = String(user._id);
+
+    const rate = await checkRateLimit({
+      key: `rl:change-password:${userId}`,
+      limit: 10,
+      windowSeconds: 300,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đã thử đổi mật khẩu quá nhiều lần. Vui lòng thử lại sau.', 429);
+    }
 
     const body = await request.json().catch(() => ({}));
     const parsed = passwordChangeSchema.parse(body);
