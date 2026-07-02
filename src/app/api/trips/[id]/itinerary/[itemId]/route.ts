@@ -55,14 +55,22 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
       updates.placeId = parsed.placeId;
     }
 
+    const isMovingDay = parsed.day !== undefined && parsed.day !== item.day;
+
     if (parsed.day !== undefined) {
-      if (parsed.day !== item.day) {
+      if (isMovingDay) {
         assertTripDayIsSchedulable(trip, parsed.day);
       }
       updates.day = parsed.day;
     }
 
-    if (parsed.orderIndex !== undefined) updates.orderIndex = parsed.orderIndex;
+    if (parsed.orderIndex !== undefined) {
+      updates.orderIndex = parsed.orderIndex;
+    } else if (isMovingDay) {
+      const targetDayItems = await db.itineraryItems.find({ tripId: id, day: parsed.day });
+      const maxOrderIndex = targetDayItems.reduce((max, current) => Math.max(max, current.orderIndex), -1);
+      updates.orderIndex = maxOrderIndex + 1;
+    }
     if (parsed.note !== undefined) updates.note = parsed.note;
     if (parsed.startTime !== undefined) updates.startTime = parsed.startTime ? new Date(parsed.startTime) : null;
     if (parsed.endTime !== undefined) updates.endTime = parsed.endTime ? new Date(parsed.endTime) : null;

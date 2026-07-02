@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { hash } from 'bcryptjs';
 import { getDb, disconnectMongo } from '@/lib/db';
 import { POST as itineraryPOST } from '@/app/api/trips/[id]/itinerary/route';
-import { DELETE as itineraryDELETE } from '@/app/api/trips/[id]/itinerary/[itemId]/route';
+import { DELETE as itineraryDELETE, PATCH as itineraryPATCH } from '@/app/api/trips/[id]/itinerary/[itemId]/route';
 
 let ownerId = '';
 
@@ -111,5 +111,26 @@ describe('Itinerary orderIndex (max + 1)', () => {
 
     expect((await day1.json()).data.orderIndex).toBe(0);
     expect((await day2.json()).data.orderIndex).toBe(0);
+  }, 20000);
+
+  it('dời item sang ngày khác không bị lỗi trùng orderIndex', async () => {
+    const tripId = await createTrip(ownerId);
+    const placeId = await createPlace();
+
+    const aRes = await itineraryPOST(req(ownerId, { placeId, day: 1 }) as never, ctx(tripId) as never);
+    const bRes = await itineraryPOST(req(ownerId, { placeId, day: 2 }) as never, ctx(tripId) as never);
+    const aId = (await aRes.json()).data._id;
+    expect((await bRes.json()).data.orderIndex).toBe(0);
+
+    const moveReq = new Request('http://localhost/api/trips/x/itinerary/y', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json', 'x-user-id': ownerId },
+      body: JSON.stringify({ day: 2 }),
+    });
+    const moved = await itineraryPATCH(moveReq as never, itemCtx(tripId, aId) as never);
+    expect(moved.status).toBe(200);
+    const movedBody = await moved.json();
+    expect(movedBody.data.day).toBe(2);
+    expect(movedBody.data.orderIndex).toBe(1);
   }, 20000);
 });
