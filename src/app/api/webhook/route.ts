@@ -14,6 +14,11 @@ import { invalidateUserCache } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { timingSafeEqualString } from '@/lib/crypto';
 import { normalizeEmail } from '@/lib/string';
+import { isAdminRequest } from '@/lib/admin-authorization';
+
+// Tài khoản seed đứng tên đánh giá khách sạn import từ TripAdvisor — không phải người dùng thật,
+// không hiển thị trong quản trị và không nhận thông báo (nhưng phải giữ vì hotel_reviews tham chiếu).
+const SEED_EMAIL_PATTERN = /@tripadvisor\.local$/i;
 
 function getWebhookSecret() {
   const secret = process.env.WEBHOOK_SECRET;
@@ -36,9 +41,13 @@ function isIpAllowedForRestrictedEvent(ip: string): boolean {
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('x-webhook-secret');
-    const webhookSecret = getWebhookSecret();
+    const hasAdminAccess = await isAdminRequest(request);
+    const webhookSecret = hasAdminAccess ? process.env.WEBHOOK_SECRET : getWebhookSecret();
+    const hasValidSecret = Boolean(
+      authHeader && webhookSecret && timingSafeEqualString(authHeader, webhookSecret),
+    );
 
-    if (!authHeader || !timingSafeEqualString(authHeader, webhookSecret)) {
+    if (!hasValidSecret && !hasAdminAccess) {
       throw new AppError('UNAUTHORIZED', 'Unauthorized admin access', 401);
     }
 
@@ -212,7 +221,10 @@ export async function POST(request: NextRequest) {
         try {
           const user = await findUserOrFail(email);
           const isLocked = event === 'user.lock';
-          await db.users.updateOne(user._id, { isLocked });
+          await db.users.updateOne(user._id, {
+            $set: { isLocked, updatedAt: now },
+            $inc: { tokenVersion: 1 },
+          });
           await invalidateUserCache(String(user._id));
           await logAudit(isLocked ? 'LOCK_USER' : 'UNLOCK_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
 
@@ -235,7 +247,10 @@ export async function POST(request: NextRequest) {
           if (hard === true) {
             await db.users.deleteOne(user._id);
           } else {
-            await db.users.updateOne(user._id, { deletedAt: now });
+            await db.users.updateOne(user._id, {
+              $set: { deletedAt: now, updatedAt: now },
+              $inc: { tokenVersion: 1 },
+            });
           }
           await invalidateUserCache(String(user._id));
           await logAudit(hard ? 'HARD_DELETE_USER' : 'SOFT_DELETE_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
@@ -254,7 +269,10 @@ export async function POST(request: NextRequest) {
           throw new AppError('VALIDATION_ERROR', 'Missing notification content', 400);
         }
 
-        const users = await db.users.find({}, { projection: { _id: 1 } });
+        const users = await db.users.find(
+          { email: { $not: SEED_EMAIL_PATTERN }, deletedAt: null },
+          { projection: { _id: 1 } },
+        );
         const notificationCount = users.length;
 
         if (notificationCount > 0) {
@@ -276,7 +294,7 @@ export async function POST(request: NextRequest) {
 
       case 'system.stats': {
         const stats = {
-          users: await db.users.count(),
+          users: await db.users.count({ email: { $not: SEED_EMAIL_PATTERN }, deletedAt: null }),
           trips: await db.trips.count(),
           places: await db.places.count(),
           itineraryItems: await db.itineraryItems.count(),
@@ -293,21 +311,70 @@ export async function POST(request: NextRequest) {
       }
 
       case 'system.logs': {
-        const logs = await db.auditLogs.find(
-          {},
-          { sortBy: 'createdAt', sortOrder: -1, limit: 15 }
-        );
+        const page = Math.max(1, Math.floor(Number(data?.page) || 1));
+        const limit = Math.min(50, Math.max(5, Math.floor(Number(data?.limit) || 15)));
+        const filter: Record<string, unknown> = {};
+        if (typeof data?.action === 'string' && data.action.trim()) {
+          filter.action = data.action.trim();
+        }
+        if (typeof data?.userId === 'string' && data.userId.trim()) {
+          filter.userId = data.userId.trim();
+        }
+        const result = await db.auditLogs.findPaginated(filter, {
+          page,
+          limit,
+          sortBy: 'createdAt',
+          sortOrder: -1,
+        });
+        const userIds = [...new Set(result.data.map((log) => String(log.userId ?? '')).filter(Boolean))];
+        const users = userIds.length > 0
+          ? await db.users.find(
+              { _id: { $in: userIds } },
+              { projection: { _id: 1, email: 1, fullName: 1 } },
+            )
+          : [];
+        const usersById = new Map(users.map((user) => [String(user._id), user]));
+        const logs = result.data.map((log) => {
+          const actor = log.userId ? usersById.get(String(log.userId)) : undefined;
+          return {
+            ...log,
+            actor: actor ? { id: String(actor._id), email: actor.email, fullName: actor.fullName } : null,
+          };
+        });
 
         return sendSuccess({
           logs,
+          pagination: {
+            page: result.page,
+            limit,
+            total: result.total,
+            totalPages: result.totalPages,
+          },
         });
       }
 
       case 'system.users': {
-        const users = (await db.users.find(
-          { deletedAt: null },
-          { projection: { _id: 1, email: 1, fullName: 1, role: 1, isLocked: 1, emailVerified: 1, createdAt: 1 } }
-        )).map((u) => ({
+        const page = Math.max(1, Math.floor(Number(data?.page) || 1));
+        const limit = Math.min(50, Math.max(5, Math.floor(Number(data?.limit) || 10)));
+        const filter: Record<string, unknown> = { deletedAt: null, email: { $not: SEED_EMAIL_PATTERN } };
+        if (typeof data?.query === 'string' && data.query.trim()) {
+          const escapedQuery = data.query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          filter.$or = [
+            { email: { $regex: escapedQuery, $options: 'i' } },
+            { fullName: { $regex: escapedQuery, $options: 'i' } },
+          ];
+        }
+        if (data?.status === 'locked') filter.isLocked = true;
+        if (data?.status === 'active') filter.isLocked = false;
+        if (data?.role === 'USER' || data?.role === 'ADMIN') filter.role = data.role;
+
+        const result = await db.users.findPaginated(filter, {
+          page,
+          limit,
+          sortBy: 'createdAt',
+          sortOrder: -1,
+        });
+        const users = result.data.map((u) => ({
           _id: u._id,
           email: u.email,
           fullName: u.fullName,
@@ -318,6 +385,12 @@ export async function POST(request: NextRequest) {
         }));
         return sendSuccess({
           users,
+          pagination: {
+            page: result.page,
+            limit,
+            total: result.total,
+            totalPages: result.totalPages,
+          },
         });
       }
 

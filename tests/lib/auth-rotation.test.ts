@@ -51,6 +51,7 @@ describe('JWT secret rotation', () => {
 
     expect(newClaims.jti).toBe(oldClaims.jti);
     expect(newClaims.exp).toBe(oldClaims.exp);
+    expect(newClaims.tokenVersion).toBe(oldClaims.tokenVersion);
   });
 
   it('trims whitespace and ignores empty entries in the key list', async () => {

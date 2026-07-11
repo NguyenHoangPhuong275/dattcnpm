@@ -5,8 +5,6 @@ import { TripChecklist } from '@/lib/db/models/supporting.model';
 import { POST as bulkPOST } from '@/app/api/trips/[id]/checklist/bulk/route';
 import { getChecklistTemplate } from '@/data/checklist-templates';
 
-// Mỗi test sinh user id riêng; mock CHỈ method getUserById bằng vi.spyOn (không mock cả module
-// @/lib/db) → tránh rò rỉ mock, route vẫn chạy thật. Cleanup mock + registry trong afterEach.
 const testUserIds = new Set<string>();
 
 function newUserId(): string {
@@ -40,10 +38,9 @@ function req(userId: string | null, body?: unknown) {
   });
 }
 
-describe('Task 2.5 — Checklist bulk-add', () => {
+describe('Chức năng thêm checklist hàng loạt theo mẫu', () => {
   beforeAll(async () => {
     await db.getDb();
-    // Đảm bảo unique index { tripId, label } (collation) tồn tại để test race condition.
     await TripChecklist.syncIndexes();
   });
 
@@ -59,7 +56,6 @@ describe('Task 2.5 — Checklist bulk-add', () => {
     });
   });
 
-  // Cleanup scoped theo đúng owner test tạo + restore toàn bộ mock + reset registry.
   afterEach(async () => {
     const database = await db.getDb();
     for (const owner of testUserIds) {
@@ -181,7 +177,7 @@ describe('Task 2.5 — Checklist bulk-add', () => {
     const database = await db.getDb();
     const stored = await database.tripChecklists.find({ tripId });
     const labels = stored.map((i) => i.label);
-    expect(new Set(labels).size).toBe(labels.length); // không có nhãn trùng
+    expect(new Set(labels).size).toBe(labels.length);
     expect(labels.length).toBe(items.length);
   });
 
@@ -210,7 +206,6 @@ describe('Task 2.5 — Checklist bulk-add', () => {
 
     const database = await db.getDb();
     const stored = await database.tripChecklists.find({ tripId });
-    // Chỉ 1 item tồn tại dù khác hoa/thường.
     expect(stored.length).toBe(1);
   });
 
@@ -219,12 +214,12 @@ describe('Task 2.5 — Checklist bulk-add', () => {
     const tripId = await createTrip(owner);
     const nfc = 'Vẽ tranh'.normalize('NFC');
     const nfd = 'Vẽ tranh'.normalize('NFD');
-    expect(nfc).not.toBe(nfd); // khác chuỗi codepoint nhưng tương đương Unicode
+    expect(nfc).not.toBe(nfd);
 
     await bulkPOST(req(owner, { items: [nfc] }) as never, ctx(tripId) as never);
     const res2 = await bulkPOST(req(owner, { items: [nfd] }) as never, ctx(tripId) as never);
     const json2 = await res2.json();
-    expect(json2.data.added).toBe(0); // app chuẩn hóa NFC → coi là trùng
+    expect(json2.data.added).toBe(0);
 
     const database = await db.getDb();
     const stored = await database.tripChecklists.find({ tripId });
@@ -247,7 +242,6 @@ describe('Task 2.5 — Checklist bulk-add', () => {
 
     const database = await db.getDb();
     const stored = await database.tripChecklists.find({ tripId });
-    // DB index (normalization:true) chặn dạng Unicode khác nhau → chỉ 1 item.
     expect(stored.length).toBe(1);
   });
 });

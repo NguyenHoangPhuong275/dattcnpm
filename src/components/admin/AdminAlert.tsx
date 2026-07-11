@@ -13,8 +13,8 @@ export default function AdminAlert({ alert }: AdminAlertProps) {
     <div
       className={`p-4 rounded-2xl flex items-center gap-3 border transition-all animate-fade-in-up ${
         alert.type === 'success'
-          ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400'
-          : 'bg-rose-950/40 border-rose-500/30 text-rose-400'
+          ? 'border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-emerald-700'
+          : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 text-red-700'
       }`}
     >
       {alert.type === 'success' ? (

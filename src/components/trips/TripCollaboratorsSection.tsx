@@ -48,7 +48,7 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
   const [errorMessage, setErrorMessage] = useState('');
   const [email, setEmail] = useState('');
   const [permission, setPermission] = useState<Permission>('READ');
-  const [inviting, setInviting] = useState(false);
+  const [addingCollaborator, setAddingCollaborator] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [share, setShare] = useState<ShareData | null>(null);
   const [sharing, setSharing] = useState(false);
@@ -79,10 +79,10 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
     load();
   }, [load]);
 
-  const handleInvite = async (): Promise<void> => {
+  const handleAddCollaborator = async (): Promise<void> => {
     const trimmed = email.trim();
-    if (!userId || !trimmed || inviting) return;
-    setInviting(true);
+    if (!userId || !trimmed || addingCollaborator) return;
+    setAddingCollaborator(true);
     try {
       const { response, data } = await apiRequest<ApiResponse<unknown>>(`/api/trips/${tripId}/collaborators`, {
         method: 'POST',
@@ -91,18 +91,18 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
         body: JSON.stringify({ email: trimmed, permission }),
       });
       try {
-        ensureApiSuccess(response, data, 'Không thể mời cộng tác viên');
+        ensureApiSuccess(response, data, 'Không thể thêm cộng tác viên');
       } catch {
-        showToast(getApiErrorMessage(data, 'Không thể mời cộng tác viên'), 'error');
+        showToast(getApiErrorMessage(data, 'Không thể thêm cộng tác viên'), 'error');
         return;
       }
       setEmail('');
       showToast('Đã thêm cộng tác viên', 'success');
       await load();
     } catch {
-      showToast('Không thể mời cộng tác viên', 'error');
+      showToast('Không thể thêm cộng tác viên', 'error');
     } finally {
-      setInviting(false);
+      setAddingCollaborator(false);
     }
   };
 
@@ -218,7 +218,7 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
                     <span className="rounded-full bg-[var(--color-primary-lightest)] px-2 py-0.5 font-semibold text-[var(--color-primary-darker)]">
                       {PERMISSION_LABELS[collaborator.permission]}
                     </span>
-                    <span>{collaborator.acceptedAt ? 'Đã tham gia' : 'Đang chờ'}</span>
+                    <span>{collaborator.acceptedAt ? 'Đã kích hoạt' : 'Chưa kích hoạt'}</span>
                   </div>
                 </div>
                 <button
@@ -238,7 +238,7 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email người được mời"
+              placeholder="Email cộng tác viên"
               className="flex-1 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm bg-white"
             />
             <select
@@ -252,11 +252,11 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
             </select>
             <button
               type="button"
-              onClick={handleInvite}
-              disabled={inviting || !email.trim()}
+              onClick={handleAddCollaborator}
+              disabled={addingCollaborator || !email.trim()}
               className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
             >
-              {inviting ? 'Đang mời...' : 'Mời'}
+              {addingCollaborator ? 'Đang thêm...' : 'Thêm'}
             </button>
           </div>
 

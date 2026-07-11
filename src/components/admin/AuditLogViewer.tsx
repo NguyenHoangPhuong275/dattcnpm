@@ -1,8 +1,6 @@
 'use client';
 
-import React from 'react';
-
-interface AuditLog {
+export interface AdminAuditLog {
   _id: string;
   userId?: string | null;
   action: string;
@@ -10,84 +8,80 @@ interface AuditLog {
   targetId?: string | null;
   metadata?: Record<string, unknown> | null;
   createdAt: string;
+  actor?: { id: string; email: string; fullName: string } | null;
 }
 
 interface AuditLogViewerProps {
-  logs: AuditLog[];
+  logs: AdminAuditLog[];
   isLoading: boolean;
+  page: number;
+  totalPages: number;
+  total: number;
+  actionFilter: string;
+  selectedUserLabel?: string;
+  onActionFilterChange: (value: string) => void;
+  onPageChange: (page: number) => void;
+  onClearUser: () => void;
   onRefresh: () => void;
 }
 
-export default function AuditLogViewer({ logs, isLoading, onRefresh }: AuditLogViewerProps) {
+const ACTION_LABELS: Record<string, string> = {
+  LOGIN: 'Đăng nhập', REGISTER: 'Đăng ký', CREATE_TRIP: 'Tạo chuyến đi', UPDATE_TRIP: 'Sửa chuyến đi',
+  DELETE_TRIP: 'Xóa chuyến đi', LOCK_USER: 'Khóa người dùng', UNLOCK_USER: 'Mở khóa người dùng',
+  CREATE_REVIEW: 'Tạo đánh giá', UPDATE_REVIEW: 'Sửa đánh giá', DELETE_REVIEW: 'Xóa đánh giá',
+  RESET_PASSWORD: 'Đặt lại mật khẩu', UPDATE_PREFERENCES: 'Sửa sở thích',
+};
+
+export default function AuditLogViewer(props: AuditLogViewerProps): React.JSX.Element {
+  const actions = [...new Set(props.logs.map((log) => log.action))].sort();
   return (
-    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-3xl p-6 shadow-lg shadow-slate-950/35 flex flex-col h-full max-h-[740px]">
-      <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4 flex-shrink-0">
-        <h2 className="text-lg font-bold text-indigo-300 flex items-center gap-2">
-          <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          Nhật ký Hệ thống (Logs)
-        </h2>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isLoading}
-          className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-40"
-        >
-          <svg className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H18" />
-          </svg>
-        </button>
+    <section className="rounded-3xl border border-[var(--color-border)] bg-white shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-[var(--color-border)] p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-extrabold text-[var(--color-text)]">Nhật ký hoạt động</h2>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{props.total.toLocaleString('vi-VN')} hành động đã được lưu trong MongoDB</p>
+        </div>
+        <div className="flex gap-2">
+          <select id="admin-log-action" value={props.actionFilter} onChange={(event) => props.onActionFilterChange(event.target.value)} className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-sm">
+            <option value="">Tất cả hành động</option>
+            {actions.map((action) => <option key={action} value={action}>{ACTION_LABELS[action] ?? action}</option>)}
+          </select>
+          <button id="admin-logs-refresh" type="button" onClick={props.onRefresh} className="rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm font-bold">Tải lại</button>
+        </div>
       </div>
-
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-        {isLoading && logs.length === 0 ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-14 bg-slate-800/40 animate-pulse rounded-xl" />
-            ))}
-          </div>
-        ) : logs.length === 0 ? (
-          <div className="text-center py-12 text-slate-600 text-sm">
-            Không có bản ghi nhật ký nào.
-          </div>
-        ) : (
-          <div className="relative pl-4 border-l border-slate-800 space-y-6">
-            {logs.map((log) => {
-              let actionColor = 'bg-slate-800 text-slate-300';
-              if (log.action.includes('LOCK')) actionColor = 'bg-amber-950/50 text-amber-400 border-amber-500/20 border';
-              else if (log.action.includes('REGISTER')) actionColor = 'bg-emerald-950/50 text-emerald-400 border-emerald-500/20 border';
-              else if (log.action.includes('DELETE')) actionColor = 'bg-rose-950/50 text-rose-400 border-rose-500/20 border';
-
-              const date = new Date(log.createdAt);
-              const timeStr = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-              return (
-                <div key={log._id} className="relative group">
-                  <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-700 group-hover:bg-indigo-500 transition-colors border border-slate-900" />
-
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${actionColor}`}>
-                        {log.action}
-                      </span>
-                      <span className="text-xs text-slate-500 font-medium">{timeStr}</span>
-                    </div>
-                    <p className="text-xs text-slate-300 break-words pl-0.5">
-                      {String(log.metadata?.email ?? log.metadata?.method ?? log.targetType ?? 'Hành động hệ thống')}
-                    </p>
-                    {log.metadata && Object.keys(log.metadata).length > 0 && (
-                      <pre className="text-xs text-slate-500 bg-slate-950/40 p-1.5 rounded-lg overflow-x-auto">
-                        {JSON.stringify(log.metadata, null, 2)}
-                      </pre>
-                    )}
-                  </div>
+      {props.selectedUserLabel && (
+        <div className="mx-6 mt-4 flex items-center justify-between rounded-xl bg-[var(--color-primary-lightest)] px-4 py-2 text-sm text-[var(--color-primary-darker)]">
+          <span>Đang xem hoạt động của <strong>{props.selectedUserLabel}</strong></span>
+          <button id="admin-clear-user-filter" type="button" onClick={props.onClearUser} className="font-bold">Bỏ lọc</button>
+        </div>
+      )}
+      <div className="divide-y divide-[var(--color-border)] px-6">
+        {props.isLoading ? <p className="py-12 text-center text-sm text-[var(--color-text-muted)]">Đang tải nhật ký...</p>
+          : props.logs.length === 0 ? <p className="py-12 text-center text-sm text-[var(--color-text-muted)]">Không có hoạt động phù hợp.</p>
+          : props.logs.map((log) => {
+            const date = new Date(log.createdAt);
+            const actorName = log.actor?.fullName || String(log.metadata?.email ?? 'Hệ thống');
+            const actorEmail = log.actor?.email;
+            return (
+              <article key={log._id} className="grid gap-3 py-4 sm:grid-cols-[180px_1fr_auto] sm:items-start">
+                <time className="text-xs text-[var(--color-text-muted)]" dateTime={log.createdAt}>{date.toLocaleString('vi-VN')}</time>
+                <div>
+                  <p className="font-bold text-[var(--color-text)]">{ACTION_LABELS[log.action] ?? log.action}</p>
+                  <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{actorName}{actorEmail ? ` · ${actorEmail}` : ''}</p>
+                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">Đối tượng: {log.targetType}{log.targetId ? ` · ${log.targetId}` : ''}</p>
                 </div>
-              );
-            })}
-          </div>
-        )}
+                <span className="w-fit rounded-full bg-[var(--color-bg)] px-2.5 py-1 text-xs font-bold text-[var(--color-text-secondary)]">{log.action}</span>
+              </article>
+            );
+          })}
       </div>
-    </div>
+      <div className="flex items-center justify-between border-t border-[var(--color-border)] px-6 py-4 text-sm">
+        <span className="text-[var(--color-text-muted)]">Trang {props.page}/{Math.max(props.totalPages, 1)}</span>
+        <div className="flex gap-2">
+          <button id="admin-logs-prev" type="button" disabled={props.page <= 1 || props.isLoading} onClick={() => props.onPageChange(props.page - 1)} className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 disabled:opacity-40">Trước</button>
+          <button id="admin-logs-next" type="button" disabled={props.page >= props.totalPages || props.isLoading} onClick={() => props.onPageChange(props.page + 1)} className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 disabled:opacity-40">Sau</button>
+        </div>
+      </div>
+    </section>
   );
 }

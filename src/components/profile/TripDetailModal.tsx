@@ -7,7 +7,7 @@ import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-clie
 import { formatDateInputValue } from '@/lib/date';
 import { getTripScheduleBadge } from '@/lib/trip-utils';
 import { ROUTES } from '@/lib/constants';
-import { TripSummary } from '@/types/profile';
+import type { TripSummary } from '@/types/profile';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -76,7 +76,13 @@ const emptyDraft: ItineraryDraft = {
   currency: 'VND',
 };
 
-export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }: TripDetailModalProps): React.JSX.Element | null {
+export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated, userId }: TripDetailModalProps): React.JSX.Element | null {
+  const [tripOverride, setTripOverride] = useState<TripSummary | null>(null);
+  const trip = tripProp && tripOverride && tripOverride._id === tripProp._id ? tripOverride : tripProp;
+  const access = trip?.access ?? 'NONE';
+  const isOwner = access === 'OWNER';
+  const canEdit = isOwner || access === 'EDIT';
+  const canViewPrivate = canEdit || access === 'READ';
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -103,6 +109,13 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     clearSelectedPlace,
   } = placeSearch;
 
+  const hotelAnchor = useMemo(() => {
+    const place = items.map((item) => item.place).find(
+      (candidate) => typeof candidate?.lat === 'number' && typeof candidate?.lng === 'number',
+    );
+    return place ? { lat: place.lat as number, lng: place.lng as number, name: place.name } : null;
+  }, [items]);
+
   const groupedItems = useMemo(() => {
     const groups = new Map<number, ItineraryItem[]>();
     items.forEach((item) => {
@@ -120,7 +133,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   }, [items]);
 
   const loadItinerary = useCallback(async () => {
-    if (!trip || !userId) return;
+    if (!trip || !userId || access === 'NONE') return;
     setLoading(true);
     setError('');
     try {
@@ -137,7 +150,11 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     } finally {
       setLoading(false);
     }
-  }, [trip, userId]);
+  }, [access, trip, userId]);
+
+  useEffect(() => {
+    setTripOverride(null);
+  }, [tripProp]);
 
   useEffect(() => {
     if (trip) {
@@ -145,12 +162,15 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
       setDraft(emptyDraft);
       setEditingId(null);
       setError('');
-      setIsEditingTrip(false);
       clearSelectedPlace();
     } else {
       setItems([]);
     }
   }, [trip, loadItinerary, clearSelectedPlace]);
+
+  useEffect(() => {
+    setIsEditingTrip(false);
+  }, [tripProp]);
 
   const resetForm = () => {
     setDraft(emptyDraft);
@@ -168,7 +188,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   }, [handleSelectPlace]);
 
   const handleMove = async (item: ItineraryItem, direction: 'up' | 'down'): Promise<void> => {
-    if (!trip || !userId || reordering) return;
+    if (!trip || !userId || !canEdit || reordering) return;
     const group = groupedItems.find((g) => g.day === item.day);
     if (!group) return;
     const index = group.items.findIndex((i) => i._id === item._id);
@@ -209,7 +229,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   };
 
   const handleSave = async (): Promise<void> => {
-    if (!trip || !userId || !draft.placeId.trim()) return;
+    if (!trip || !userId || !canEdit || !draft.placeId.trim()) return;
     setSaving(true);
     setError('');
 
@@ -260,6 +280,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   };
 
   const handleEdit = (item: ItineraryItem) => {
+    if (!canEdit) return;
     setEditingId(item._id);
     setDraft({
       day: item.day,
@@ -279,7 +300,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   };
 
   const handleDelete = async (itemId: string): Promise<void> => {
-    if (!trip || !userId) return;
+    if (!trip || !userId || !canEdit) return;
     await feedback.confirmAction({
       confirm: {
         title: 'Xóa điểm dừng?',
@@ -315,7 +336,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   };
 
   const startEditTrip = () => {
-    if (!trip) return;
+    if (!trip || !canEdit) return;
     setTripDraft({
       title: trip.title,
       destination: trip.destination,
@@ -333,7 +354,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
   };
 
   const saveTrip = async (): Promise<void> => {
-    if (!trip || !userId) return;
+    if (!trip || !userId || !canEdit) return;
     setSavingTrip(true);
     setError('');
 
@@ -355,7 +376,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
     }
 
     try {
-      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}`, {
+      const { response, data } = await apiRequest<ApiListResponse<TripSummary>>(`/api/trips/${trip._id}`, {
         method: 'PATCH',
         userId,
         headers: { 'Content-Type': 'application/json' },
@@ -378,6 +399,21 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
         showToast(message, 'error');
         return;
       }
+      const updatedTrip = data.data;
+      setTripOverride(
+        updatedTrip && updatedTrip._id
+          ? updatedTrip
+          : {
+              ...trip,
+              title: tripDraft.title.trim(),
+              destination: tripDraft.destination.trim(),
+              startDate: tripDraft.startDate,
+              endDate: tripDraft.endDate,
+              isPublic: tripDraft.isPublic,
+              description: tripDraft.description.trim(),
+              coverImage: coverImage || null,
+            },
+      );
       setIsEditingTrip(false);
       showToast('Đã cập nhật chuyến đi', 'success');
       onTripUpdated?.();
@@ -412,7 +448,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             >
               Xem lịch trình
             </Link>
-            {!isEditingTrip && (
+            {!isEditingTrip && canEdit && (
               <button type="button" onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]">
                 Sửa thông tin
               </button>
@@ -440,7 +476,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
           </div>
         </div>
 
-        {isEditingTrip ? (
+        {isEditingTrip && canEdit ? (
           <div className="rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-primary-lightest)]/30 p-4 mb-6">
             <div className="text-sm font-semibold text-[var(--color-text)] mb-3">Chỉnh sửa thông tin chuyến đi</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -586,7 +622,7 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
           {groupedItems.length === 0 && !loading && (
             <EmptyState
               title="Chưa có điểm dừng"
-              description="Thêm địa điểm đầu tiên vào lịch trình của bạn."
+              description={canEdit ? 'Thêm địa điểm đầu tiên vào lịch trình của bạn.' : 'Chuyến đi này chưa có điểm dừng.'}
             />
           )}
 
@@ -600,26 +636,28 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                   {group.items.map((item, index) => (
                     <div key={item._id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm">
                       <div className="flex min-w-0 items-start gap-2">
-                        <div className="flex shrink-0 flex-col gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleMove(item, 'up')}
-                            disabled={index === 0 || reordering}
-                            aria-label="Di chuyển lên"
-                            className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMove(item, 'down')}
-                            disabled={index === group.items.length - 1 || reordering}
-                            aria-label="Di chuyển xuống"
-                            className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            ↓
-                          </button>
-                        </div>
+                        {canEdit && (
+                          <div className="flex shrink-0 flex-col gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleMove(item, 'up')}
+                              disabled={index === 0 || reordering}
+                              aria-label="Di chuyển lên"
+                              className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMove(item, 'down')}
+                              disabled={index === group.items.length - 1 || reordering}
+                              aria-label="Di chuyển xuống"
+                              className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              ↓
+                            </button>
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <div className="font-medium text-[var(--color-text)] break-words">
                             {item.place?.name || item.note || 'Địa điểm chưa xác định'}
@@ -634,23 +672,25 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
                           )}
                         </div>
                       </div>
-                      <div className="flex shrink-0 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleEdit(item)}
-                          className="text-xs px-2 py-1 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
-                        >
-                          Sửa
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item._id)}
-                          disabled={deletingItemId === item._id}
-                          className="text-xs px-2 py-1 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
-                        >
-                          {deletingItemId === item._id ? 'Đang xóa...' : 'Xóa'}
-                        </button>
-                      </div>
+                      {canEdit && (
+                        <div className="flex shrink-0 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(item)}
+                            className="text-xs px-2 py-1 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
+                          >
+                            Sửa
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item._id)}
+                            disabled={deletingItemId === item._id}
+                            className="text-xs px-2 py-1 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
+                          >
+                            {deletingItemId === item._id ? 'Đang xóa...' : 'Xóa'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -658,127 +698,137 @@ export default function TripDetailModal({ trip, onClose, onTripUpdated, userId }
             ))}
           </div>
 
-          <div className="rounded-xl border border-[var(--color-border)] p-4">
-            <div className="text-sm font-semibold text-[var(--color-text)] mb-3">
-              {editingId ? 'Sửa điểm dừng' : 'Thêm điểm dừng'}
-            </div>
+          {canEdit && (
+            <div className="rounded-xl border border-[var(--color-border)] p-4">
+              <div className="text-sm font-semibold text-[var(--color-text)] mb-3">
+                {editingId ? 'Sửa điểm dừng' : 'Thêm điểm dừng'}
+              </div>
 
-            <div ref={placeSearchRef} className="relative mb-3">
-              <label className="block text-xs text-[var(--color-text-muted)] mb-1">Địa điểm</label>
-              <input
-                type="text"
-                value={placeQuery}
-                onChange={(e) => setPlaceQuery(e.target.value)}
-                placeholder="Tìm địa điểm, ví dụ: Hồ Gươm, Bà Nà Hills..."
-                autoComplete="off"
-                className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-              />
-              {placeSearching && (
-                <div className="absolute right-3 top-8 text-xs text-[var(--color-text-muted)]">Đang tìm...</div>
-              )}
-              {placeDropdownOpen && placeResults.length > 0 && (
-                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[var(--color-border)] bg-white shadow-lg">
-                  {placeResults.map((place) => (
-                    <li key={place._id}>
-                      <button
-                        type="button"
-                        onClick={() => handlePickPlace(place)}
-                        className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-[var(--color-primary-lightest)]"
-                      >
-                        <span className="text-sm font-medium text-[var(--color-text)]">{place.name}</span>
-                        {place.address && (
-                          <span className="text-xs text-[var(--color-text-muted)]">{place.address}</span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {!draft.placeId && (
-                <p className="mt-1 text-xs text-[var(--color-text-muted)]">Chọn địa điểm từ kết quả tìm kiếm để thêm vào lịch trình.</p>
-              )}
-            </div>
+              <div ref={placeSearchRef} className="relative mb-3">
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Địa điểm</label>
+                <input
+                  type="text"
+                  value={placeQuery}
+                  onChange={(e) => setPlaceQuery(e.target.value)}
+                  placeholder="Tìm địa điểm, ví dụ: Hồ Gươm, Bà Nà Hills..."
+                  autoComplete="off"
+                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
+                />
+                {placeSearching && (
+                  <div className="absolute right-3 top-8 text-xs text-[var(--color-text-muted)]">Đang tìm...</div>
+                )}
+                {placeDropdownOpen && placeResults.length > 0 && (
+                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[var(--color-border)] bg-white shadow-lg">
+                    {placeResults.map((place) => (
+                      <li key={place._id}>
+                        <button
+                          type="button"
+                          onClick={() => handlePickPlace(place)}
+                          className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-[var(--color-primary-lightest)]"
+                        >
+                          <span className="text-sm font-medium text-[var(--color-text)]">{place.name}</span>
+                          {place.address && (
+                            <span className="text-xs text-[var(--color-text-muted)]">{place.address}</span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {!draft.placeId && (
+                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">Chọn địa điểm từ kết quả tìm kiếm để thêm vào lịch trình.</p>
+                )}
+              </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <input
-                type="number"
-                min={1}
-                value={draft.day}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  if (raw === '') {
-                    setDraft(prev => ({ ...prev, day: '' }));
-                    return;
-                  }
-                  const parsed = parseInt(raw, 10);
-                  if (!isNaN(parsed) && parsed >= 1) {
-                    setDraft(prev => ({ ...prev, day: parsed }));
-                  }
-                }}
-                placeholder="Ngày"
-                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-              />
-              <input
-                type="number"
-                min={0}
-                value={draft.cost}
-                onChange={(e) => setDraft(prev => ({ ...prev, cost: e.target.value }))}
-                placeholder="Chi phí"
-                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-              />
-              <input
-                type="text"
-                value={draft.currency || ''}
-                onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
-                placeholder="VND"
-                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-              />
-              <input
-                type="text"
-                value={draft.note || ''}
-                onChange={(e) => setDraft(prev => ({ ...prev, note: e.target.value }))}
-                placeholder="Ghi chú"
-                className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm col-span-2 sm:col-span-3 bg-white"
-              />
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving || !draft.placeId.trim()}
-                className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
-              >
-                {saving ? 'Đang lưu...' : editingId ? 'Lưu thay đổi' : 'Thêm vào lịch trình'}
-              </button>
-              {editingId && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  value={draft.day}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === '') {
+                      setDraft(prev => ({ ...prev, day: '' }));
+                      return;
+                    }
+                    const parsed = parseInt(raw, 10);
+                    if (!isNaN(parsed) && parsed >= 1) {
+                      setDraft(prev => ({ ...prev, day: parsed }));
+                    }
+                  }}
+                  placeholder="Ngày"
+                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={draft.cost}
+                  onChange={(e) => setDraft(prev => ({ ...prev, cost: e.target.value }))}
+                  placeholder="Chi phí"
+                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
+                />
+                <input
+                  type="text"
+                  value={draft.currency || ''}
+                  onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
+                  placeholder="VND"
+                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
+                />
+                <input
+                  type="text"
+                  value={draft.note || ''}
+                  onChange={(e) => setDraft(prev => ({ ...prev, note: e.target.value }))}
+                  placeholder="Ghi chú"
+                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm col-span-2 sm:col-span-3 bg-white"
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={resetForm}
-                  className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
+                  onClick={handleSave}
+                  disabled={saving || !draft.placeId.trim()}
+                  className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
                 >
-                  Hủy sửa
+                  {saving ? 'Đang lưu...' : editingId ? 'Lưu thay đổi' : 'Thêm vào lịch trình'}
                 </button>
-              )}
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
+                  >
+                    Hủy sửa
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        <TripBudgetSummary tripId={trip._id} userId={userId} />
+        {canViewPrivate && (
+          <>
+            <TripBudgetSummary tripId={trip._id} userId={userId} canEdit={canEdit} />
 
-        <TripChecklistSection tripId={trip._id} userId={userId} />
+            <TripChecklistSection tripId={trip._id} userId={userId} canEdit={canEdit} />
 
-        <TripCollaboratorsSection tripId={trip._id} userId={userId} />
+            {isOwner && <TripCollaboratorsSection tripId={trip._id} userId={userId} />}
 
-        <div className="border-t border-[var(--color-border)] pt-4 mt-6">
-          <div className="font-semibold text-sm text-[var(--color-text)] mb-3">Khách sạn</div>
-          <TripAccommodationSection
-            tripId={trip._id}
-            userId={userId}
-            destination={trip.destination}
-            startDate={trip.startDate}
-            endDate={trip.endDate}
-          />
-        </div>
+            <div className="border-t border-[var(--color-border)] pt-4 mt-6">
+              <div className="font-semibold text-sm text-[var(--color-text)] mb-3">Khách sạn</div>
+              <TripAccommodationSection
+                tripId={trip._id}
+                userId={userId}
+                canEdit={canEdit}
+                destination={trip.destination}
+                lat={hotelAnchor?.lat}
+                lng={hotelAnchor?.lng}
+                placeName={hotelAnchor?.name}
+                startDate={trip.startDate}
+                endDate={trip.endDate}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

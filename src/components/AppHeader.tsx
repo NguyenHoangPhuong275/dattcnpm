@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import BrandLogo from '@/components/BrandLogo';
 import UserDropdown from '@/components/UserDropdown';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -11,11 +10,9 @@ import { ROUTES } from '@/lib/constants';
 
 interface AppHeaderProps {
   active?: 'local' | 'destinations' | 'hotels' | 'news' | 'profile';
-  searchValue?: string;
   searchPlaceholder?: string;
   showSearch?: boolean;
-  onSearchChange?: (value: string) => void;
-  onSearchSubmit?: () => void;
+  onSearchSubmit?: (query: string) => void;
   onAuthClick?: (mode: Exclude<AuthMode, null>) => void;
 }
 
@@ -23,42 +20,28 @@ const NAV_ITEMS = [
   { key: 'local', label: 'Địa phương', href: ROUTES.local },
   { key: 'destinations', label: 'Điểm đến', href: `${ROUTES.home}#planner` },
   { key: 'hotels', label: 'Khách sạn', href: ROUTES.hotels },
-  { key: 'news', label: 'Tin tức du lịch', href: `${ROUTES.home}#travel-news` },
+  { key: 'news', label: 'Tin tức du lịch', href: ROUTES.travelReferences },
 ] as const;
 
 export default function AppHeader({
   active,
-  searchValue,
   searchPlaceholder = 'Tìm địa điểm...',
   showSearch = true,
-  onSearchChange,
   onSearchSubmit,
   onAuthClick,
 }: AppHeaderProps): React.JSX.Element {
   const { data: user, status: userStatus } = useCurrentUser({ redirectIfNone: false });
-  const pathname = usePathname();
-  const [localSearch, setLocalSearch] = useState('');
-  const currentSearch = searchValue ?? localSearch;
-  const isLocalDetailPage = pathname.startsWith(`${ROUTES.local}/`);
+  const [searchInput, setSearchInput] = useState('');
   const userLoading = userStatus === 'loading';
 
-  const setSearch = (value: string): void => {
-    if (onSearchChange) {
-      onSearchChange(value);
-      return;
-    }
-    setLocalSearch(value);
-  };
-
   const submitSearch = (): void => {
+    const query = searchInput.trim();
+    if (!query) return;
     if (onSearchSubmit) {
-      onSearchSubmit();
+      onSearchSubmit(query);
       return;
     }
-    const query = currentSearch.trim();
-    if (query) {
-      window.location.href = `${ROUTES.home}?q=${encodeURIComponent(query)}`;
-    }
+    window.location.href = `${ROUTES.home}?q=${encodeURIComponent(query)}`;
   };
 
   const openAuth = (mode: Exclude<AuthMode, null>): void => {
@@ -79,7 +62,7 @@ export default function AppHeader({
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.key}
-                href={isLocalDetailPage && item.key === 'news' ? '#travel-news' : item.href}
+                href={item.href}
                 className={`app-nav-link ${active === item.key ? 'app-nav-link-active' : ''}`}
               >
                 {item.label}
@@ -104,8 +87,8 @@ export default function AppHeader({
                 id="header-search-input"
                 aria-label="Tìm kiếm địa điểm"
                 type="search"
-                value={currentSearch}
-                onChange={(event) => setSearch(event.target.value)}
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
                 placeholder={searchPlaceholder}
                 className="app-header-search-input"
               />

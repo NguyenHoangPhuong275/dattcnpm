@@ -52,7 +52,6 @@ interface UseHomepageTripActionsReturn {
 
 const DEFAULT_TRAVELER_COUNT = 2;
 const FIRST_DAY = 1;
-const FIRST_ITEM_ORDER = 0;
 const CURRENCY_CODE = 'VND';
 
 function getSelectedPlaceDestination(place: SelectedTripPlace): string {
@@ -107,7 +106,6 @@ export function useHomepageTripActions({
           body: JSON.stringify({
             placeId: selectedPlace._id,
             day: FIRST_DAY,
-            orderIndex: FIRST_ITEM_ORDER,
             note: selectedPlace.name,
             currency: CURRENCY_CODE,
           }),

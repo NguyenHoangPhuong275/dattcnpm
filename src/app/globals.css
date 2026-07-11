@@ -276,6 +276,15 @@ html {
     color: var(--color-primary-darker);
   }
 
+  .toast-loading {
+    background: color-mix(in srgb, var(--color-primary-light) 44%, var(--color-surface-hover));
+    border-color: color-mix(in srgb, var(--color-primary-dark) 38%, var(--color-border));
+    color: var(--color-text);
+  }
+  .toast-loading .app-toast-icon {
+    color: var(--color-primary-darker);
+  }
+
   .toast-auth {
     top: 1.25rem;
     align-items: flex-start;
@@ -284,6 +293,40 @@ html {
     border-color: color-mix(in srgb, var(--color-primary-dark) 50%, var(--color-border));
     background: linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--color-primary-lightest) 62%, #ffffff) 100%);
     box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+  }
+
+  .toast-auth .app-toast-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: 0.0625rem;
+    border-radius: 9999px;
+  }
+
+  .toast-auth.toast-success .app-toast-icon {
+    background: color-mix(in srgb, var(--color-success) 82%, #166534);
+    color: #ffffff;
+    animation: toast-tick-pop 0.32s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+  }
+
+  .toast-auth.toast-error .app-toast-icon {
+    background: color-mix(in srgb, var(--color-danger) 82%, #7f1d1d);
+    color: #ffffff;
+  }
+
+  .toast-auth.toast-loading .app-toast-icon {
+    background: color-mix(in srgb, var(--color-primary-lightest) 70%, #ffffff);
+    color: var(--color-primary-darker);
+  }
+}
+
+@keyframes toast-tick-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 

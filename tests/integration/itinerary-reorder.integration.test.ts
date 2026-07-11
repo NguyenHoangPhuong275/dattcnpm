@@ -4,7 +4,6 @@ import * as db from '@/lib/db';
 import { type ItineraryItem } from '@/lib/db';
 import { PATCH as reorderPATCH } from '@/app/api/trips/[id]/itinerary/reorder/route';
 
-// Mỗi test sinh user id riêng; mock CHỈ method getUserById bằng vi.spyOn (không mock cả module).
 const testUserIds = new Set<string>();
 
 function newUserId(): string {
@@ -36,7 +35,7 @@ async function setup(owner: string = newUserId()) {
   return { owner, tripId, ids, placeId: String(place._id) };
 }
 
-describe('PROMPT 3 — Itinerary Reorder', () => {
+describe('Chức năng sắp xếp lại lịch trình (reorder 2 pha)', () => {
   beforeEach(() => {
     vi.spyOn(db, 'getUserById').mockImplementation(async (userId: string) => {
       if (testUserIds.has(userId)) {
@@ -49,7 +48,6 @@ describe('PROMPT 3 — Itinerary Reorder', () => {
     });
   });
 
-  // Cleanup scoped theo đúng owner test tạo + restore mock + reset registry.
   afterEach(async () => {
     const database = await db.getDb();
     for (const owner of testUserIds) {
@@ -128,7 +126,6 @@ describe('PROMPT 3 — Itinerary Reorder', () => {
     let call = 0;
     vi.spyOn(database.itineraryItems, 'bulkWrite').mockImplementation(async (ops: Record<string, unknown>[]) => {
       call += 1;
-      // call 1 = pha 1 (gán âm), call 2 = pha 2 (mô phỏng lỗi), call 3 = compensating write.
       if (call === 2) {
         throw Object.assign(new Error('simulated phase-2 failure'), { code: 16500 });
       }
@@ -139,12 +136,11 @@ describe('PROMPT 3 — Itinerary Reorder', () => {
     const res = await reorderPATCH(req(owner, { orderedIds: reversed }) as never, ctx(tripId) as never);
     expect(res.status).toBe(500);
 
-    // orderIndex phải được khôi phục về giá trị gốc 0,1,2 (không kẹt ở giá trị âm).
     for (let i = 0; i < ids.length; i++) {
       const item = (await database.itineraryItems.findById(ids[i])) as ItineraryItem;
       expect(item.orderIndex).toBe(i);
     }
-    expect(call).toBe(3); // pha 1 + pha 2 (lỗi) + compensating write
+    expect(call).toBe(3);
   });
 
   it('reorder 2 pha: hoán vị toàn bộ vẫn ra orderIndex 0..n-1 đúng và không mất item', async () => {

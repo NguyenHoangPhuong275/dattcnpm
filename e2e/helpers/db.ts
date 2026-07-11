@@ -1,13 +1,16 @@
 import mongoose from 'mongoose';
 import Redis from 'ioredis';
 
-const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+import { assertRunDatabaseUri } from '../../tests/database-safety';
+
+const MONGODB_URI = process.env.E2E_RUN_MONGODB_URI;
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 let connected = false;
 
 async function connection() {
-  if (!MONGODB_URI) throw new Error('MONGODB_URI is required for E2E');
+  if (!MONGODB_URI) throw new Error('E2E_RUN_MONGODB_URI is required for E2E');
+  assertRunDatabaseUri(MONGODB_URI, 'e2e');
   if (!connected) {
     await mongoose.connect(MONGODB_URI);
     connected = true;
@@ -51,18 +54,22 @@ export async function cleanup(opts: { email?: string; tripId?: string; placeId?:
     await conn.collection('users').deleteMany({ email: opts.email.toLowerCase() });
   }
   if (opts.tripId) {
-    await conn
-      .collection('trips')
-      .deleteOne({ _id: new mongoose.Types.ObjectId(opts.tripId) })
-      .catch(() => undefined);
-    await conn.collection('itinerary_items').deleteMany({ tripId: opts.tripId });
-    await conn.collection('trip_checklists').deleteMany({ tripId: opts.tripId });
+    const tripId = mongoose.Types.ObjectId.isValid(opts.tripId)
+      ? new mongoose.Types.ObjectId(opts.tripId)
+      : undefined;
+    if (tripId) {
+      await conn.collection('trips').deleteOne({ _id: tripId });
+      await conn.collection('itinerary_items').deleteMany({ tripId });
+      await conn.collection('trip_checklists').deleteMany({ tripId });
+    }
   }
   if (opts.placeId) {
-    await conn
-      .collection('places')
-      .deleteOne({ _id: new mongoose.Types.ObjectId(opts.placeId) })
-      .catch(() => undefined);
+    const placeId = mongoose.Types.ObjectId.isValid(opts.placeId)
+      ? new mongoose.Types.ObjectId(opts.placeId)
+      : undefined;
+    if (placeId) {
+      await conn.collection('places').deleteOne({ _id: placeId });
+    }
   }
 }
 

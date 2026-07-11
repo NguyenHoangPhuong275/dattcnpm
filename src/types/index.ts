@@ -1,6 +1,8 @@
 export type {
   Gender,
   BudgetLevel,
+  TravelStyleCode,
+  TravelInterestCode,
   ProfileTab,
   BasicUser,
   PersonalInfo,
@@ -12,6 +14,7 @@ export type {
 } from './profile';
 
 export type {
+  TripAccess,
   Trip,
   ItineraryItem,
   TripBudget,

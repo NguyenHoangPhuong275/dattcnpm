@@ -31,7 +31,7 @@ function req(userId: string | null, method: string, body?: unknown) {
   return new Request('http://localhost/api/trips/x/budget', { method, headers, body: body ? JSON.stringify(body) : undefined });
 }
 
-describe('PROMPT 4 — Trip Budget Tracker CRUD', () => {
+describe('Chức năng quản lý ngân sách chuyến đi (CRUD)', () => {
   beforeEach(async () => {
     const db = await getDb();
     for (const o of [OWNER, OTHER]) {

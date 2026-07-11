@@ -15,10 +15,15 @@ export function toBudgetResponse(item: TripBudget) {
   };
 }
 
-export function toAccommodationResponse(item: TripAccommodation) {
+export function toAccommodationResponse(
+  item: TripAccommodation,
+  options: { hotelId?: unknown | null } = {},
+) {
+  const hotelId = options.hotelId !== undefined ? options.hotelId : item.hotelId;
   return {
     id: String(item._id),
     tripId: String(item.tripId),
+    hotelId: hotelId ? String(hotelId) : null,
     name: item.name,
     address: item.address ?? null,
     checkIn: new Date(item.checkIn).toISOString(),

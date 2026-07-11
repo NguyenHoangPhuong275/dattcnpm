@@ -66,7 +66,7 @@ function HomePageContent(): React.JSX.Element {
   }, [showToast, tripActions.tripActionMessage, tripActions.tripActionStatus]);
 
   const [activeSection, setActiveSection] = useState<'destinations' | 'news' | 'local' | undefined>(undefined);
-  const { handleSearch, searchFor, setSearchQuery } = search;
+  const { searchFor } = search;
 
   const [addToTripOpen, setAddToTripOpen] = useState(false);
   const [addToTripPlace, setAddToTripPlace] = useState<SearchResult | null>(null);
@@ -180,13 +180,13 @@ function HomePageContent(): React.JSX.Element {
     }
   }, [searchParams, searchFor]);
 
-  const submitHeaderSearch = (): void => {
-    handleSearch();
+  const submitHeaderSearch = (query: string): void => {
+    searchFor(query);
     document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const handleQuickSelect = (title: string): void => {
-    searchFor(title);
+    searchFor(title, { autoSelect: true });
     document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
@@ -195,8 +195,6 @@ function HomePageContent(): React.JSX.Element {
       <AppHeader
         active={activeSection}
         onAuthClick={openAuth}
-        searchValue={search.searchQuery}
-        onSearchChange={setSearchQuery}
         onSearchSubmit={submitHeaderSearch}
       />
 

@@ -1,4 +1,5 @@
 import type { Trip, AppDatabase } from '@/lib/db';
+import type { TripAccess } from '@/types/trip';
 import { LOCALITIES } from '@/data/localities';
 import { DEFAULT_TRIP_IMAGE, DEFAULT_LOCALE, DEFAULT_CURRENCY } from '@/lib/constants';
 
@@ -131,7 +132,7 @@ export async function deleteTripCascade(tripId: string, db: AppDatabase): Promis
 
 export function toTripResponse(
   trip: Trip,
-  options?: { omitUserId?: boolean }
+  options?: { omitUserId?: boolean; access?: TripAccess }
 ): Record<string, unknown> {
   const response: Record<string, unknown> = {
     _id: String(trip._id || ''),
@@ -149,6 +150,10 @@ export function toTripResponse(
 
   if (options?.omitUserId) {
     delete response.userId;
+  }
+
+  if (options?.access) {
+    response.access = options.access;
   }
 
   return response;

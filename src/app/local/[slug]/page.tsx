@@ -7,11 +7,14 @@ import {
   LOCALITIES,
   LOCALITY_DISCOVERY,
   LOCALITY_NEWS,
+  type DiscoveryAction,
   type Locality,
-  type StoryCard,
+  type ReferenceStoryCard,
   getLocalityBySlug,
   getLocalityGuideSections,
 } from '@/data/localities';
+import { ROUTES } from '@/lib/constants';
+import { getTravelReferenceHref } from '@/lib/travel-references';
 
 type LocalityDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -31,7 +34,15 @@ interface SectionTitleProps {
 }
 
 interface StoryGridProps {
-  items: StoryCard[];
+  items: ReferenceStoryCard[];
+}
+
+function resolveDiscoveryHref(action: DiscoveryAction, locality: Locality): string {
+  if (action.type === 'hotels') {
+    return `/hotels?q=${encodeURIComponent(locality.name)}`;
+  }
+  const query = action.theme ? `?theme=${action.theme}` : '';
+  return `/local/${locality.slug}/places${query}`;
 }
 
 export function generateStaticParams(): Array<{ slug: string }> {
@@ -131,9 +142,11 @@ function StoryGrid({ items }: StoryGridProps): React.JSX.Element {
   return (
     <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
-        <article
+        <Link
+          id={`local-news-${item.referenceSlug}`}
           key={item.title}
-          className="group overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white"
+          href={getTravelReferenceHref(item.referenceSlug)}
+          className="group overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         >
           <div className="relative aspect-[1.45/1] bg-slate-100">
             <Image
@@ -152,7 +165,7 @@ function StoryGrid({ items }: StoryGridProps): React.JSX.Element {
               {item.description}
             </p>
           </div>
-        </article>
+        </Link>
       ))}
     </div>
   );
@@ -162,23 +175,25 @@ function RegionNews(): React.JSX.Element {
   return (
     <section id="travel-news" className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <SectionTitle title="Tin tức du lịch" />
+        <SectionTitle title="Tin tức du lịch" href={ROUTES.travelReferences} />
         <StoryGrid items={LOCALITY_NEWS} />
       </div>
     </section>
   );
 }
 
-function RegionDiscover(): React.JSX.Element {
+function RegionDiscover({ locality }: { locality: Locality }): React.JSX.Element {
   return (
     <section className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <SectionTitle title="Khám phá thêm" />
+        <SectionTitle title="Khám phá thêm" href={`/local/${locality.slug}/places`} />
         <div className="mt-6 grid gap-5 md:grid-cols-3">
-          {LOCALITY_DISCOVERY.map((item) => (
-            <article
+          {LOCALITY_DISCOVERY.map((item, index) => (
+            <Link
+              id={`local-discovery-${index + 1}`}
               key={item.title}
-              className="group overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white"
+              href={resolveDiscoveryHref(item.action, locality)}
+              className="group overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
             >
               <div className="relative aspect-[1.25/1] bg-slate-100">
                 <Image
@@ -195,7 +210,7 @@ function RegionDiscover(): React.JSX.Element {
                   {item.description}
                 </p>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </div>
@@ -219,7 +234,7 @@ export default async function LocalityDetailPage({ params }: LocalityDetailPageP
         <RegionBanner locality={locality} />
         <RegionOverview locality={locality} />
         <RegionNews />
-        <RegionDiscover />
+        <RegionDiscover locality={locality} />
       </main>
     </div>
   );

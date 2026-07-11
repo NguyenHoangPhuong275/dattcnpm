@@ -5,6 +5,11 @@ import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { formatUtcDateOnly } from '@/lib/date';
+import {
+  normalizeBudgetLevel,
+  normalizeTravelInterests,
+  normalizeTravelStyles,
+} from '@/lib/travel-preferences';
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_DATA_URL_RE = /^data:image\/(jpeg|png|webp|jpg);base64,([a-zA-Z0-9+/=]+)$/;
@@ -58,10 +63,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       preferredLanguage: user.preferredLanguage || '',
       homeCity: user.homeCity || '',
       emergencyContact: user.emergencyContact || { name: '', phone: '' },
-      travelStyles: user.travelStyles || [],
-      budgetLevel: user.budgetLevel || 'Trung bình',
+      travelStyles: normalizeTravelStyles(user.travelStyles),
+      budgetLevel: normalizeBudgetLevel(user.budgetLevel) || 'mid',
       preferredDestinations: user.preferredDestinations || [],
-      interests: user.interests || [],
+      interests: normalizeTravelInterests(user.interests),
       createdAt: toSafeDateString(user.createdAt),
     };
 
@@ -160,10 +165,10 @@ export async function PATCH(request: NextRequest): Promise<Response> {
         preferredLanguage: updated.preferredLanguage || '',
         homeCity: updated.homeCity || '',
         emergencyContact: updated.emergencyContact || { name: '', phone: '' },
-        travelStyles: updated.travelStyles || [],
-        budgetLevel: updated.budgetLevel || 'Trung bình',
+        travelStyles: normalizeTravelStyles(updated.travelStyles),
+        budgetLevel: normalizeBudgetLevel(updated.budgetLevel) || 'mid',
         preferredDestinations: updated.preferredDestinations || [],
-        interests: updated.interests || [],
+        interests: normalizeTravelInterests(updated.interests),
       }
     });
   } catch (error) {

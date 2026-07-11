@@ -23,9 +23,10 @@ interface ApiResponse<T> {
 interface TripChecklistSectionProps {
   tripId: string;
   userId: string | null;
+  canEdit?: boolean;
 }
 
-export default function TripChecklistSection({ tripId, userId }: TripChecklistSectionProps): React.JSX.Element {
+export default function TripChecklistSection({ tripId, userId, canEdit = true }: TripChecklistSectionProps): React.JSX.Element {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -60,7 +61,7 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
 
   const handleAdd = async (): Promise<void> => {
     const title = newTitle.trim();
-    if (!userId || !title || adding) return;
+    if (!userId || !canEdit || !title || adding) return;
     setAdding(true);
     try {
       const { response, data } = await apiRequest<ApiResponse<ChecklistItem>>(`/api/trips/${tripId}/checklist`, {
@@ -85,7 +86,7 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
   };
 
   const handleApplyTemplate = async (templateId: string): Promise<void> => {
-    if (!userId || applyingId) return;
+    if (!userId || !canEdit || applyingId) return;
     setApplyingId(templateId);
     try {
       const { response, data } = await apiRequest<ApiResponse<{ added: number; skipped: number }>>(
@@ -120,7 +121,7 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
   };
 
   const handleToggle = async (item: ChecklistItem): Promise<void> => {
-    if (!userId || busyId) return;
+    if (!userId || !canEdit || busyId) return;
     setBusyId(item.id);
     try {
       const { response, data } = await apiRequest<ApiResponse<ChecklistItem>>(`/api/trips/${tripId}/checklist/${item.id}`, {
@@ -144,7 +145,7 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
   };
 
   const handleDelete = async (item: ChecklistItem): Promise<void> => {
-    if (!userId || busyId) return;
+    if (!userId || !canEdit || busyId) return;
     setBusyId(item.id);
     try {
       const { response, data } = await apiRequest<ApiResponse<unknown>>(`/api/trips/${tripId}/checklist/${item.id}`, {
@@ -171,7 +172,7 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
         <div className="font-semibold text-sm text-[var(--color-text)]">Chuẩn bị</div>
         <div className="flex items-center gap-2">
           {loading && <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />}
-          {userId && (
+          {userId && canEdit && (
             <button
               type="button"
               onClick={() => setShowTemplates((prev) => !prev)}
@@ -184,7 +185,7 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
         </div>
       </div>
 
-      {showTemplates && (
+      {canEdit && showTemplates && (
         <div className="mb-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3">
           <div className="mb-2 text-xs text-[var(--color-text-muted)]">
             Chọn loại chuyến đi để nạp nhanh danh sách chuẩn bị (mục trùng sẽ được bỏ qua):
@@ -217,7 +218,7 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
             <input
               type="checkbox"
               checked={item.completed}
-              disabled={busyId === item.id}
+              disabled={!canEdit || busyId === item.id}
               onChange={() => handleToggle(item)}
               aria-label={`Đánh dấu hoàn thành: ${item.title}`}
               className="h-4 w-4 rounded"
@@ -225,14 +226,16 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
             <span className={`flex-1 break-words text-sm ${item.completed ? 'line-through text-[var(--color-text-muted)]' : 'text-[var(--color-text)]'}`}>
               {item.title}
             </span>
-            <button
-              type="button"
-              onClick={() => handleDelete(item)}
-              disabled={busyId === item.id}
-              className="text-xs text-[var(--color-danger)] hover:underline disabled:opacity-50"
-            >
-              Xóa
-            </button>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => handleDelete(item)}
+                disabled={busyId === item.id}
+                className="text-xs text-[var(--color-danger)] hover:underline disabled:opacity-50"
+              >
+                Xóa
+              </button>
+            )}
           </div>
         ))}
         {items.length === 0 && !loading && (
@@ -240,26 +243,28 @@ export default function TripChecklistSection({ tripId, userId }: TripChecklistSe
         )}
       </div>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleAdd();
-          }}
-          placeholder="Thêm mục cần chuẩn bị..."
-          className="flex-1 border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-        />
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={adding || !newTitle.trim()}
-          className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
-        >
-          {adding ? 'Đang thêm...' : 'Thêm'}
-        </button>
-      </div>
+      {canEdit && (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAdd();
+            }}
+            placeholder="Thêm mục cần chuẩn bị..."
+            className="flex-1 border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
+          />
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={adding || !newTitle.trim()}
+            className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
+          >
+            {adding ? 'Đang thêm...' : 'Thêm'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

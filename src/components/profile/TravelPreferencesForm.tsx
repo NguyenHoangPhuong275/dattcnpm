@@ -1,19 +1,19 @@
 'use client';
 
 import React, { memo } from 'react';
-import { useFormSubmitError } from '@/hooks/useFormSubmitError';
 
-export interface TravelPreferences {
-  travelStyles: string[];
-  interests: string[];
-  budgetLevel: 'Tiết kiệm' | 'Trung bình' | 'Thoải mái' | 'Sang trọng';
-  preferredDestinations: string[];
-}
+import {
+  BUDGET_LEVEL_OPTIONS,
+  TRAVEL_INTEREST_OPTIONS,
+  TRAVEL_STYLE_OPTIONS,
+} from '@/data/travel-preferences';
+import { useFormSubmitError } from '@/hooks/useFormSubmitError';
+import type { TravelPreferences } from '@/types/profile';
 
 interface TravelPreferencesFormProps {
   preferences: TravelPreferences;
   onPreferenceChange: <K extends keyof TravelPreferences>(field: K, value: TravelPreferences[K]) => void;
-  onToggleInterest: (tag: string) => void;
+  onToggleInterest: (tag: TravelPreferences['interests'][number]) => void;
   onSave: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }> | void;
   saving?: boolean;
 }
@@ -32,17 +32,18 @@ const TravelPreferencesForm = memo(({
       <div>
         <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Phong cách du lịch yêu thích</div>
         <div className="flex flex-wrap gap-2">
-          {['Solo', 'Couple', 'Family', 'Group', 'Adventure', 'Relax'].map(style => (
+          {TRAVEL_STYLE_OPTIONS.map((style) => (
             <button
-              key={style}
+              id={`profile-travel-style-${style.value}`}
+              key={style.value}
               type="button"
               onClick={() => {
-                const has = preferences.travelStyles.includes(style);
-                onPreferenceChange('travelStyles', has ? preferences.travelStyles.filter(s => s !== style) : [...preferences.travelStyles, style]);
+                const has = preferences.travelStyles.includes(style.value);
+                onPreferenceChange('travelStyles', has ? preferences.travelStyles.filter((value) => value !== style.value) : [...preferences.travelStyles, style.value]);
               }}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${preferences.travelStyles.includes(style) ? 'bg-[var(--color-primary-dark)] text-white border-[var(--color-primary-dark)]' : 'bg-[var(--color-surface)] hover:bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-secondary)]'}`}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${preferences.travelStyles.includes(style.value) ? 'bg-[var(--color-primary-dark)] text-white border-[var(--color-primary-dark)]' : 'bg-[var(--color-surface)] hover:bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-secondary)]'}`}
             >
-              {style}
+              {style.label}
             </button>
           ))}
         </div>
@@ -51,14 +52,15 @@ const TravelPreferencesForm = memo(({
       <div>
         <div className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Sở thích / Chủ đề quan tâm</div>
         <div className="flex flex-wrap gap-2">
-          {['Biển', 'Núi', 'Thiên nhiên', 'Văn hóa', 'Lịch sử', 'Ẩm thực', 'Phiêu lưu', 'Chụp ảnh', 'Spa & Nghỉ dưỡng'].map(tag => (
+          {TRAVEL_INTEREST_OPTIONS.map((interest) => (
             <button
-              key={tag}
+              id={`profile-travel-interest-${interest.value}`}
+              key={interest.value}
               type="button"
-              onClick={() => onToggleInterest(tag)}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${preferences.interests.includes(tag) ? 'bg-[var(--color-primary-dark)] text-white border-[var(--color-primary-dark)]' : 'bg-[var(--color-surface)] hover:bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-secondary)]'}`}
+              onClick={() => onToggleInterest(interest.value)}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${preferences.interests.includes(interest.value) ? 'bg-[var(--color-primary-dark)] text-white border-[var(--color-primary-dark)]' : 'bg-[var(--color-surface)] hover:bg-[var(--color-bg)] border-[var(--color-border)] text-[var(--color-text-secondary)]'}`}
             >
-              {tag}
+              {interest.label}
             </button>
           ))}
         </div>
@@ -66,17 +68,17 @@ const TravelPreferencesForm = memo(({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Mức chi tiêu mong muốn</label>
+          <label htmlFor="profile-budget-level" className="block text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Mức chi tiêu mong muốn</label>
           <div className="relative">
             <select
+              id="profile-budget-level"
               value={preferences.budgetLevel}
               onChange={(e) => onPreferenceChange('budgetLevel', e.target.value as TravelPreferences['budgetLevel'])}
               className="w-full appearance-none bg-[var(--color-bg)]/50 hover:bg-[var(--color-bg)] border border-[var(--color-border)] rounded-2xl px-4 py-3 pr-10 text-sm font-semibold outline-none transition-all cursor-pointer"
             >
-              <option value="Tiết kiệm">Tiết kiệm</option>
-              <option value="Trung bình">Trung bình</option>
-              <option value="Thoải mái">Thoải mái</option>
-              <option value="Sang trọng">Sang trọng</option>
+              {BUDGET_LEVEL_OPTIONS.map((budget) => (
+                <option key={budget.value} value={budget.value}>{budget.label}</option>
+              ))}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[var(--color-text-muted)]">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -86,8 +88,9 @@ const TravelPreferencesForm = memo(({
           </div>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Điểm đến yêu thích (gợi ý)</label>
+          <label htmlFor="profile-preferred-destinations" className="block text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Điểm đến yêu thích (gợi ý)</label>
           <input
+            id="profile-preferred-destinations"
             type="text"
             value={preferences.preferredDestinations.join(', ')}
             onChange={(e) => onPreferenceChange('preferredDestinations', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
@@ -98,7 +101,7 @@ const TravelPreferencesForm = memo(({
       </div>
 
       <div className="flex flex-col items-end gap-3 pt-4 border-t border-[var(--color-border)]">
-        <button type="submit" disabled={saving} className="rounded-2xl bg-[var(--color-primary-dark)] hover:bg-[var(--color-primary-darker)] text-white px-8 py-3 text-sm font-semibold shadow-sm active:scale-[0.985] transition-all disabled:opacity-60">
+        <button id="profile-save-travel-preferences" type="submit" disabled={saving} className="rounded-2xl bg-[var(--color-primary-dark)] hover:bg-[var(--color-primary-darker)] text-white px-8 py-3 text-sm font-semibold shadow-sm active:scale-[0.985] transition-all disabled:opacity-60">
           {saving ? 'Đang lưu...' : 'Lưu sở thích du lịch'}
         </button>
         {formError && (

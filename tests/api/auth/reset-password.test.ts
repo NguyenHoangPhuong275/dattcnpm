@@ -1,7 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { compare, hash } from 'bcryptjs';
 
-const sendMock = vi.fn(async () => ({ data: { id: 'mock' }, error: null }));
+const sendMock = vi.fn(async (): Promise<{
+  data: { id: string } | null;
+  error: { message: string } | null;
+}> => ({ data: { id: 'mock' }, error: null }));
 vi.mock('@/lib/resend', () => ({
   getResend: () => ({ emails: { send: sendMock } }),
 }));
@@ -17,6 +20,7 @@ import {
 } from '@/lib/db';
 import { POST as forgotPOST } from '@/app/api/auth/forgot-password/route';
 import { POST as resetPOST } from '@/app/api/auth/reset-password/route';
+import { getAuthUserFull, signAuthToken } from '@/lib/auth';
 
 function uniqueEmail(): string {
   return `reset-test-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
@@ -46,6 +50,12 @@ function jsonReq(url: string, body: unknown) {
   });
 }
 
+function authReq(token: string) {
+  return new Request('http://localhost/api/profile/me', {
+    headers: { cookie: `auth_token=${token}` },
+  });
+}
+
 const created: string[] = [];
 
 beforeAll(async () => {
@@ -63,7 +73,7 @@ afterAll(async () => {
   await disconnectRedis();
 });
 
-describe('PROMPT 1 — Forgot / Reset Password OTP', () => {
+describe('Chức năng quên / đặt lại mật khẩu qua OTP', () => {
   it('forgot-password: gửi OTP cho email tồn tại, lưu Redis, không lộ OTP trong response', async () => {
     const email = uniqueEmail();
     created.push(email);
@@ -95,6 +105,18 @@ describe('PROMPT 1 — Forgot / Reset Password OTP', () => {
     expect(res.status).toBe(400);
   });
 
+  it('forgot-password: thu hồi OTP khi dịch vụ email từ chối gửi', async () => {
+    const email = uniqueEmail();
+    created.push(email);
+    await createUser(email, 'oldpassword1');
+    sendMock.mockResolvedValueOnce({ data: null, error: { message: 'send failed' } });
+
+    const res = await forgotPOST(jsonReq('http://localhost/api/auth/forgot-password', { email }) as never);
+
+    expect(res.status).toBe(503);
+    expect(await getRedis().exists(`otp:reset:${email}`)).toBe(0);
+  });
+
   it('forgot-password: chặn khi gửi quá 3 lần / 15 phút', { timeout: 10000 }, async () => {
     const email = uniqueEmail();
     created.push(email);
@@ -114,6 +136,17 @@ describe('PROMPT 1 — Forgot / Reset Password OTP', () => {
     const user = await createUser(email, 'oldpassword1');
     await storeResetOtp(email, '123456', 600);
 
+    const oldToken = await signAuthToken({
+      id: String(user._id),
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      tokenVersion: user.tokenVersion ?? 0,
+    });
+    const authenticatedBeforeReset = await getAuthUserFull(authReq(oldToken) as never);
+    expect(authenticatedBeforeReset).not.toBeNull();
+    expect(authenticatedBeforeReset).not.toHaveProperty('passwordHash');
+
     const res = await resetPOST(jsonReq('http://localhost/api/auth/reset-password', { email, otp: '123456', newPassword: 'brandnew123' }) as never);
     expect(res.status).toBe(200);
 
@@ -121,6 +154,8 @@ describe('PROMPT 1 — Forgot / Reset Password OTP', () => {
     const updated = await db.users.findById(user._id);
     expect(updated).toBeTruthy();
     expect(await compare('brandnew123', updated!.passwordHash)).toBe(true);
+    expect(updated!.tokenVersion).toBe(1);
+    expect(await getAuthUserFull(authReq(oldToken) as never)).toBeNull();
 
     const exists = await getRedis().exists(`otp:reset:${email}`);
     expect(exists).toBe(0);

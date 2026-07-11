@@ -24,6 +24,17 @@ async function createTrip(owner: string) {
   return String(trip._id);
 }
 
+async function createHotel() {
+  const db = await getDb();
+  return db.hotels.insertOne({
+    name: 'Khách sạn liên kết',
+    province: 'Đà Nẵng',
+    district: 'Hải Châu',
+    address: '01 Bạch Đằng, Đà Nẵng',
+    source: 'accommodation-test',
+  });
+}
+
 const ctx = (id: string, accommodationId?: string) => ({ params: Promise.resolve({ id, accommodationId }) });
 function req(userId: string | null, method: string, body?: unknown) {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
@@ -38,7 +49,7 @@ const valid = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-describe('PROMPT 5 — Trip Accommodation CRUD', () => {
+describe('Chức năng quản lý chỗ ở chuyến đi (CRUD)', () => {
   beforeEach(async () => {
     const db = await getDb();
     for (const o of [OWNER, OTHER]) {
@@ -46,12 +57,14 @@ describe('PROMPT 5 — Trip Accommodation CRUD', () => {
       for (const t of trips) await db.tripAccommodations.deleteMany({ tripId: String(t._id) });
       await db.trips.deleteMany({ userId: o });
     }
+    await db.hotels.deleteMany({ source: 'accommodation-test' });
   });
 
   afterAll(async () => {
     const db = await getDb();
     await db.trips.deleteMany({ userId: OWNER });
     await db.trips.deleteMany({ userId: OTHER });
+    await db.hotels.deleteMany({ source: 'accommodation-test' });
     await disconnectMongo?.().catch(() => {});
   });
 
@@ -80,7 +93,57 @@ describe('PROMPT 5 — Trip Accommodation CRUD', () => {
     const tripId = await createTrip(OWNER);
     const c = await createPOST(req(OWNER, 'POST', valid()) as never, ctx(tripId) as never);
     expect(c.status).toBe(201);
-    expect((await c.json()).data.currency).toBe('VND');
+    const body = await c.json();
+    expect(body.data.currency).toBe('VND');
+    expect(body.data.hotelId).toBeNull();
+  });
+
+  it('lưu hotelId và trả liên kết sau khi tải lại', async () => {
+    const tripId = await createTrip(OWNER);
+    const hotel = await createHotel();
+    const hotelId = String(hotel._id);
+    const created = await createPOST(req(OWNER, 'POST', valid({
+      hotelId,
+      name: 'Tên từ client',
+      address: 'Địa chỉ từ client',
+    })) as never, ctx(tripId) as never);
+
+    expect(created.status).toBe(201);
+    const createdBody = await created.json();
+    expect(createdBody.data.hotelId).toBe(hotelId);
+    expect(createdBody.data.name).toBe('Khách sạn liên kết');
+    expect(createdBody.data.address).toBe('01 Bạch Đằng, Đà Nẵng');
+
+    const list = await listGET(req(OWNER, 'GET') as never, ctx(tripId) as never);
+    expect(list.status).toBe(200);
+    expect((await list.json()).data[0].hotelId).toBe(hotelId);
+  });
+
+  it('khôi phục hotelId cho bản ghi cũ khi tên và địa chỉ khớp duy nhất', async () => {
+    const tripId = await createTrip(OWNER);
+    const hotel = await createHotel();
+    const db = await getDb();
+    await db.tripAccommodations.insertOne({
+      tripId,
+      name: hotel.name,
+      address: hotel.address,
+      checkIn: new Date('2026-10-02T14:00:00.000Z'),
+      checkOut: new Date('2026-10-04T12:00:00.000Z'),
+      currency: 'VND',
+    });
+
+    const list = await listGET(req(OWNER, 'GET') as never, ctx(tripId) as never);
+    expect(list.status).toBe(200);
+    expect((await list.json()).data[0].hotelId).toBe(String(hotel._id));
+  });
+
+  it('từ chối hotelId không hợp lệ hoặc không tồn tại', async () => {
+    const tripId = await createTrip(OWNER);
+    const malformed = await createPOST(req(OWNER, 'POST', valid({ hotelId: 'hotel-khong-hop-le' })) as never, ctx(tripId) as never);
+    expect(malformed.status).toBe(400);
+
+    const missing = await createPOST(req(OWNER, 'POST', valid({ hotelId: '507f1f77bcf86cd799439199' })) as never, ctx(tripId) as never);
+    expect(missing.status).toBe(404);
   });
 
   it('gửi currency USD → lưu USD và GET trả đúng', async () => {

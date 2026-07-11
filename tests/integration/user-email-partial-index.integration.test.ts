@@ -3,7 +3,6 @@ import { randomUUID } from 'node:crypto';
 import { getDb, disconnectMongo } from '@/lib/db';
 import { User } from '@/lib/db/models/user.model';
 
-// Mỗi test dùng email unique riêng → không đụng dữ liệu khi chạy lại / song song.
 const createdEmails = new Set<string>();
 
 function newEmail(): string {
@@ -19,11 +18,9 @@ function mkUser(email: string, over: Record<string, unknown> = {}) {
 describe('User email partial unique index (đăng ký lại sau soft-delete)', () => {
   beforeAll(async () => {
     await getDb();
-    // Đồng bộ index theo schema: drop email_1 unique cũ (nếu có) và tạo partial unique mới.
     await User.syncIndexes();
   });
 
-  // Cleanup scoped theo đúng email do test này tạo, rồi xóa registry.
   afterEach(async () => {
     if (createdEmails.size > 0) {
       await User.deleteMany({ email: { $in: [...createdEmails] } });
@@ -52,10 +49,9 @@ describe('User email partial unique index (đăng ký lại sau soft-delete)', (
   });
 
   it('không thể tạo 2 tài khoản active chỉ khác hoa/thường email', async () => {
-    const email = newEmail(); // lowercase
+    const email = newEmail();
     const db = await getDb();
     await db.users.insertOne(mkUser(email));
-    // Schema email có lowercase:true → bản ghi thứ 2 hạ về cùng email → partial unique chặn.
     await expect(db.users.insertOne(mkUser(email.toUpperCase(), { fullName: 'B' }))).rejects.toMatchObject({ code: 11000 });
   });
 
@@ -68,7 +64,6 @@ describe('User email partial unique index (đăng ký lại sau soft-delete)', (
     const second = await db.users.insertOne(mkUser(email, { fullName: 'B' }));
     expect(String(second._id)).not.toBe(String(first._id));
 
-    // Vẫn chặn nếu lại có thêm một tài khoản active thứ hai cùng email.
     await expect(db.users.insertOne(mkUser(email, { fullName: 'C' }))).rejects.toMatchObject({ code: 11000 });
   });
 });

@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { objectIdSchema } from '@/lib/validations/common';
 
 function generateShareCode(): string {
@@ -21,6 +22,15 @@ export async function POST(request: NextRequest, ctx: RouteContext): Promise<Res
     }
     const userId = String(user._id ?? user.id);
 
+    const rate = await checkRateLimit({
+      key: `rl:create-trip-share:${userId}`,
+      limit: 20,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang tạo liên kết chia sẻ quá nhanh. Vui lòng thử lại sau.', 429);
+    }
+
     const { id: tripId } = await ctx.params;
     objectIdSchema.parse(tripId);
     const trip = await findOwnedTrip(tripId, userId);
@@ -32,6 +42,26 @@ export async function POST(request: NextRequest, ctx: RouteContext): Promise<Res
     const now = new Date();
     const expiresInHours = 30 * 24;
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
+
+    const activeShare = await db.tripShares.findOne({
+      tripId,
+      sharedByUserId: userId,
+      permission: 'READ',
+      isActive: true,
+      shareCode: { $type: 'string' },
+      expiresAt: { $gt: now },
+    });
+    if (activeShare?.shareCode && activeShare.expiresAt) {
+      const activeExpiresAt = new Date(activeShare.expiresAt);
+      const remainingHours = Math.max(0, Math.ceil((activeExpiresAt.getTime() - now.getTime()) / (60 * 60 * 1000)));
+      return sendSuccess({
+        shareCode: activeShare.shareCode,
+        shareUrl: `/share/${activeShare.shareCode}`,
+        expiresAt: activeExpiresAt.toISOString(),
+        expiresInHours: remainingHours,
+        reused: true,
+      });
+    }
 
     let shareCode = '';
     const maxAttempts = 5;
@@ -60,7 +90,7 @@ export async function POST(request: NextRequest, ctx: RouteContext): Promise<Res
 
     const shareUrl = `/share/${shareCode}`;
 
-    return sendSuccess({ shareCode, shareUrl, expiresAt: expiresAt.toISOString(), expiresInHours }, undefined, 201);
+    return sendSuccess({ shareCode, shareUrl, expiresAt: expiresAt.toISOString(), expiresInHours, reused: false }, undefined, 201);
   } catch (error) {
     return handleApiError(error);
   }
@@ -73,6 +103,15 @@ export async function DELETE(request: NextRequest, ctx: RouteContext): Promise<R
       throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
     }
     const userId = String(user._id ?? user.id);
+
+    const rate = await checkRateLimit({
+      key: `rl:revoke-trip-share:${userId}`,
+      limit: 20,
+      windowSeconds: 60,
+    });
+    if (rate.limited) {
+      throw new AppError('RATE_LIMITED', 'Bạn đang thu hồi liên kết chia sẻ quá nhanh. Vui lòng thử lại sau.', 429);
+    }
 
     const { id: tripId } = await ctx.params;
     objectIdSchema.parse(tripId);

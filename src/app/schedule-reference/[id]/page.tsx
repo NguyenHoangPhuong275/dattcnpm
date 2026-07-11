@@ -14,9 +14,10 @@ import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, ShareIcon, Tras
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useToast } from '@/hooks/useToast';
-import { apiRequest, ensureApiSuccess, getApiErrorMessage, type ApiEnvelope } from '@/lib/api-client';
+import { apiRequest, ensureApiSuccess, getApiErrorMessage, isAbortError, type ApiEnvelope } from '@/lib/api-client';
 import { formatMoney, formatTripDayDate, getDuration, getTripImage } from '@/lib/trip-utils';
 import { ROUTES } from '@/lib/constants';
+import type { TripAccess } from '@/types';
 
 interface Trip {
   _id: string;
@@ -27,6 +28,15 @@ interface Trip {
   isPublic: boolean;
   description?: string;
   coverImage?: string | null;
+  access: TripAccess;
+}
+
+interface TripShareResponse {
+  shareCode: string;
+  shareUrl: string;
+  expiresAt: string;
+  expiresInHours: number;
+  reused: boolean;
 }
 
 interface ItineraryPlace {
@@ -123,8 +133,14 @@ export default function ItineraryDetailPage(): React.JSX.Element {
     searchParams.get('focus') === 'hotel' ? 'hotel' : 'itinerary',
   );
   const [loading, setLoading] = useState(true);
+  const [sharing, setSharing] = useState(false);
   const [error, setError] = useState('');
   const tripId = params?.id;
+  const access = trip?.access ?? 'NONE';
+  const isOwner = access === 'OWNER';
+  const canEdit = isOwner || access === 'EDIT';
+  const canViewPrivate = canEdit || access === 'READ';
+  const visibleTab = canViewPrivate ? activeTab : 'itinerary';
 
   const loadData = useCallback(async (): Promise<void> => {
     if (!tripId || !user?.id) return;
@@ -173,6 +189,13 @@ export default function ItineraryDetailPage(): React.JSX.Element {
       }));
   }, [items]);
 
+  const hotelAnchor = useMemo(() => {
+    const place = items.map((item) => item.place).find(
+      (candidate) => typeof candidate?.lat === 'number' && typeof candidate?.lng === 'number',
+    );
+    return place ? { lat: place.lat as number, lng: place.lng as number, name: place.name } : null;
+  }, [items]);
+
   const selectedIndex = items.findIndex((item) => item._id === selectedId);
   const selectedItem = selectedIndex >= 0 ? items[selectedIndex] : items[0];
   const selectedPlace = selectedItem && trip ? buildPlace(selectedItem, trip, Math.max(0, selectedIndex)) : null;
@@ -181,7 +204,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const totalCost = items.reduce((total, item) => total + (Number(item.cost) || 0), 0);
 
   const handleDeleteTrip = async (): Promise<void> => {
-    if (!tripId || !user?.id) return;
+    if (!tripId || !user?.id || !isOwner) return;
     await feedback.confirmAction({
       confirm: {
         title: 'Xóa chuyến đi?',
@@ -200,15 +223,31 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   };
 
   const handleShare = async (): Promise<void> => {
+    if (!tripId || !user?.id || !isOwner || sharing) return;
+    setSharing(true);
     try {
-      if (navigator.share) {
-        await navigator.share({ title: trip?.title, url: window.location.href });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        showToast('Đã sao chép liên kết trang này', 'success');
+      const { response, data } = await apiRequest<ApiEnvelope<TripShareResponse>>(
+        `/api/trips/${tripId}/share`,
+        { method: 'POST', userId: user.id },
+      );
+      ensureApiSuccess(response, data, 'Không thể tạo liên kết chia sẻ');
+      if (!data.data?.shareUrl) {
+        throw new Error('Không thể tạo liên kết chia sẻ');
       }
-    } catch {
-      showToast('Không thể chia sẻ lúc này', 'error');
+
+      const shareUrl = new URL(data.data.shareUrl, window.location.origin).toString();
+      if (navigator.share) {
+        await navigator.share({ title: trip?.title, url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('Đã sao chép liên kết chia sẻ', 'success');
+      }
+    } catch (errorValue: unknown) {
+      if (!isAbortError(errorValue)) {
+        showToast(getApiErrorMessage(errorValue, 'Không thể chia sẻ lúc này'), 'error');
+      }
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -266,36 +305,44 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   <ListIcon className="h-4 w-4" />
                   Xuất PDF
                 </button>
-                <button
-                  id="action-share-trip"
-                  type="button"
-                  onClick={handleShare}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
-                  title="Chia sẻ"
-                  aria-label="Chia sẻ"
-                >
-                  <ShareIcon className="h-4 w-4" />
-                </button>
-                <button
-                  id="action-edit-trip"
-                  type="button"
-                  onClick={() => router.push(ROUTES.trips)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
-                  title="Quản lý chuyến đi"
-                  aria-label="Quản lý chuyến đi"
-                >
-                  <CalendarIcon className="h-4 w-4" />
-                </button>
-                <button
-                  id="action-delete-trip"
-                  type="button"
-                  onClick={handleDeleteTrip}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50"
-                  title="Xóa chuyến đi"
-                  aria-label="Xóa chuyến đi"
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </button>
+                {isOwner && (
+                  <button
+                    id="action-share-trip"
+                    type="button"
+                    onClick={handleShare}
+                    disabled={sharing}
+                    aria-busy={sharing}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
+                    title="Chia sẻ"
+                    aria-label="Chia sẻ"
+                  >
+                    <ShareIcon className="h-4 w-4" />
+                  </button>
+                )}
+                {canEdit && (
+                  <button
+                    id="action-edit-trip"
+                    type="button"
+                    onClick={() => router.push(ROUTES.trips)}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+                    title="Quản lý chuyến đi"
+                    aria-label="Quản lý chuyến đi"
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                  </button>
+                )}
+                {isOwner && (
+                  <button
+                    id="action-delete-trip"
+                    type="button"
+                    onClick={handleDeleteTrip}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50"
+                    title="Xóa chuyến đi"
+                    aria-label="Xóa chuyến đi"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -304,31 +351,35 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                 id="tab-button-itinerary"
                 type="button"
                 onClick={() => setActiveTab('itinerary')}
-                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'itinerary' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${visibleTab === 'itinerary' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
               >
                 Chi tiết lịch trình
               </button>
-              <button
-                id="tab-button-budget"
-                type="button"
-                onClick={() => setActiveTab('budget')}
-                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'budget' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                Chi phí dự tính
-              </button>
-              <button
-                id="tab-button-hotel"
-                type="button"
-                onClick={() => setActiveTab('hotel')}
-                className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${activeTab === 'hotel' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                Khách sạn
-              </button>
+              {canViewPrivate && (
+                <>
+                  <button
+                    id="tab-button-budget"
+                    type="button"
+                    onClick={() => setActiveTab('budget')}
+                    className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${visibleTab === 'budget' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    Chi phí dự tính
+                  </button>
+                  <button
+                    id="tab-button-hotel"
+                    type="button"
+                    onClick={() => setActiveTab('hotel')}
+                    className={`flex-1 rounded-md px-4 py-2 text-sm font-bold transition ${visibleTab === 'hotel' ? 'bg-white text-slate-955 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    Khách sạn
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           <div className="px-4 py-6 lg:px-8 print:hidden">
-            {activeTab === 'itinerary' ? (
+            {visibleTab === 'itinerary' ? (
               groups.length > 0 ? (
                 <div className="space-y-8">
                   {groups.map(({ day, items: dayItems }) => (
@@ -382,16 +433,18 @@ export default function ItineraryDetailPage(): React.JSX.Element {
 
                               <div className="mt-4 flex flex-wrap gap-2 print:hidden">
                                 <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">Ghi chú</span>
-                                <button
-                                  type="button"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setChangePlaceItem(item);
-                                  }}
-                                  className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100"
-                                >
-                                  Đổi địa điểm
-                                </button>
+                                {canEdit && (
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setChangePlaceItem(item);
+                                    }}
+                                    className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100"
+                                  >
+                                    Đổi địa điểm
+                                  </button>
+                                )}
                               </div>
                             </div>
                           );
@@ -406,11 +459,15 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   description="Thêm địa điểm từ trang Khám phá để bắt đầu."
                 />
               )
-            ) : activeTab === 'hotel' ? (
+            ) : visibleTab === 'hotel' ? (
               <TripAccommodationSection
                 tripId={trip._id}
                 userId={user?.id ?? null}
+                canEdit={canEdit}
                 destination={trip.destination}
+                lat={hotelAnchor?.lat}
+                lng={hotelAnchor?.lng}
+                placeName={hotelAnchor?.name}
                 startDate={trip.startDate}
                 endDate={trip.endDate}
               />
@@ -442,7 +499,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                     )}
                   </div>
 
-                  <TripBudgetSummary tripId={trip._id} userId={user?.id ?? null} />
+                  <TripBudgetSummary tripId={trip._id} userId={user?.id ?? null} canEdit={canEdit} />
                 </div>
               </div>
             )}
@@ -533,7 +590,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
         </aside>
       </main>
 
-      {changePlaceItem && (
+      {changePlaceItem && canEdit && (
         <ChangePlaceModal
           tripId={tripId as string}
           itemId={changePlaceItem._id}

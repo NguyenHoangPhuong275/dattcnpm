@@ -12,7 +12,7 @@ function hasIndex(schemaIndexes: Array<[Record<string, unknown>, unknown]>, expe
   });
 }
 
-describe('soft-delete compound indexes (Task 1.5)', () => {
+describe('Chỉ mục kết hợp cho soft-delete', () => {
   it('Trip declares { userId, deletedAt }', () => {
     expect(hasIndex(Trip.schema.indexes() as never, { userId: 1, deletedAt: 1 })).toBe(true);
   });

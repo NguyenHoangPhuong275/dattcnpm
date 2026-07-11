@@ -12,14 +12,19 @@ export function getAuthMaxAge(rememberMe = false): number {
   return rememberMe ? AUTH_COOKIE_REMEMBER_MAX_AGE_SECONDS : AUTH_COOKIE_MAX_AGE_SECONDS;
 }
 
-export type AuthUser = Partial<PlainUser> & {
+export type AuthUser = {
   id: string;
   email: string;
   fullName: string;
   role: 'USER' | 'ADMIN';
+  tokenVersion?: number;
 };
 
-type AuthClaims = { userId: string; jti?: string; exp?: number };
+type AuthUserFull = AuthUser & Omit<Partial<PlainUser>, '_id' | 'passwordHash' | 'email' | 'fullName' | 'role' | 'tokenVersion'> & {
+  _id: string;
+};
+
+type AuthClaims = { userId: string; tokenVersion?: number; jti?: string; exp?: number };
 
 function getJwtSecretList(): string[] {
   const raw = process.env.JWT_SECRET;
@@ -55,6 +60,7 @@ async function reSignFromPayload(payload: JWTPayload): Promise<string> {
     email: payload.email,
     fullName: payload.fullName,
     role: payload.role,
+    tokenVersion: payload.tokenVersion,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(String(payload.sub))
@@ -94,6 +100,7 @@ export async function signAuthToken(user: AuthUser, maxAgeSeconds: number = AUTH
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    tokenVersion: user.tokenVersion ?? 0,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(user.id)
@@ -111,6 +118,9 @@ function payloadToAuthUser(payload: JWTPayload): AuthUser | null {
     email: typeof payload.email === 'string' ? payload.email : '',
     fullName: typeof payload.fullName === 'string' ? payload.fullName : '',
     role: payload.role === 'ADMIN' ? 'ADMIN' : 'USER',
+    tokenVersion: typeof payload.tokenVersion === 'number' && Number.isInteger(payload.tokenVersion)
+      ? payload.tokenVersion
+      : 0,
   };
 }
 
@@ -176,6 +186,9 @@ async function resolveAuthClaims(request: NextRequest): Promise<AuthClaims | nul
   if (!result || !result.payload.sub) return null;
   return {
     userId: result.payload.sub,
+    tokenVersion: typeof result.payload.tokenVersion === 'number' && Number.isInteger(result.payload.tokenVersion)
+      ? result.payload.tokenVersion
+      : 0,
     jti: typeof result.payload.jti === 'string' ? result.payload.jti : undefined,
     exp: typeof result.payload.exp === 'number' ? result.payload.exp : undefined,
   };
@@ -232,9 +245,38 @@ export async function invalidateUserCache(userId: string): Promise<void> {
   }
 }
 
-export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | null> {
-  const claims = await resolveAuthClaims(request);
-  if (!claims) return null;
+function toAuthUserFull(user: PlainUser, userId: string): AuthUserFull {
+  return {
+    _id: String(user._id ?? userId),
+    id: String(user._id ?? userId),
+    email: user.email,
+    fullName: user.fullName,
+    role: user.role === 'ADMIN' ? 'ADMIN' : 'USER',
+    tokenVersion: user.tokenVersion ?? 0,
+    avatarUrl: user.avatarUrl,
+    isLocked: user.isLocked,
+    emailVerified: user.emailVerified,
+    emailVerifiedAt: user.emailVerifiedAt,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    deletedAt: user.deletedAt,
+    phone: user.phone,
+    dateOfBirth: user.dateOfBirth,
+    gender: user.gender,
+    nationality: user.nationality,
+    preferredLanguage: user.preferredLanguage,
+    homeCity: user.homeCity,
+    emergencyContact: user.emergencyContact,
+    travelStyles: user.travelStyles,
+    budgetLevel: user.budgetLevel,
+    preferredDestinations: user.preferredDestinations,
+    interests: user.interests,
+    weatherAlerts: user.weatherAlerts,
+    twoFactorEnabled: user.twoFactorEnabled,
+  };
+}
+
+async function getAuthUserByClaims(claims: AuthClaims): Promise<AuthUserFull | null> {
   const userId = claims.userId;
 
   if (claims.jti) {
@@ -251,9 +293,14 @@ export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | 
     const { cacheGet } = await import('@/lib/db');
     const cached = await cacheGet(cacheKey);
     if (cached) {
-      const parsed: AuthUser & { isLocked?: boolean; deletedAt?: unknown } = JSON.parse(cached);
+      const parsed = JSON.parse(cached) as AuthUserFull;
       if (parsed.isLocked || parsed.deletedAt) return null;
-      return parsed;
+      const cachedTokenVersion = parsed.tokenVersion ?? 0;
+      if (claims.tokenVersion !== undefined && claims.tokenVersion !== cachedTokenVersion) return null;
+      return toAuthUserFull(
+        { ...parsed, tokenVersion: cachedTokenVersion } as unknown as PlainUser,
+        userId,
+      );
     }
   } catch {
   }
@@ -261,14 +308,10 @@ export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | 
   const { getUserById } = await import('@/lib/db');
   const user = await getUserById(userId);
   if (!user || user.isLocked || user.deletedAt) return null;
+  const tokenVersion = user.tokenVersion ?? 0;
+  if (claims.tokenVersion !== undefined && claims.tokenVersion !== tokenVersion) return null;
 
-  const result: AuthUser = {
-    ...user,
-    id: String(user._id ?? userId),
-    email: user.email,
-    fullName: user.fullName,
-    role: user.role === 'ADMIN' ? 'ADMIN' : 'USER',
-  };
+  const result = toAuthUserFull(user, userId);
 
   try {
     const { cacheSet } = await import('@/lib/db');
@@ -277,6 +320,25 @@ export async function getAuthUserFull(request: NextRequest): Promise<AuthUser | 
   }
 
   return result;
+}
+
+export async function getAuthUserFromToken(token: string): Promise<AuthUserFull | null> {
+  const result = await verifyWithRotation(token);
+  if (!result?.payload.sub) return null;
+  return getAuthUserByClaims({
+    userId: result.payload.sub,
+    tokenVersion: typeof result.payload.tokenVersion === 'number' && Number.isInteger(result.payload.tokenVersion)
+      ? result.payload.tokenVersion
+      : 0,
+    jti: typeof result.payload.jti === 'string' ? result.payload.jti : undefined,
+    exp: typeof result.payload.exp === 'number' ? result.payload.exp : undefined,
+  });
+}
+
+export async function getAuthUserFull(request: NextRequest): Promise<AuthUserFull | null> {
+  const claims = await resolveAuthClaims(request);
+  if (!claims) return null;
+  return getAuthUserByClaims(claims);
 }
 
 export const authCookieName = AUTH_COOKIE;

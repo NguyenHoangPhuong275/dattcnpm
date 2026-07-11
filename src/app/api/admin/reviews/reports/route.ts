@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getDb, type ReviewReport } from '@/lib/db';
-import { getAuthUserFull } from '@/lib/auth';
+import { isAdminRequest } from '@/lib/admin-authorization';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { REVIEW_REPORT_STATUSES } from '@/lib/db/models';
 
@@ -18,11 +18,7 @@ function toReportResponse(item: ReviewReport) {
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
-    const user = await getAuthUserFull(request);
-    if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
-    }
-    if (user.role !== 'ADMIN') {
+    if (!await isAdminRequest(request)) {
       throw new AppError('FORBIDDEN', 'Chỉ quản trị viên mới có quyền truy cập', 403);
     }
 

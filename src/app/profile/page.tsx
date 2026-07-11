@@ -23,7 +23,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useMyTrips } from '@/hooks/useMyTrips';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useMyReviews } from '@/hooks/useMyReviews';
-import { TripSummary, ProfileTab } from '@/types/profile';
+import { TripSummary, ProfileTab, TravelInterestCode } from '@/types/profile';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { getDefaultTripDates } from '@/lib/date';
 
@@ -157,7 +157,7 @@ function ProfilePageContent() {
     setPreferences((prev) => ({ ...prev, [field]: value }));
   }, [setPreferences]);
 
-  const toggleInterest = useCallback((tag: string) => {
+  const toggleInterest = useCallback((tag: TravelInterestCode) => {
     setPreferences((prev) => {
       const hasTag = prev.interests.includes(tag);
       return {

@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       fullName: parsed.fullName.trim(),
       avatarUrl: null,
       role: 'USER',
+      tokenVersion: 0,
       isLocked: false,
       emailVerified: true,
       emailVerifiedAt: now,
@@ -60,13 +61,14 @@ export async function POST(request: NextRequest) {
       targetId: newUser._id,
       metadata: { method: 'email_otp', email: normalizedEmail },
       createdAt: now,
-    });
+    }).catch(() => {});
 
     const userForToken = {
       id: String(newUser._id),
       email: newUser.email,
       fullName: newUser.fullName,
       role: 'USER' as const,
+      tokenVersion: newUser.tokenVersion ?? 0,
     };
 
     const token = await signAuthToken(userForToken);

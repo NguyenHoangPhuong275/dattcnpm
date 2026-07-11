@@ -1,4 +1,12 @@
 import { z } from 'zod';
+
+import {
+  budgetLevelPreferenceSchema,
+  interestsPreferenceSchema,
+  preferredDestinationsPreferenceSchema,
+  travelStylesPreferenceSchema,
+} from '@/lib/validations/preferences';
+
 import { optionalTrimString, optionalPhoneString } from './common';
 
 export const updateProfileSchema = z.object({
@@ -40,10 +48,10 @@ export const updateProfileSchema = z.object({
     .nullable()
     .or(z.literal(''))
     .transform((v) => v || null),
-  travelStyles: z.array(z.string().trim()).max(10).optional(),
-  budgetLevel: z.enum(['Thấp', 'Trung bình', 'Cao']).or(z.literal('')).transform((v) => v || null).optional().nullable(),
-  preferredDestinations: z.array(z.string().trim()).max(10).optional(),
-  interests: z.array(z.string().trim()).max(15).optional(),
+  travelStyles: travelStylesPreferenceSchema.optional(),
+  budgetLevel: budgetLevelPreferenceSchema.optional(),
+  preferredDestinations: preferredDestinationsPreferenceSchema.optional(),
+  interests: interestsPreferenceSchema.optional(),
 });
 
 export type ProfileUpdateInput = z.infer<typeof updateProfileSchema>;

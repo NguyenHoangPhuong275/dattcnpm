@@ -37,7 +37,7 @@ function recReq(userId: string | null) {
   return new Request('http://localhost/api/places/recommended?limit=50', { headers });
 }
 
-describe('PROMPT 9 — Personalized Place Recommendation', () => {
+describe('Chức năng gợi ý địa điểm cá nhân hóa', () => {
   it('unit: scorePlace cộng điểm theo interests/budget; hasPreferences đúng', () => {
     expect(scorePlace({ tags: ['beach'], type: 'beach' }, { interests: ['beach'] })).toBe(2);
     expect(scorePlace({ tags: ['history'] }, { interests: ['beach'] })).toBe(0);
@@ -49,12 +49,20 @@ describe('PROMPT 9 — Personalized Place Recommendation', () => {
   it('PATCH preferences hợp lệ → 200', async () => {
     const req = new Request('http://localhost/api/users/me/preferences', {
       method: 'PATCH', headers: { 'content-type': 'application/json', 'x-user-id': userId },
-      body: JSON.stringify({ interests: ['beach'], budgetLevel: 'mid' }),
+      body: JSON.stringify({
+        interests: ['Biển'],
+        travelStyles: ['Adventure'],
+        budgetLevel: 'Trung bình',
+        preferredDestinations: ['Đà Nẵng'],
+      }),
     });
     const res = await prefsPATCH(req as never);
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.data.interests).toContain('beach');
+    expect(body.data.travelStyles).toContain('adventure');
+    expect(body.data.budgetLevel).toBe('mid');
+    expect(body.data.preferredDestinations).toEqual(['Đà Nẵng']);
   });
 
   it('PATCH preferences không hợp lệ → 400', async () => {

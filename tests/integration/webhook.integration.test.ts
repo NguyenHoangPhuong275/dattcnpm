@@ -6,7 +6,6 @@ import { POST as webhookPOST } from '@/app/api/webhook/route';
 
 const SECRET = 'test-webhook-secret-value';
 
-// Email unique theo từng test → không đụng dữ liệu khi chạy lại.
 const createdEmails = new Set<string>();
 function newEmail(): string {
   const email = `webhook-softdelete-${randomUUID()}@example.com`;
@@ -39,8 +38,6 @@ describe('Webhook user lookup với soft-delete', () => {
   beforeAll(async () => {
     process.env.WEBHOOK_SECRET = SECRET;
     await getDb();
-    // Đảm bảo partial unique index email (deletedAt:null) để 1 email có thể tồn tại đồng thời
-    // 1 bản soft-deleted + 1 bản active.
     await UserModel.syncIndexes();
   });
 
@@ -69,8 +66,8 @@ describe('Webhook user lookup với soft-delete', () => {
     const db = await getDb();
     const activeAfter = await db.users.findById(String(active._id));
     const deletedAfter = await db.users.findById(String(deleted._id));
-    expect(activeAfter!.isLocked).toBe(true);   // user active bị khóa
-    expect(deletedAfter!.isLocked).toBe(false); // user soft-deleted KHÔNG bị đụng
+    expect(activeAfter!.isLocked).toBe(true);
+    expect(deletedAfter!.isLocked).toBe(false);
   });
 
   it('user.delete (soft) nhắm đúng user active', async () => {
@@ -84,8 +81,7 @@ describe('Webhook user lookup với soft-delete', () => {
     const db = await getDb();
     const activeAfter = await db.users.findById(String(active._id));
     const deletedAfter = await db.users.findById(String(deleted._id));
-    expect(activeAfter!.deletedAt).toBeTruthy(); // user active vừa bị soft-delete
-    // user soft-deleted cũ giữ nguyên mốc thời gian xóa ban đầu (không bị ghi đè).
+    expect(activeAfter!.deletedAt).toBeTruthy();
     expect(new Date(deletedAfter!.deletedAt as Date).getTime()).toBe(new Date('2025-01-01').getTime());
   });
 

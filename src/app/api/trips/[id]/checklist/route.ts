@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createAuditLog, getDb, type TripChecklist } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
-import { getTripForEdit, getTripForView } from '@/lib/trip-permission';
+import { getTripForEdit, getTripForMemberView } from '@/lib/trip-permission';
 import { objectIdSchema } from '@/lib/validations/common';
 import { createChecklistItemSchema, normalizeChecklistLabel } from '@/lib/validations/checklist';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
     const { id } = await ctx.params;
     objectIdSchema.parse(id);
 
-    await getTripForView(id, userId);
+    await getTripForMemberView(id, userId);
 
     const db = await getDb();
     const items = (await db.tripChecklists.find({ tripId: id })) as TripChecklist[];

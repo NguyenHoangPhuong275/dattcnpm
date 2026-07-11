@@ -1,4 +1,5 @@
 import { normalizeVietnameseText } from '@/lib/string';
+import type { TravelReferenceSlug } from '@/data/travel-references';
 
 export const REGIONS = [
   'Đồng Bằng Sông Hồng',
@@ -20,10 +21,24 @@ export interface GuideSection {
   paragraphs: string[];
 }
 
-export interface StoryCard {
+export type PlacesTheme = 'van-hoa' | 'thien-nhien';
+
+export interface ReferenceStoryCard {
   title: string;
   description: string;
   image: string;
+  referenceSlug: TravelReferenceSlug;
+}
+
+export type DiscoveryAction =
+  | { type: 'places'; theme?: PlacesTheme }
+  | { type: 'hotels' };
+
+export interface DiscoveryStoryCard {
+  title: string;
+  description: string;
+  image: string;
+  action: DiscoveryAction;
 }
 
 export interface Locality {
@@ -392,44 +407,51 @@ export function getLocalityGuideSections(locality: Locality): GuideSection[] {
   ];
 }
 
-export const LOCALITY_NEWS: StoryCard[] = [
+export const LOCALITY_NEWS: ReferenceStoryCard[] = [
   {
     title: 'Kinh nghiệm lên lịch trình ngắn ngày',
     description: 'Gợi ý cách chọn điểm dừng, thời gian di chuyển và hoạt động phù hợp.',
     image: '/images/hoian.png',
+    referenceSlug: 'hoi-an-short-trip',
   },
   {
     title: 'Những điểm tham quan nên lưu lại',
     description: 'Danh sách địa điểm nổi bật để ưu tiên trong lần đầu khám phá.',
     image: '/images/hagiang.png',
+    referenceSlug: 'ha-giang-attractions',
   },
   {
     title: 'Thời điểm phù hợp để du lịch',
     description: 'Các gợi ý theo mùa, thời tiết và nhịp hoạt động địa phương.',
     image: '/images/halongbay.png',
+    referenceSlug: 'ha-long-best-time',
   },
   {
     title: 'Ẩm thực và trải nghiệm bản địa',
     description: 'Các món nên thử và khu vực có nhiều trải nghiệm đời sống địa phương.',
     image: '/images/hue.jpg',
+    referenceSlug: 'hue-local-food',
   },
 ];
 
-export const LOCALITY_DISCOVERY: StoryCard[] = [
+export const LOCALITY_DISCOVERY: DiscoveryStoryCard[] = [
   {
     title: 'Lịch trình văn hóa',
     description: 'Tập trung vào di tích, bảo tàng, phố cổ và các câu chuyện địa phương.',
     image: '/images/hue.jpg',
+    action: { type: 'places', theme: 'van-hoa' },
   },
   {
     title: 'Lịch trình thiên nhiên',
     description: 'Ưu tiên cảnh quan mở, sông nước, núi rừng và điểm ngắm cảnh.',
     image: '/images/hagiang.png',
+    action: { type: 'places', theme: 'thien-nhien' },
   },
   {
     title: 'Lịch trình nghỉ dưỡng',
     description: 'Gợi ý nhịp đi chậm, điểm ăn uống và thời gian nghỉ hợp lý.',
     image: '/images/halongbay.png',
+    action: { type: 'hotels' },
   },
 ];
 

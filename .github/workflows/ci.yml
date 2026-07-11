@@ -6,7 +6,9 @@ on:
   pull_request:
 
 env:
-  MONGODB_URI: mongodb://localhost:27017/smart_travel_guide
+  MONGODB_URI: mongodb://localhost:27017/smart_travel_guide_test
+  TEST_MONGODB_URI: mongodb://localhost:27017/smart_travel_guide_test
+  E2E_MONGODB_URI: mongodb://localhost:27017/smart_travel_guide_e2e
   REDIS_URL: redis://localhost:6379
   JWT_SECRET: ci-test-jwt-secret-please-change
   WEBHOOK_SECRET: ci-test-webhook-secret
@@ -32,6 +34,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      - run: npm run build
       - run: npm test
 
   # E2E smoke (Playwright) — job RIÊNG để không làm chậm unit/integration.

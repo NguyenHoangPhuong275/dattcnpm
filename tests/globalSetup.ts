@@ -1,33 +1,47 @@
 import mongoose from 'mongoose';
+
 import { loadEnv } from '../scripts/load-env';
+import {
+  assertRunDatabaseUri,
+  createRunDatabaseUri,
+} from './database-safety';
 
-/**
- * Global teardown (Task 3 — phương án A): sau khi toàn bộ suite chạy xong, drop các database
- * test do worker tạo ra (tên khớp /_test(_w...)?$/). Chỉ đụng DB *_test*, không bao giờ chạm DB dev.
- * Defensive: nuốt mọi lỗi để teardown không làm fail cả run (vd thiếu quyền admin trên Atlas).
- */
+let runDatabaseUri: string | undefined;
+let runDatabaseName: string | undefined;
+
+export async function setup(): Promise<void> {
+  loadEnv();
+  const explicitTestUri = process.env.TEST_MONGODB_URI;
+  if (!explicitTestUri) {
+    throw new Error('TEST_MONGODB_URI is required and must target an isolated test database');
+  }
+
+  runDatabaseUri = createRunDatabaseUri(explicitTestUri, 'test');
+  runDatabaseName = assertRunDatabaseUri(runDatabaseUri, 'test');
+  process.env.TEST_RUN_MONGODB_URI = runDatabaseUri;
+  process.env.MONGODB_URI = runDatabaseUri;
+}
+
 export async function teardown(): Promise<void> {
-  try {
-    loadEnv();
-    const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
-    if (!uri) return;
+  if (!runDatabaseUri || !runDatabaseName) return;
 
-    // Timeout ngắn: nếu không có Mongo (vd chạy test non-DB local), thoát nhanh thay vì treo.
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
-    try {
-      const admin = mongoose.connection.db?.admin();
-      if (!admin) return;
-      const { databases } = await admin.listDatabases();
-      const testDbPattern = /_test(_w[\w-]+)?$/;
-      for (const d of databases) {
-        if (testDbPattern.test(d.name)) {
-          await mongoose.connection.useDb(d.name).dropDatabase();
-        }
-      }
-    } finally {
-      await mongoose.disconnect();
+  const connection = mongoose.createConnection(runDatabaseUri, {
+    serverSelectionTimeoutMS: 5000,
+  });
+  try {
+    await connection.asPromise();
+    const connectedDatabaseName = connection.db?.databaseName;
+    if (connectedDatabaseName !== runDatabaseName) {
+      throw new Error('Refusing to clean a database outside the current test run');
     }
-  } catch {
-    // Bỏ qua: teardown chỉ là dọn dẹp best-effort.
+    await connection.dropDatabase();
+  } catch (error) {
+    if (!(error instanceof Error) || error.name !== 'MongooseServerSelectionError') {
+      throw error;
+    }
+  } finally {
+    if (connection.readyState !== 0) {
+      await connection.close();
+    }
   }
 }

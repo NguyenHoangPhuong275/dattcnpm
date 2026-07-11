@@ -1,24 +1,24 @@
 # Smart Travel Guide
 
-Smart Travel Guide là web app hỗ trợ tìm kiếm địa điểm du lịch, xem POI/thời tiết, quản lý hồ sơ người dùng, lưu địa điểm yêu thích, tạo chuyến đi và lập lịch trình cá nhân.
+Đề tài: **Smart Travel Guide - Web hướng dẫn hỗ trợ du lịch**
+
+Smart Travel Guide là web app hỗ trợ tìm kiếm địa điểm du lịch, xem POI/thời tiết, tìm và đánh giá khách sạn, quản lý hồ sơ người dùng, lưu địa điểm yêu thích, tạo chuyến đi và lập lịch trình cá nhân (ngân sách, checklist, chỗ ở, cộng tác viên, chia sẻ công khai).
 
 Project phục vụ môn Đồ án Thực tế Công nghệ Phần mềm.
 
-## Trạng thái hiện tại (cập nhật 2026-06-11)
+## Trạng thái
 
-Tuần 1 đã hoàn thành. Tuần 2 đã hoàn thành phần lõi ở mức demo/báo cáo (auth, places, weather, trips, itinerary, favorites, search history).
+Hệ thống đã hoàn chỉnh: 50 route API, 19 collection MongoDB, toàn bộ test tự động pass (lint, typecheck, build xanh). Báo cáo đầy đủ tại `DATTCNPM_Smart_Travel_Guide.docx`; tài liệu phân tích/thiết kế tại `docs/01_SRS.md` → `docs/04_SEQUENCE.md`.
 
-**Phạm vi điều chỉnh:** Bản đồ trực quan, marker, popup map và plan trải nghiệm khám phá của Tuần 3 **đã được loại bỏ hoàn toàn**. Tuần 3 chỉ ghi nhận phần đã có: search + POI + Weather + Search History UI. Tiếp theo ưu tiên luồng tạo/add vào trip, hoàn thiện quản lý lịch trình, test và polish.
+**Phạm vi điều chỉnh:** Bản đồ trực quan, marker, popup map **đã được loại bỏ hoàn toàn khỏi phạm vi** — không tái giới thiệu.
 
-Tuần 3 đã hoàn thành theo scope rút gọn. Code hiện tập trung hoàn thiện luồng "tìm kiếm → thêm vào trip/itinerary", polish Trip UI, test integration và responsive. Tuần 4-6 còn lại chủ yếu là add-to-trip từ search, integration test, polish và final verification.
-
-## Stack hiện tại
+## Stack
 
 | Nhóm | Công nghệ |
 | --- | --- |
-| Framework | Next.js 16.2.6 App Router |
+| Framework | Next.js App Router |
 | Ngôn ngữ | TypeScript |
-| UI | React 19, Tailwind CSS 4 |
+| UI | React, Tailwind CSS |
 | Database | MongoDB qua Mongoose |
 | Cache/OTP/Rate limit | Redis qua ioredis |
 | Email OTP | Resend |
@@ -27,7 +27,7 @@ Tuần 3 đã hoàn thành theo scope rút gọn. Code hiện tập trung hoàn 
 | Auth token | jose JWT |
 | Test runner | Vitest |
 
-Auth hiện set HttpOnly JWT cookie khi login và vẫn giữ `localStorage` + `x-user-id` để tương thích UI hiện có. Các API user đọc được `x-user-id` hoặc JWT cookie. Middleware đã bảo vệ `/profile`.
+Auth sử dụng JWT trong HttpOnly cookie. Header `x-user-id` chỉ hoạt động trong môi trường test; middleware loại bỏ các header giả mạo ngoài test. Middleware bảo vệ `/admin`, `/profile`, `/trips` và `/schedule-reference`; trang admin kiểm tra thêm role `ADMIN` ở server.
 
 Font chuẩn toàn hệ thống là **Be Vietnam Pro**, khai báo bằng `next/font/google` trong `src/app/layout.tsx` và map vào `--font-sans`, `--font-display` tại `src/app/globals.css`. Form controls kế thừa cùng font để hiển thị tiếng Việt có dấu nhất quán trên desktop và mobile browser.
 
@@ -36,23 +36,27 @@ Font chuẩn toàn hệ thống là **Be Vietnam Pro**, khai báo bằng `next/f
 ```
 DATTCNPM/
   docs/
+  e2e/
   public/images/
   scripts/
   src/
     app/
       admin/
       api/
-      login/
+      hotels/
+      local/
       profile/
-      register/
+      schedule-reference/
+      share/
+      trips/
     components/
-    database/
+    data/
     hooks/
     lib/
     types/
+  tests/
   .env.example
   docker-compose.yml
-  KE_HOACH_DU_AN.md
   package.json
   README.md
 ```
@@ -90,12 +94,11 @@ npm run dev
 | Biến | Mục đích |
 | --- | --- |
 | `MONGODB_URI` | Kết nối MongoDB |
+| `TEST_MONGODB_URI` | MongoDB nền dành riêng cho Vitest; tên phải chứa segment `test` |
+| `E2E_MONGODB_URI` | MongoDB nền dành riêng cho Playwright; tên phải chứa segment `e2e` |
 | `REDIS_URL` | Kết nối Redis |
 | `JWT_SECRET` | Secret ký JWT auth cookie |
 | `NEXT_PUBLIC_APP_URL` | URL app |
-| `ENABLE_DEFAULT_TEST_ACCOUNT` | Bật/tắt tài khoản test mặc định |
-| `DEFAULT_TEST_EMAIL` | Email test mặc định |
-| `DEFAULT_TEST_PASSWORD` | Mật khẩu test mặc định |
 | `API_KEY_RESEND` | API key Resend |
 | `WEBHOOK_SECRET` | Secret cho admin webhook (header `x-webhook-secret`) |
 | `WEBHOOK_IP_ALLOWLIST` | IP được phép chạy event phá hủy/seed. Trống ở production = từ chối các event này (bắt buộc khai báo khi deploy) |
@@ -248,7 +251,7 @@ npm run build
 npm test
 ```
 
-> Cần MongoDB + Redis đang chạy (`docker compose up -d`). `tests/setupEnv.ts` tự thêm hậu tố `_test` vào tên DB nên test không đụng dữ liệu dev.
+> Cần MongoDB + Redis đang chạy (`docker compose up -d`). Bắt buộc cấu hình `TEST_MONGODB_URI` trỏ tới database nền có segment `test`. Mỗi lần chạy tạo một database `_run_` riêng và teardown chỉ xóa đúng database của lần chạy đó.
 
 ### E2E Tests (Playwright)
 
@@ -262,6 +265,8 @@ npm run test:e2e
 # Chạy với UI mode
 npx playwright test --ui
 ```
+
+E2E bắt buộc cấu hình `E2E_MONGODB_URI` với segment `e2e`, tạo database riêng cho từng lần chạy và không tái sử dụng development server đang chạy sẵn.
 
 ## API Reference
 

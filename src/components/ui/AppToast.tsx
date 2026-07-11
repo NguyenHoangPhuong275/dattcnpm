@@ -34,6 +34,12 @@ const ICON_MAP: Record<ToastType, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7v5m0-8h.01" />
     </svg>
   ),
+  loading: (
+    <svg aria-hidden="true" className="h-3.5 w-3.5 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 16 16">
+      <circle className="opacity-25" cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="2" />
+      <path className="opacity-90" fill="currentColor" d="M8 1.5A6.5 6.5 0 0 1 14.5 8H12A4 4 0 0 0 8 4V1.5z" />
+    </svg>
+  ),
 };
 
 const VARIANT_STYLES: Record<ToastType, string> = {
@@ -41,6 +47,7 @@ const VARIANT_STYLES: Record<ToastType, string> = {
   error: 'toast-error',
   warning: 'toast-warning',
   info: 'toast-info',
+  loading: 'toast-loading',
 };
 
 export default function AppToast({

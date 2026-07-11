@@ -29,7 +29,7 @@ beforeEach(() => {
   mockedApiRequest.mockReset();
 });
 
-describe('TripChecklistSection — bản mẫu (Task 2.5)', () => {
+describe('Chức năng checklist chuyến đi (TripChecklistSection) — thêm theo bản mẫu', () => {
   it('hiển thị nút "Áp dụng bản mẫu" khi đã đăng nhập', async () => {
     render(<TripChecklistSection tripId="t1" userId="u1" />);
     expect(await screen.findByText('Áp dụng bản mẫu')).toBeTruthy();
@@ -58,5 +58,16 @@ describe('TripChecklistSection — bản mẫu (Task 2.5)', () => {
   it('không hiển thị nút bản mẫu khi chưa đăng nhập', () => {
     render(<TripChecklistSection tripId="t1" userId={null} />);
     expect(screen.queryByText('Áp dụng bản mẫu')).toBeNull();
+  });
+
+  it('quyền chỉ xem vẫn đọc checklist nhưng không thấy thao tác ghi', async () => {
+    mockOk([{ id: 'item-1', title: 'Mang giấy tờ', completed: false }]);
+    render(<TripChecklistSection tripId="t1" userId="u1" canEdit={false} />);
+
+    expect(await screen.findByText('Mang giấy tờ')).toBeTruthy();
+    expect(screen.getByRole('checkbox').hasAttribute('disabled')).toBe(true);
+    expect(screen.queryByText('Áp dụng bản mẫu')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Xóa' })).toBeNull();
+    expect(screen.queryByPlaceholderText('Thêm mục cần chuẩn bị...')).toBeNull();
   });
 });

@@ -1,9 +1,12 @@
+import type { TravelReferenceSlug } from '@/data/travel-references';
+
 export type HomeNewsCard = {
   category: string;
   title: string;
   date: string;
   views: string;
   image: string;
+  referenceSlug: TravelReferenceSlug;
 };
 
 export const HOME_NEWS: HomeNewsCard[] = [
@@ -13,6 +16,7 @@ export const HOME_NEWS: HomeNewsCard[] = [
     date: '24/12/2025',
     views: '30',
     image: '/images/hanoi_temple.jpg',
+    referenceSlug: 'cu-da-cultural-village',
   },
   {
     category: 'Đi đâu',
@@ -20,6 +24,7 @@ export const HOME_NEWS: HomeNewsCard[] = [
     date: '29/11/2025',
     views: '29',
     image: '/images/gialai.png',
+    referenceSlug: 'kon-tum-wooden-church',
   },
   {
     category: 'Đi đâu',
@@ -27,6 +32,7 @@ export const HOME_NEWS: HomeNewsCard[] = [
     date: '29/11/2025',
     views: '25',
     image: '/images/caobang_bangioc.jpg',
+    referenceSlug: 'cho-don-historical-area',
   },
   {
     category: 'Đi đâu',
@@ -34,6 +40,7 @@ export const HOME_NEWS: HomeNewsCard[] = [
     date: '29/11/2025',
     views: '18',
     image: '/images/hagiang.png',
+    referenceSlug: 'ba-be-an-ma-temple',
   },
   {
     category: 'Đi đâu',
@@ -41,6 +48,7 @@ export const HOME_NEWS: HomeNewsCard[] = [
     date: '29/11/2025',
     views: '21',
     image: '/images/daklak.png',
+    referenceSlug: 'kon-tum-bishop-house',
   },
   {
     category: 'Đi đâu',
@@ -48,6 +56,7 @@ export const HOME_NEWS: HomeNewsCard[] = [
     date: '29/11/2025',
     views: '30',
     image: '/images/gialai.png',
+    referenceSlug: 'kon-klor-communal-house',
   },
 ];
 

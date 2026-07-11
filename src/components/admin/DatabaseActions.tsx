@@ -9,9 +9,9 @@ interface DatabaseActionsProps {
 
 export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseActionsProps) {
   return (
-    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-3xl p-6 shadow-lg shadow-slate-950/35 space-y-4">
-      <h2 className="text-lg font-bold text-rose-300 flex items-center gap-2 border-b border-slate-800 pb-3">
-        <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="rounded-3xl border border-[var(--color-border)] bg-white p-6 shadow-sm space-y-4">
+      <h2 className="flex items-center gap-2 border-b border-[var(--color-border)] pb-3 text-lg font-extrabold text-[var(--color-text)]">
+        <svg className="w-5 h-5 text-[var(--color-danger)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
         Tác vụ Cơ sở dữ liệu
@@ -21,7 +21,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
           type="button"
           onClick={() => onDbAction('db.reset')}
           disabled={actionLoading !== null}
-          className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
+          className="flex-1 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 text-sm font-bold text-[var(--color-text-secondary)] transition-all hover:bg-[var(--color-primary-lightest)] cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {actionLoading === 'db.reset' ? 'Đang reset DB...' : 'Reset DB (Seed mẫu)'}
         </button>
@@ -29,7 +29,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
           type="button"
           onClick={() => onDbAction('db.clear')}
           disabled={actionLoading !== null}
-          className="flex-1 py-3 bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-500/20 hover:border-rose-500/40 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
+          className="flex-1 rounded-2xl border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 py-3 text-sm font-bold text-red-700 transition-all hover:bg-[var(--color-danger)]/20 cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {actionLoading === 'db.clear' ? 'Đang xóa DB...' : 'Xóa trắng Database (drop collections + duplicates)'}
         </button>
@@ -37,7 +37,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
           type="button"
           onClick={() => onDbAction('db.check')}
           disabled={actionLoading !== null}
-          className="flex-1 py-3 bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-300 border border-emerald-500/30 hover:border-emerald-400/60 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
+          className="flex-1 rounded-2xl border border-[var(--color-success)]/40 bg-[var(--color-success)]/10 py-3 text-sm font-bold text-emerald-700 transition-all hover:bg-[var(--color-success)]/20 cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {actionLoading === 'db.check' ? 'Đang kiểm tra...' : 'Check DB Consistency'}
         </button>
@@ -45,7 +45,7 @@ export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseA
           type="button"
           onClick={() => onDbAction('db.createTables')}
           disabled={actionLoading !== null}
-          className="flex-1 py-3 bg-sky-900/40 hover:bg-sky-800/60 text-sky-300 border border-sky-500/30 hover:border-sky-400/60 rounded-2xl font-bold text-sm transition-all cursor-pointer min-h-[44px]"
+          className="flex-1 rounded-2xl border border-[var(--color-primary)]/60 bg-[var(--color-primary-lightest)] py-3 text-sm font-bold text-[var(--color-primary-darker)] transition-all hover:bg-[var(--color-primary-light)] cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {actionLoading === 'db.createTables' ? 'Đang tạo bảng...' : 'Tạo tất cả bảng'}
         </button>

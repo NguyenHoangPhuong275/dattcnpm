@@ -6,6 +6,8 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { loginSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
+const DUMMY_PASSWORD_HASH = '$2b$12$UcxloMIgcOGbqH451uo4Au5TFjafb4Mt4m1oJO/cvTJY.EmpMv0p6';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -26,18 +28,14 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await findUserByEmail(normalizedEmail);
+    const isMatch = await compare(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
 
-    if (!user || user.deletedAt) {
+    if (!user || user.deletedAt || !isMatch) {
       throw new AppError('UNAUTHORIZED', 'Email hoặc mật khẩu không chính xác', 401);
     }
 
     if (user.isLocked) {
       throw new AppError('FORBIDDEN', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.', 403);
-    }
-
-    const isMatch = await compare(password, user.passwordHash);
-    if (!isMatch) {
-      throw new AppError('UNAUTHORIZED', 'Email hoặc mật khẩu không chính xác', 401);
     }
 
     const db = await getDb();
@@ -48,7 +46,7 @@ export async function POST(request: NextRequest) {
       targetId: user._id,
       metadata: { email: user.email, method: 'credentials' },
       createdAt: new Date(),
-    });
+    }).catch(() => {});
 
     const responseUser = {
       id: user._id,
@@ -58,7 +56,10 @@ export async function POST(request: NextRequest) {
     };
 
     const maxAge = getAuthMaxAge(parsed.rememberMe);
-    const token = await signAuthToken(responseUser, maxAge);
+    const token = await signAuthToken({
+      ...responseUser,
+      tokenVersion: user.tokenVersion ?? 0,
+    }, maxAge);
     const response = sendSuccess({ user: responseUser });
     setAuthCookie(response, token, maxAge);
     return response;

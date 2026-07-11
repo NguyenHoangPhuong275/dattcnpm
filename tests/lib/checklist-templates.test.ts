@@ -5,7 +5,7 @@ import {
   getChecklistTemplate,
 } from '@/data/checklist-templates';
 
-describe('checklist templates (Task 2.4)', () => {
+describe('Bản mẫu checklist chuyến đi', () => {
   it('có đủ các loại hình tối thiểu', () => {
     for (const id of ['mountain', 'beach', 'abroad', 'business', 'resort']) {
       expect(CHECKLIST_TEMPLATE_IDS).toContain(id);

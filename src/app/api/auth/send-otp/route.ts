@@ -4,6 +4,7 @@ import { getResend } from '@/lib/resend';
 import { getRedis, getDb, findUserByEmail, storeOtp } from '@/lib/db';
 import { sendOtpSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { escapeHtml } from '@/lib/html';
 
 const OTP_TTL_SECONDS = 600;
 const OTP_SEND_WINDOW_SECONDS = 600;
@@ -22,6 +23,7 @@ function maskEmail(email: string): string {
 }
 
 function buildEmailHTML(otp: string, fullName: string): string {
+  const safeFullName = escapeHtml(fullName);
   return `
 <!DOCTYPE html>
 <html>
@@ -42,7 +44,7 @@ function buildEmailHTML(otp: string, fullName: string): string {
           </tr>
           <tr>
             <td style="padding:32px 40px;">
-              <p style="margin:0 0 16px;color:#0f172a;font-size:16px;">Xin chào <strong>${fullName}</strong>,</p>
+              <p style="margin:0 0 16px;color:#0f172a;font-size:16px;">Xin chào <strong>${safeFullName}</strong>,</p>
               <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
                 Cảm ơn bạn đã đăng ký tài khoản. Vui lòng sử dụng mã xác minh bên dưới để hoàn tất quá trình đăng ký:
               </p>
@@ -55,7 +57,7 @@ function buildEmailHTML(otp: string, fullName: string): string {
                 Mã có hiệu lực trong <strong>10 phút</strong>.
               </p>
               <p style="margin:0;color:#64748b;font-size:13px;text-align:center;">
-                If you did not request this code, please ignore this email.
+                Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.
               </p>
             </td>
           </tr>
@@ -106,17 +108,25 @@ export async function POST(request: NextRequest) {
       targetId: null,
       metadata: { email: normalizedEmail, status: 'generated' },
       createdAt: new Date(),
-    });
+    }).catch(() => {});
 
     const resend = getResend();
-    const { error: sendError } = await resend.emails.send({
-      from: 'LOTUS TRAVEL <no-reply@cybersafe.tokyo>',
-      to: [normalizedEmail],
-      subject: `${otp} - Mã xác minh LOTUS TRAVEL`,
-      html: buildEmailHTML(otp, parsed.fullName.trim()),
-    });
+    let sendError: unknown;
+    try {
+      const result = await resend.emails.send({
+        from: 'LOTUS TRAVEL <no-reply@cybersafe.tokyo>',
+        to: [normalizedEmail],
+        subject: `${otp} - Mã xác minh LOTUS TRAVEL`,
+        html: buildEmailHTML(otp, parsed.fullName.trim()),
+      });
+      sendError = result.error;
+    } catch (error) {
+      sendError = error;
+    }
 
     if (sendError) {
+      await redis.del(`otp:${normalizedEmail}`).catch(() => 0);
+      await redis.decr(rateLimitKey).catch(() => 0);
       throw new AppError('SERVICE_UNAVAILABLE', 'Không thể gửi email xác minh. Vui lòng thử lại sau.', 503);
     }
 

@@ -6,7 +6,7 @@ const DEFAULT_TOAST_DURATION_MS = 2800;
 const TOAST_EXIT_MS = 220;
 
 export type ToastStatus = 'idle' | 'visible' | 'hiding';
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 export type ToastVariant = 'default' | 'auth';
 export type ShowToastOptions = {
   type?: ToastType;
@@ -88,6 +88,10 @@ export function useToastController(): UseToastReturn {
     setTitle(typeof typeOrOptions === 'object' ? typeOrOptions.title : undefined);
     setVariant(typeof typeOrOptions === 'object' ? typeOrOptions.variant ?? 'default' : 'default');
     setStatus('visible');
+
+    if (toastDuration <= 0) {
+      return Promise.resolve();
+    }
 
     return new Promise<void>((resolve) => {
       resolveRef.current = resolve;

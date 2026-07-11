@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { resolveAuthWithRefresh, setAuthCookie } from '@/lib/auth';
+import { hasAdminSession } from '@/lib/admin-auth';
 import { ROUTES } from '@/lib/constants';
 
-const PROTECTED_PREFIXES = [ROUTES.profile, ROUTES.trips, ROUTES.scheduleReference];
+const PROTECTED_PREFIXES = [ROUTES.admin, ROUTES.profile, ROUTES.trips, ROUTES.scheduleReference];
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
@@ -36,6 +37,15 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     });
   }
 
+  // Trang đăng nhập quản trị phải truy cập được khi chưa có phiên (nằm ngoài nhóm (panel)).
+  if (pathname === `${ROUTES.admin}/login`) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  if (pathname.startsWith(ROUTES.admin) && await hasAdminSession(request)) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
   const auth = await resolveAuthWithRefresh(request);
   if (auth) {
     const response = NextResponse.next({
@@ -52,14 +62,20 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   }
 
   const url = request.nextUrl.clone();
-  url.pathname = ROUTES.home;
-  url.searchParams.set('auth', 'login');
+  if (pathname.startsWith(ROUTES.admin)) {
+    url.pathname = `${ROUTES.admin}/login`;
+    url.search = '';
+  } else {
+    url.pathname = ROUTES.home;
+    url.searchParams.set('auth', 'login');
+  }
   return NextResponse.redirect(url);
 }
 
 export const config = {
   matcher: [
     '/profile/:path*',
+    '/admin/:path*',
     '/trips/:path*',
     '/schedule-reference/:path*',
     '/api/debug/:path*',

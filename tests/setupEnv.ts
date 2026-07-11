@@ -1,44 +1,12 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import { assertRunDatabaseUri } from './database-safety';
 
-const envPath = path.resolve(process.cwd(), '.env');
-if (fs.existsSync(envPath)) {
-  const content = fs.readFileSync(envPath, 'utf-8');
-  content.split('\n').forEach(line => {
-    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
-    if (match) {
-      const key = match[1];
-      let value = match[2] || '';
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.substring(1, value.length - 1);
-      } else if (value.startsWith("'") && value.endsWith("'")) {
-        value = value.substring(1, value.length - 1);
-      }
-      value = value.trim();
-      if (!process.env[key] && value) {
-        process.env[key] = value;
-      }
-    }
-  });
+const runDatabaseUri = process.env.TEST_RUN_MONGODB_URI;
+if (!runDatabaseUri) {
+  throw new Error('TEST_RUN_MONGODB_URI was not initialized by the test global setup');
 }
 
-// Đổi DB sang tên *_test để không đụng dev. Thêm hậu tố theo VITEST_WORKER_ID để mỗi worker
-// dùng database riêng → tránh flaky/race khi chạy song song nhiều file trên CI (Task 3, phương án A).
-// Idempotent: strip hậu tố cũ trước khi gắn lại (setupFiles chạy nhiều lần trong cùng worker).
-const uri = process.env.MONGODB_URI;
-if (uri) {
-  const workerId = process.env.VITEST_WORKER_ID;
-  const suffix = `_test${workerId ? `_w${workerId}` : ''}`;
-  const stripSuffix = (name: string) => name.replace(/_test(_w[\w-]+)?$/, '');
-  const match = uri.match(/mongodb(?:\+srv)?:\/\/[^/]+\/([^?#\s]+)/);
-  if (match) {
-    const dbName = match[1];
-    const base = stripSuffix(dbName);
-    process.env.MONGODB_URI = uri.replace(`/${dbName}`, `/${base}${suffix}`);
-  } else {
-    process.env.MONGODB_URI = uri.replace(/\/([^/]*)$/, `/smart_travel_guide${suffix}`);
-  }
-}
+assertRunDatabaseUri(runDatabaseUri, 'test');
+process.env.MONGODB_URI = runDatabaseUri;
 
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes-123456';

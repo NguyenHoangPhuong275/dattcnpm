@@ -1,3 +1,5 @@
+export type TripAccess = 'OWNER' | 'EDIT' | 'READ' | 'PUBLIC' | 'NONE';
+
 export type {
   Trip,
   ItineraryItem,

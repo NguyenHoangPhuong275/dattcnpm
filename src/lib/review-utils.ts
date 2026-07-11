@@ -1,19 +1,39 @@
+import { Types } from 'mongoose';
+
 import type { AppDatabase } from '@/lib/db';
+
+type RatingSummary = {
+  _id: null;
+  ratingAvg: number;
+  ratingCount: number;
+};
 
 export async function recalculatePlaceRating(
   placeId: string,
   db: AppDatabase
 ): Promise<void> {
   try {
-    const reviews = await db.reviews.find({ placeId, deletedAt: null });
-    const count = reviews.length;
-    const avg = count > 0
-      ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / count
-      : 0;
+    const [summary] = await db.reviews.aggregate<RatingSummary>([
+      {
+        $match: {
+          placeId: new Types.ObjectId(placeId),
+          parentId: null,
+          deletedAt: null,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          ratingAvg: { $avg: '$rating' },
+          ratingCount: { $sum: 1 },
+        },
+      },
+    ]);
+
     await db.places.updateOne(placeId, {
       $set: {
-        ratingAvg: Math.round(avg * 10) / 10,
-        ratingCount: count,
+        ratingAvg: Math.round((summary?.ratingAvg ?? 0) * 10) / 10,
+        ratingCount: summary?.ratingCount ?? 0,
       },
     });
   } catch {}

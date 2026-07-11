@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { apiRequestStrictJson, getApiErrorMessage, isAbortError } from '@/lib/api-client';
+import { normalizeVietnameseText } from '@/lib/string';
 
 export type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -28,7 +29,7 @@ export interface UsePlaceSearchReturn {
   setIsDropdownOpen: (open: boolean) => void;
   searchContainerRef: RefObject<HTMLDivElement | null>;
   handleSearch: () => void;
-  searchFor: (query: string) => void;
+  searchFor: (query: string, options?: { autoSelect?: boolean }) => void;
   handleSelectPlace: (place: SearchResult) => void;
   clearSelectedPlace: () => void;
 }
@@ -50,6 +51,15 @@ const CONNECTION_ERROR_MESSAGE = 'Lỗi kết nối. Vui lòng thử lại.';
 function getResultsFromResponse(json: PlacesSearchResponse): SearchResult[] {
   const payload = json.data || json;
   return Array.isArray(payload.results) ? payload.results : [];
+}
+
+function findBestMatch(results: SearchResult[], query: string): SearchResult {
+  const normalizedQuery = normalizeVietnameseText(query);
+  return (
+    results.find((place) => normalizeVietnameseText(place.name) === normalizedQuery)
+    ?? results.find((place) => normalizeVietnameseText(place.name).includes(normalizedQuery))
+    ?? results[0]
+  );
 }
 
 export function usePlaceSearch(): UsePlaceSearchReturn {
@@ -76,7 +86,7 @@ export function usePlaceSearch(): UsePlaceSearchReturn {
     });
   }, []);
 
-  const performSearch = useCallback(async (query: string): Promise<void> => {
+  const performSearch = useCallback(async (query: string, options?: { autoSelect?: boolean }): Promise<void> => {
     abortSearch();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -100,6 +110,18 @@ export function usePlaceSearch(): UsePlaceSearchReturn {
       }
 
       const results = getResultsFromResponse(json);
+
+      if (options?.autoSelect && results.length > 0) {
+        const best = findBestMatch(results, query);
+        setSelectedPlace(best);
+        setRawSearchQuery(best.address || best.name);
+        setSearchResults([]);
+        setSearchError(null);
+        setSearchStatus('success');
+        setIsDropdownOpen(false);
+        return;
+      }
+
       setSearchResults(results);
       setSearchError(results.length > 0 ? null : EMPTY_RESULTS_MESSAGE);
       setSearchStatus(results.length > 0 ? 'success' : 'error');
@@ -123,13 +145,13 @@ export function usePlaceSearch(): UsePlaceSearchReturn {
     performSearch(query);
   }, [performSearch, searchQuery]);
 
-  const searchFor = useCallback((value: string): void => {
+  const searchFor = useCallback((value: string, options?: { autoSelect?: boolean }): void => {
     const query = value.trim();
     if (query.length < MIN_QUERY_LENGTH) return;
     skipNextAutoSearchRef.current = query;
     setRawSearchQuery(query);
     setSelectedPlace(null);
-    performSearch(query);
+    performSearch(query, options);
   }, [performSearch]);
 
   const handleSelectPlace = useCallback((place: SearchResult): void => {

@@ -38,6 +38,7 @@ interface HotelSuggestionsProps {
   province?: string | null;
   lat?: number | null;
   lng?: number | null;
+  radiusKm?: number;
   limit?: number;
   featuredWhenEmpty?: boolean;
   onSelect?: (hotel: HotelResult) => Promise<void> | void;
@@ -68,17 +69,19 @@ const AMENITY_OPTIONS: { value: string; label: string }[] = [
 
 const AMENITY_LABELS: Record<string, string> = Object.fromEntries(AMENITY_OPTIONS.map((item) => [item.value, item.label]));
 
+const DEFAULT_GEO_RADIUS_KM = 20;
+
 function buildQuery(props: HotelSuggestionsProps, page: number, filters: HotelFilters, featured: boolean): string {
   const params = new URLSearchParams();
   if (featured) {
     params.set('featured', '1');
+  } else if (typeof props.lat === 'number' && typeof props.lng === 'number') {
+    params.set('lat', String(props.lat));
+    params.set('lng', String(props.lng));
+    params.set('radiusKm', String(props.radiusKm ?? DEFAULT_GEO_RADIUS_KM));
   } else {
     if (props.destination) params.set('destination', props.destination);
     if (props.province) params.set('province', props.province);
-    if (typeof props.lat === 'number' && typeof props.lng === 'number') {
-      params.set('lat', String(props.lat));
-      params.set('lng', String(props.lng));
-    }
   }
   if (props.limit) params.set('limit', String(props.limit));
   if (filters.priceLevel) params.set('priceLevel', filters.priceLevel);
@@ -103,7 +106,7 @@ function HotelCardSkeleton(): React.JSX.Element {
 }
 
 export default function HotelSuggestions(props: HotelSuggestionsProps): React.JSX.Element {
-  const { destination, province, lat, lng, limit, featuredWhenEmpty, onSelect } = props;
+  const { destination, province, lat, lng, radiusKm, limit, featuredWhenEmpty, onSelect } = props;
   const [status, setStatus] = useState<Status>('idle');
   const [hotels, setHotels] = useState<HotelResult[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -133,7 +136,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
     const hasQueryCriteria = Boolean(destination) || Boolean(province) || (typeof lat === 'number' && typeof lng === 'number');
     const featured = !hasQueryCriteria && Boolean(featuredWhenEmpty);
     const filters: HotelFilters = { priceLevel: null, minRating: null, amenities: [] };
-    const query = hasQueryCriteria || featured ? buildQuery({ destination, province, lat, lng, limit }, page, filters, featured) : '';
+    const query = hasQueryCriteria || featured ? buildQuery({ destination, province, lat, lng, radiusKm, limit }, page, filters, featured) : '';
     lastQueryRef.current = query;
     if (!query) {
       if (!signal?.aborted) {
@@ -162,7 +165,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
       if (signal?.aborted || lastQueryRef.current !== query) return;
       setStatus('error');
     }
-  }, [destination, province, lat, lng, limit, page, featuredWhenEmpty]);
+  }, [destination, province, lat, lng, radiusKm, limit, page, featuredWhenEmpty]);
 
   useEffect(() => {
     const controller = new AbortController();

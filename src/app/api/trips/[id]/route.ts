@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createAuditLog, findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
-import { getTripForView, getTripForEdit } from '@/lib/trip-permission';
+import { getTripAccess, getTripForView, getTripForEdit } from '@/lib/trip-permission';
 import { updateTripSchema } from '@/lib/validations/trip';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -25,8 +25,12 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
     objectIdSchema.parse(id);
 
     const trip = await getTripForView(id, userId);
+    const access = getTripAccess(userId, trip);
 
-    return sendSuccess(toTripResponse(trip));
+    return sendSuccess(toTripResponse(trip, {
+      omitUserId: access === 'PUBLIC',
+      access,
+    }));
   } catch (error) {
     return handleApiError(error);
   }
@@ -89,7 +93,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
       await createAuditLog(userId, 'UPDATE_TRIP', 'TRIP', id, { fields: Object.keys(updates) });
     } catch {}
 
-    return sendSuccess(toTripResponse(updated));
+    return sendSuccess(toTripResponse(updated, { access: getTripAccess(userId, updated) }));
   } catch (error) {
     return handleApiError(error);
   }

@@ -194,6 +194,7 @@ export interface ITripAccommodation extends Document {
   _id: Types.ObjectId;
   tripId: Types.ObjectId;
   placeId?: Types.ObjectId | null;
+  hotelId?: Types.ObjectId | null;
   name: string;
   address?: string | null;
   checkIn: Date;
@@ -209,6 +210,7 @@ export interface ITripAccommodation extends Document {
 export const TripAccommodationSchema = new Schema<ITripAccommodation>({
   tripId: { type: Schema.Types.ObjectId, ref: 'Trip', required: true },
   placeId: { type: Schema.Types.ObjectId, ref: 'Place', default: null },
+  hotelId: { type: Schema.Types.ObjectId, ref: 'Hotel', default: null },
   name: { type: String, required: true },
   address: { type: String, default: null },
   checkIn: { type: Date, required: true },
@@ -220,6 +222,7 @@ export const TripAccommodationSchema = new Schema<ITripAccommodation>({
 }, { timestamps: true, collection: COLLECTIONS.tripAccommodations });
 
 TripAccommodationSchema.index({ tripId: 1, checkIn: 1 });
+TripAccommodationSchema.index({ hotelId: 1 });
 
 export const TripAccommodation: Model<ITripAccommodation> = models.TripAccommodation || model<ITripAccommodation>('TripAccommodation', TripAccommodationSchema);
 

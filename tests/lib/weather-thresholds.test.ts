@@ -11,7 +11,7 @@ const baseDay: DailyForecast = {
   windspeedKmh: 45,
 };
 
-describe('evaluateWeatherAlert with custom thresholds (Task 2.3)', () => {
+describe('evaluateWeatherAlert — ngưỡng cảnh báo tùy chỉnh', () => {
   it('không cảnh báo với ngưỡng mặc định cho điều kiện trung bình', () => {
     expect(evaluateWeatherAlert(baseDay).alert).toBe(false);
   });

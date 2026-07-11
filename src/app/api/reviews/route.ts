@@ -33,7 +33,15 @@ export async function POST(request: NextRequest): Promise<Response> {
       throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm', 404);
     }
 
-    if (!parsed.parentId) {
+    if (parsed.parentId) {
+      const parentReview = await db.reviews.findById(parsed.parentId);
+      if (!parentReview || parentReview.deletedAt) {
+        throw new AppError('NOT_FOUND', 'Không tìm thấy đánh giá cha', 404);
+      }
+      if (String(parentReview.placeId) !== parsed.placeId) {
+        throw new AppError('BAD_REQUEST', 'Đánh giá cha không thuộc địa điểm này', 400);
+      }
+    } else {
       const existingReview = await db.reviews.findOne({
         userId,
         placeId: parsed.placeId,
@@ -55,7 +63,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       parentId: parsed.parentId || null,
       deletedAt: null,
     });
-
 
     await recalculatePlaceRating(parsed.placeId, db);
 

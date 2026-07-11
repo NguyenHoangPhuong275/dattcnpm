@@ -55,7 +55,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
       windowSeconds: 60,
     });
     if (rate.limited) {
-      throw new AppError('RATE_LIMITED', 'Bạn đang mời quá nhanh. Vui lòng thử lại sau.', 429);
+      throw new AppError('RATE_LIMITED', 'Bạn đang thêm cộng tác viên quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const { id } = await ctx.params;
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
 
     const inviteeId = String(invitee._id);
     if (inviteeId === userId) {
-      throw new AppError('VALIDATION_ERROR', 'Bạn không thể mời chính mình', 400);
+      throw new AppError('VALIDATION_ERROR', 'Bạn không thể thêm chính mình', 400);
     }
 
     const collaborators = [...(trip.collaborators ?? [])] as TripCollaborator[];
@@ -84,13 +84,17 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     const now = new Date();
 
     if (existingIndex >= 0) {
-      collaborators[existingIndex] = { ...collaborators[existingIndex], permission: parsed.permission };
+      collaborators[existingIndex] = {
+        ...collaborators[existingIndex],
+        permission: parsed.permission,
+        acceptedAt: collaborators[existingIndex].acceptedAt ?? now,
+      };
     } else {
       collaborators.push({
         userId: inviteeId as unknown as TripCollaborator['userId'],
         permission: parsed.permission,
         invitedAt: now,
-        acceptedAt: null,
+        acceptedAt: now,
       });
     }
 
@@ -104,7 +108,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
     }).catch(() => {});
 
     return sendSuccess(
-      { userId: inviteeId, permission: parsed.permission },
+      toCollaboratorResponse(collaborators[existingIndex >= 0 ? existingIndex : collaborators.length - 1]),
       'Đã thêm cộng tác viên',
       existingIndex >= 0 ? 200 : 201
     );

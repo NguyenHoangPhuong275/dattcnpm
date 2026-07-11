@@ -130,4 +130,17 @@ describe('TripBudgetSummary', () => {
     render(<TripBudgetSummary tripId="t1" userId={null} />);
     expect(mockedApiRequest).not.toHaveBeenCalled();
   });
+
+  it('quyền chỉ xem vẫn đọc ngân sách nhưng không thấy thao tác ghi', async () => {
+    mockBudgetResponse({
+      items: [{ id: '1', amount: 250000, currency: 'VND', type: 'planned', category: 'food' }],
+      totalPlanned: 250000,
+      totalActual: 0,
+    });
+    render(<TripBudgetSummary tripId="t1" userId="u1" canEdit={false} />);
+
+    expect((await screen.findAllByText('Ăn uống')).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: 'Xóa' })).toBeNull();
+    expect(screen.queryByText('Thêm khoản chi')).toBeNull();
+  });
 });

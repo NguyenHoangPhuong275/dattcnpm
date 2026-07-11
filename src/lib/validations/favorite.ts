@@ -11,11 +11,9 @@ export const createFavoriteSchema = z.object({
   .refine((d) => d.placeId || d.name, {
     message: 'Cần placeId hoặc tên địa điểm',
   })
-  // Tạo địa điểm tùy chỉnh mới (không có placeId) bắt buộc có tọa độ hợp lệ, tránh rác 0/0.
   .refine((d) => d.placeId || (typeof d.lat === 'number' && typeof d.lng === 'number'), {
     message: 'Cần tọa độ (lat, lng) khi lưu địa điểm mới',
     path: ['lat'],
   });
-
 
 export type FavoriteInput = z.infer<typeof createFavoriteSchema>;

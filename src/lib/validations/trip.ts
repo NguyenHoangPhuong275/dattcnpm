@@ -78,6 +78,13 @@ export const reorderItinerarySchema = z.object({
     }),
 });
 
+export const shareCodeSchema = z
+  .string()
+  .trim()
+  .min(8, 'Mã chia sẻ không hợp lệ')
+  .max(64, 'Mã chia sẻ không hợp lệ')
+  .regex(/^[A-Za-z0-9_-]+$/, 'Mã chia sẻ không hợp lệ');
+
 export type TripCreateInput = z.infer<typeof createTripSchema>;
 export type TripUpdateInput = z.infer<typeof updateTripSchema>;
 export type ItineraryItemInput = z.infer<typeof createItineraryItemSchema>;

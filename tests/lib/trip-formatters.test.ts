@@ -58,8 +58,23 @@ describe('toAccommodationResponse', () => {
     } as unknown as TripAccommodation;
     const res = toAccommodationResponse(item);
     expect(res.bookingCode).toBe('BK1');
+    expect(res.hotelId).toBeNull();
     expect(res.currency).toBe('VND');
     expect(res.checkIn).toBe('2026-02-01T00:00:00.000Z');
+  });
+
+  it('giữ hotelId để mở lại trang chi tiết', () => {
+    const item = {
+      _id: 'a2',
+      tripId: 't1',
+      hotelId: '507f1f77bcf86cd799439101',
+      name: 'Hotel',
+      checkIn: new Date('2026-02-01T00:00:00Z'),
+      checkOut: new Date('2026-02-03T00:00:00Z'),
+      currency: 'VND',
+    } as unknown as TripAccommodation;
+
+    expect(toAccommodationResponse(item).hotelId).toBe('507f1f77bcf86cd799439101');
   });
 });
 

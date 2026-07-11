@@ -5,6 +5,7 @@ import { createTripSchema } from '@/lib/validations/trip';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { toTripResponse } from '@/lib/trip-utils';
+import { getTripAccess } from '@/lib/trip-permission';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
@@ -21,11 +22,18 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const db = await getDb();
     const paginated = await db.trips.findPaginated(
-      { $or: [{ userId }, { 'collaborators.userId': userId }] },
+      {
+        $or: [
+          { userId },
+          { collaborators: { $elemMatch: { userId, acceptedAt: { $type: 'date' } } } },
+        ],
+      },
       { page, limit, sortBy: 'updatedAt', sortOrder: -1 }
     );
 
-    const mappedData = paginated.data.map((trip) => toTripResponse(trip));
+    const mappedData = paginated.data.map((trip) => toTripResponse(trip, {
+      access: getTripAccess(userId, trip),
+    }));
 
     return sendSuccess({
       data: mappedData,
@@ -91,7 +99,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
     } catch {}
 
-    return sendSuccess(toTripResponse(created), undefined, 201);
+    return sendSuccess(toTripResponse(created, { access: 'OWNER' }), undefined, 201);
   } catch (error) {
     return handleApiError(error);
   }

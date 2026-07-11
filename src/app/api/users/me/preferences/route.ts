@@ -4,6 +4,11 @@ import { getAuthUserFull, invalidateUserCache } from '@/lib/auth';
 import { updatePreferencesSchema } from '@/lib/validations/preferences';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
+import {
+  normalizeBudgetLevel,
+  normalizeTravelInterests,
+  normalizeTravelStyles,
+} from '@/lib/travel-preferences';
 
 export async function PATCH(request: NextRequest): Promise<Response> {
   try {
@@ -29,6 +34,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
     if (parsed.interests !== undefined) updates.interests = parsed.interests;
     if (parsed.travelStyles !== undefined) updates.travelStyles = parsed.travelStyles;
     if (parsed.budgetLevel !== undefined) updates.budgetLevel = parsed.budgetLevel;
+    if (parsed.preferredDestinations !== undefined) updates.preferredDestinations = parsed.preferredDestinations;
     if (parsed.weatherAlerts !== undefined) updates.weatherAlerts = parsed.weatherAlerts;
     updates.updatedAt = new Date();
 
@@ -44,9 +50,10 @@ export async function PATCH(request: NextRequest): Promise<Response> {
     }).catch(() => {});
 
     return sendSuccess({
-      interests: updated.interests ?? [],
-      travelStyles: updated.travelStyles ?? [],
-      budgetLevel: updated.budgetLevel ?? null,
+      interests: normalizeTravelInterests(updated.interests),
+      travelStyles: normalizeTravelStyles(updated.travelStyles),
+      budgetLevel: normalizeBudgetLevel(updated.budgetLevel),
+      preferredDestinations: updated.preferredDestinations ?? [],
       weatherAlerts: updated.weatherAlerts ?? null,
     });
   } catch (error) {

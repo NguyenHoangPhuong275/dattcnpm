@@ -6,6 +6,7 @@ import { BasicUser } from '@/types/profile';
 import {
   clearStoredUser,
   getStoredUser,
+  getStoredUserRevision,
   isLocalLogoutRecent,
   isStoredUserFresh,
   setStoredUser,
@@ -24,11 +25,18 @@ type CurrentUserRequestResult = {
   unauthorized: boolean;
 };
 
-let currentUserRequest: Promise<CurrentUserRequestResult> | null = null;
+type CurrentUserRequest = {
+  key: symbol;
+  revision: number;
+  promise: Promise<CurrentUserRequestResult>;
+};
 
-function loadCurrentUser(): Promise<CurrentUserRequestResult> {
-  if (!currentUserRequest) {
-    currentUserRequest = apiRequest<{ data?: BasicUser }>('/api/profile/me')
+let currentUserRequest: CurrentUserRequest | null = null;
+
+function loadCurrentUser(revision: number): Promise<CurrentUserRequestResult> {
+  if (!currentUserRequest || currentUserRequest.revision !== revision) {
+    const key = Symbol();
+    const promise = apiRequest<{ data?: BasicUser }>('/api/profile/me')
       .then(({ response, data }) => {
         if (response.ok) {
           return { user: data.data ?? null, unauthorized: false };
@@ -41,11 +49,14 @@ function loadCurrentUser(): Promise<CurrentUserRequestResult> {
         throw new Error('Không thể lấy thông tin người dùng hiện tại');
       })
       .finally(() => {
-        currentUserRequest = null;
+        if (currentUserRequest?.key === key) {
+          currentUserRequest = null;
+        }
       });
+    currentUserRequest = { key, revision, promise };
   }
 
-  return currentUserRequest;
+  return currentUserRequest.promise;
 }
 
 export interface UseCurrentUserReturn {
@@ -104,9 +115,11 @@ export function useCurrentUser(
 
     if (!shouldVerify) return;
 
-    loadCurrentUser()
+    const requestRevision = getStoredUserRevision();
+
+    loadCurrentUser(requestRevision)
       .then((result) => {
-        if (!active) return;
+        if (!active || getStoredUserRevision() !== requestRevision) return;
 
         if (result.user) {
           setUserState(result.user);
@@ -132,7 +145,7 @@ export function useCurrentUser(
         apiCheckDone.current = true;
       })
       .catch(() => {
-        if (!active) return;
+        if (!active || getStoredUserRevision() !== requestRevision) return;
         const latestCachedUser = getStoredUser();
         if (latestCachedUser) {
           setUserState(latestCachedUser);

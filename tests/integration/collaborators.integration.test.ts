@@ -87,7 +87,7 @@ afterAll(async () => {
   await disconnectMongo?.().catch(() => {});
 });
 
-describe('PROMPT 8 - Collaborative Trip Editing', () => {
+describe('Chức năng quản lý cộng tác viên chuyến đi', () => {
   it('owner moi collaborator thanh cong', async () => {
     const tripId = await createTrip(ownerId);
     const res = await addPOST(req(ownerId, 'POST', { email: editorEmail, permission: 'EDIT' }) as never, ctx(tripId) as never);

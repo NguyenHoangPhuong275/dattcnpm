@@ -42,7 +42,13 @@ const MyTripsSection = memo(({
     ) : trips.length > 0 ? (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {trips.map((trip) => (
-          <TripCard key={trip._id} trip={trip} variant="horizontal" onClick={onViewDetail} onDelete={onDelete} />
+          <TripCard
+            key={trip._id}
+            trip={trip}
+            variant="horizontal"
+            onClick={onViewDetail}
+            onDelete={!trip.access || trip.access === 'OWNER' ? onDelete : undefined}
+          />
         ))}
       </div>
     ) : (

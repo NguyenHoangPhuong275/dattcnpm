@@ -5,6 +5,7 @@ const LOGOUT_TS_KEY = 'lotus_logout_at';
 let _currentUser: BasicUser | null = null;
 let _currentUserFetchedAt = 0;
 let _localLogoutAt = 0;
+let _storedUserRevision = 0;
 const listeners = new Set<(user: BasicUser | null) => void>();
 
 try {
@@ -25,6 +26,10 @@ export function getStoredUser(): BasicUser | null {
   return _currentUser;
 }
 
+export function getStoredUserRevision(): number {
+  return _storedUserRevision;
+}
+
 export function isStoredUserFresh(ttlMs: number): boolean {
   return !!_currentUser && _currentUserFetchedAt > 0 && Date.now() - _currentUserFetchedAt < ttlMs;
 }
@@ -36,6 +41,7 @@ export function isLocalLogoutRecent(ttlMs: number): boolean {
 export function setStoredUser(user: BasicUser | null, fetchedAt: number = Date.now()): void {
   _currentUser = user;
   _currentUserFetchedAt = user ? fetchedAt : 0;
+  _storedUserRevision += 1;
   if (user) {
     _localLogoutAt = 0;
     try { sessionStorage.removeItem(LOGOUT_TS_KEY); } catch {}
@@ -53,6 +59,7 @@ export function updateStoredUser(updater: (user: BasicUser) => BasicUser): void 
   if (_currentUser) {
     _currentUser = updater(_currentUser);
     _currentUserFetchedAt = Date.now();
+    _storedUserRevision += 1;
     notifyUserChange();
   }
 }

@@ -1,42 +1,61 @@
 import { AppError } from '@/lib/api-response';
 import { getDb } from '@/lib/db';
 import type { Trip } from '@/lib/db';
+import type { TripAccess } from '@/types/trip';
 
-function canViewTrip(userId: string, trip: Pick<Trip, 'userId' | 'collaborators' | 'isPublic'>): boolean {
-  if (trip.isPublic) return true;
-  if (!userId) return false;
-  if (String(trip.userId) === userId) return true;
-  return (trip.collaborators ?? []).some((c) => String(c.userId) === userId);
+export type { TripAccess } from '@/types/trip';
+
+type TripAccessSource = Pick<Trip, 'userId' | 'collaborators' | 'isPublic'>;
+
+export function getTripAccess(userId: string, trip: TripAccessSource): TripAccess {
+  if (userId && String(trip.userId) === userId) return 'OWNER';
+
+  if (userId) {
+    const collaborator = (trip.collaborators ?? []).find(
+      (candidate) => String(candidate.userId) === userId && candidate.acceptedAt != null,
+    );
+    if (collaborator) return collaborator.permission;
+  }
+
+  return trip.isPublic ? 'PUBLIC' : 'NONE';
 }
 
-function canEditTrip(userId: string, trip: Pick<Trip, 'userId' | 'collaborators'>): boolean {
-  if (!userId) return false;
-  if (String(trip.userId) === userId) return true;
-  return (trip.collaborators ?? []).some((c) => String(c.userId) === userId && c.permission === 'EDIT');
+function isMemberAccess(access: TripAccess): boolean {
+  return access === 'OWNER' || access === 'EDIT' || access === 'READ';
 }
 
-export async function getTripForView(tripId: string, userId: string): Promise<Trip> {
+async function findTrip(tripId: string): Promise<Trip> {
   const db = await getDb();
   const trip = (await db.trips.findById(tripId)) as Trip | null;
   if (!trip || trip.deletedAt) {
     throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
   }
-  if (!canViewTrip(userId, trip)) {
+  return trip;
+}
+
+export async function getTripForView(tripId: string, userId: string): Promise<Trip> {
+  const trip = await findTrip(tripId);
+  if (getTripAccess(userId, trip) === 'NONE') {
+    throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
+  }
+  return trip;
+}
+
+export async function getTripForMemberView(tripId: string, userId: string): Promise<Trip> {
+  const trip = await findTrip(tripId);
+  if (!isMemberAccess(getTripAccess(userId, trip))) {
     throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
   }
   return trip;
 }
 
 export async function getTripForEdit(tripId: string, userId: string): Promise<Trip> {
-  const db = await getDb();
-  const trip = (await db.trips.findById(tripId)) as Trip | null;
-  if (!trip || trip.deletedAt) {
+  const trip = await findTrip(tripId);
+  const access = getTripAccess(userId, trip);
+  if (access === 'NONE') {
     throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
   }
-  if (!canViewTrip(userId, trip)) {
-    throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
-  }
-  if (!canEditTrip(userId, trip)) {
+  if (access !== 'OWNER' && access !== 'EDIT') {
     throw new AppError('FORBIDDEN', 'Bạn không có quyền chỉnh sửa hành trình này', 403);
   }
   return trip;

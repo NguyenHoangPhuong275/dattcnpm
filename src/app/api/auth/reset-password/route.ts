@@ -49,7 +49,10 @@ export async function POST(request: NextRequest) {
     const now = new Date();
 
     const db = await getDb();
-    await db.users.updateOne(user._id, { passwordHash, updatedAt: now });
+    await db.users.updateOne(user._id, {
+      $set: { passwordHash, updatedAt: now },
+      $inc: { tokenVersion: 1 },
+    });
     await invalidateUserCache(String(user._id));
 
     await db.auditLogs.insertOne({
@@ -59,7 +62,7 @@ export async function POST(request: NextRequest) {
       targetId: user._id,
       metadata: { email: normalizedEmail, method: 'email_otp' },
       createdAt: now,
-    });
+    }).catch(() => {});
 
     return sendSuccess({ message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập với mật khẩu mới.' });
   } catch (error) {

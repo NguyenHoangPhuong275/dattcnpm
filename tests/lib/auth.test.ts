@@ -10,6 +10,7 @@ describe('auth token helpers', () => {
       email: 'user@example.com',
       fullName: 'Test User',
       role: 'USER',
+      tokenVersion: 0,
     });
 
     const user = await verifyAuthToken(token);
@@ -19,6 +20,7 @@ describe('auth token helpers', () => {
       email: 'user@example.com',
       fullName: 'Test User',
       role: 'USER',
+      tokenVersion: 0,
     });
   });
 });

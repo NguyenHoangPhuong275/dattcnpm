@@ -74,9 +74,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     const compensate = async (): Promise<void> => {
       try {
         await db.itineraryItems.bulkWrite(restoreOps);
-      } catch {
-        // Rollback cũng thất bại: orderIndex có thể còn ở trạng thái âm, cần xử lý thủ công.
-      }
+      } catch {}
     };
 
     let result: { modifiedCount: number };

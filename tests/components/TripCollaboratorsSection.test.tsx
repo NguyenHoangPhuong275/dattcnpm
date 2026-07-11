@@ -42,8 +42,8 @@ describe('TripCollaboratorsSection', () => {
     ]);
     render(<TripCollaboratorsSection tripId="t1" userId="u1" />);
 
-    expect(await screen.findByText('Đang chờ')).toBeTruthy();
-    expect(screen.getByText('Đã tham gia')).toBeTruthy();
+    expect(await screen.findByText('Chưa kích hoạt')).toBeTruthy();
+    expect(screen.getByText('Đã kích hoạt')).toBeTruthy();
     expect(screen.getAllByText('Chỉ xem').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Chỉnh sửa').length).toBeGreaterThanOrEqual(1);
   });

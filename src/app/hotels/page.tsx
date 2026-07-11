@@ -1,12 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import HotelSuggestions from '@/components/hotels/HotelSuggestions';
 
 export default function HotelsPage(): React.JSX.Element {
-  const [input, setInput] = useState<string>('');
-  const [destination, setDestination] = useState<string>('');
+  return (
+    <Suspense fallback={null}>
+      <HotelsPageContent />
+    </Suspense>
+  );
+}
+
+function HotelsPageContent(): React.JSX.Element {
+  const searchParams = useSearchParams();
+  const initialQuery = (searchParams.get('q') ?? '').trim();
+  const [input, setInput] = useState<string>(initialQuery);
+  const [destination, setDestination] = useState<string>(initialQuery);
 
   const submit = (event: React.FormEvent): void => {
     event.preventDefault();

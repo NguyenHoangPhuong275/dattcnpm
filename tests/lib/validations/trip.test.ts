@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createTripSchema, updateTripSchema } from '@/lib/validations/trip';
+import { createTripSchema, shareCodeSchema, updateTripSchema } from '@/lib/validations/trip';
 
 const baseTrip = {
   title: 'Lịch trình Đà Nẵng',
@@ -26,5 +26,12 @@ describe('trip validation', () => {
     expect(() => updateTripSchema.parse({
       coverImage: 'data:image/svg+xml;base64,PHN2Zy8+',
     })).toThrow();
+  });
+
+  it('chỉ chấp nhận mã chia sẻ đúng định dạng', () => {
+    expect(shareCodeSchema.parse('Abc_123-xyz')).toBe('Abc_123-xyz');
+    expect(() => shareCodeSchema.parse('ngắn')).toThrow();
+    expect(() => shareCodeSchema.parse('invalid/code')).toThrow();
+    expect(() => shareCodeSchema.parse('a'.repeat(65))).toThrow();
   });
 });

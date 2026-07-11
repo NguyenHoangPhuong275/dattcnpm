@@ -1,7 +1,7 @@
-'use client';
-
 import Image from 'next/image';
+import Link from 'next/link';
 import { HOME_NEWS } from '@/data/home';
+import { getTravelReferenceHref } from '@/lib/travel-references';
 
 export default function TravelNewsSection(): React.JSX.Element {
   return (
@@ -14,9 +14,11 @@ export default function TravelNewsSection(): React.JSX.Element {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {HOME_NEWS.map((item) => (
-            <article
-              key={item.title}
-              className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm hover:shadow-md transition"
+            <Link
+              id={`home-news-${item.referenceSlug}`}
+              key={item.referenceSlug}
+              href={getTravelReferenceHref(item.referenceSlug)}
+              className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white text-left shadow-sm transition hover:-translate-y-1 hover:border-[var(--color-primary-dark)] hover:shadow-md cursor-pointer w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
             >
               <div className="relative aspect-[16/10] bg-[var(--color-primary-lightest)] w-full">
                 <Image
@@ -24,14 +26,14 @@ export default function TravelNewsSection(): React.JSX.Element {
                   alt={item.title}
                   fill
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover"
+                  className="object-cover transition duration-300 group-hover:scale-105"
                 />
               </div>
               <div className="p-5 space-y-3">
                 <span className="inline-block rounded-full bg-[var(--color-primary-lightest)] px-2.5 py-1 text-xs font-bold text-[var(--color-primary-darker)]">
                   {item.category}
                 </span>
-                <h3 className="line-clamp-2 text-base font-extrabold text-[var(--color-text)] hover:text-[var(--color-primary-darker)] transition-colors cursor-pointer">
+                <h3 className="line-clamp-2 text-base font-extrabold text-[var(--color-text)] group-hover:text-[var(--color-primary-darker)] transition-colors">
                   {item.title}
                 </h3>
                 <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] font-medium">
@@ -39,7 +41,7 @@ export default function TravelNewsSection(): React.JSX.Element {
                   <span>{item.views} lượt xem</span>
                 </div>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </div>

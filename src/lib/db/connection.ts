@@ -70,9 +70,7 @@ function ensureReliableDnsResolver(uri: string): void {
     const current = dns.getServers();
     if (PUBLIC_DNS_SERVERS.every((s) => current.includes(s))) return;
     dns.setServers([...PUBLIC_DNS_SERVERS, ...current.filter((s) => !PUBLIC_DNS_SERVERS.includes(s))]);
-  } catch {
-    // Không set được thì giữ nguyên resolver hệ thống.
-  }
+  } catch {}
 }
 
 async function connectWithRetry(uri: string): Promise<typeof mongoose> {

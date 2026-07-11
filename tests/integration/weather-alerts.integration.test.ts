@@ -83,7 +83,7 @@ afterAll(async () => {
   await disconnectMongo?.().catch(() => {});
 });
 
-describe('PROMPT 10 — Weather Alert Notification', () => {
+describe('Chức năng cảnh báo thời tiết tự động', () => {
   it('unit: evaluateWeatherAlert', () => {
     expect(evaluateWeatherAlert({ date: 'x', weathercode: 3, precipitationMm: 0, precipitationProbability: 80, tempMax: 30, tempMin: 25 }).alert).toBe(true);
     expect(evaluateWeatherAlert({ date: 'x', weathercode: 95, precipitationMm: 0, precipitationProbability: 10, tempMax: 30, tempMin: 25 }).alert).toBe(true);

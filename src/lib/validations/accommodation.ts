@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { optionalTrimString, trimString } from './common';
+import { objectIdSchema, optionalTrimString, trimString } from './common';
 
 const isoDate = z.string().refine((v) => !isNaN(new Date(v).getTime()), { message: 'Ngày không hợp lệ' });
 
@@ -9,6 +9,7 @@ const currencyField = z.enum(ACCOMMODATION_CURRENCIES, { message: 'Loại tiền
 
 export const createAccommodationSchema = z
   .object({
+    hotelId: objectIdSchema.optional().nullable(),
     name: trimString(1, 200),
     address: optionalTrimString(300),
     checkIn: isoDate,

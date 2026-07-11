@@ -1,11 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { PersonalInfo, TravelPreferences } from '@/types/profile';
+
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
-import { updateStoredUser } from '@/lib/user';
 import { formatDateInputValue } from '@/lib/date';
+import {
+  normalizeBudgetLevel,
+  normalizeTravelInterests,
+  normalizeTravelStyles,
+} from '@/lib/travel-preferences';
+import { updateStoredUser } from '@/lib/user';
 import { RequestStatus } from '@/types/common';
+import { PersonalInfo, TravelPreferences } from '@/types/profile';
 
 interface UseProfileOptions {
   userId: string | null;
@@ -27,7 +33,7 @@ type ProfileApiData = {
   avatarUrl?: string | null;
   travelStyles?: string[];
   interests?: string[];
-  budgetLevel?: TravelPreferences['budgetLevel'] | null;
+  budgetLevel?: string | null;
   preferredDestinations?: string[];
   createdAt?: string | null;
 };
@@ -56,7 +62,7 @@ const DEFAULT_PROFILE: ProfileFormData = {
   preferences: {
     travelStyles: [],
     interests: [],
-    budgetLevel: 'Trung bình',
+    budgetLevel: 'mid',
     preferredDestinations: [],
   },
   memberSince: '',
@@ -94,9 +100,9 @@ function normalizeProfile(profile: ProfileApiData): ProfileFormData {
       avatarUrl: profile.avatarUrl || '',
     },
     preferences: {
-      travelStyles: profile.travelStyles || [],
-      interests: profile.interests || [],
-      budgetLevel: profile.budgetLevel || 'Trung bình',
+      travelStyles: normalizeTravelStyles(profile.travelStyles),
+      interests: normalizeTravelInterests(profile.interests),
+      budgetLevel: normalizeBudgetLevel(profile.budgetLevel) || 'mid',
       preferredDestinations: profile.preferredDestinations || [],
     },
     memberSince: profile.createdAt || '',

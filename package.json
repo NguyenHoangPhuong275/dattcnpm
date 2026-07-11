@@ -16,7 +16,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "clean": "rm -rf .next node_modules/.cache",
+    "clean": "node -e \"for (const path of ['.next','node_modules/.cache']) require('node:fs').rmSync(path, { recursive: true, force: true })\"",
     "prepare": "echo 'Project ready'",
     "db:check": "echo 'Cách tốt nhất: Start the app (npm run dev), go to /admin, enter your webhook secret, and click the green \"Check DB Consistency\" button.\n   It will call the new db.check event and show a full report of expected vs actual collections, old duplicates, etc.'",
     "db:drop-unknown": "echo 'Use the admin panel or POST {\"event\":\"db.dropUnknown\"} to /api/webhook (with x-webhook-secret header).'"
@@ -51,5 +51,5 @@
     "typescript": "^5",
     "vitest": "^4.1.8"
   },
-  "packageManager": "pnpm@10.18.2+sha512.9fb969fa749b3ade6035e0f109f0b8a60b5d08a1a87fdf72e337da90dcc93336e2280ca4e44f2358a649b83c17959e9993e777c2080879f3801e6f0d999ad3dd"
+  "packageManager": "npm@11.16.0"
 }

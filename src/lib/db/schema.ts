@@ -8,6 +8,7 @@ export interface User {
   fullName: string;
   avatarUrl?: string | null;
   role: 'USER' | 'ADMIN';
+  tokenVersion: number;
   isLocked: boolean;
   emailVerified: boolean;
   emailVerifiedAt?: Date | null;
@@ -256,6 +257,7 @@ export interface TripAccommodation {
   _id: MongoId;
   tripId: MongoId;
   placeId?: MongoId | null;
+  hotelId?: MongoId | null;
   name: string;
   address?: string | null;
   checkIn: Date;

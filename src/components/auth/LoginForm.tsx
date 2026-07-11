@@ -52,6 +52,12 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
 
     setIsLoading(true);
     setErrors({});
+    onToast?.('Đang xác thực tài khoản của bạn...', {
+      type: 'loading',
+      title: 'Đang đăng nhập',
+      variant: 'auth',
+      duration: 0,
+    });
 
     try {
       const { response, data } = await apiRequest<LoginResponse>('/api/auth/login', {
@@ -76,7 +82,7 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
         throw new Error('Missing authenticated user');
       }
 
-      await onToast?.('Phiên đăng nhập đã sẵn sàng. Chào mừng bạn quay lại LOTUS TRAVEL.', {
+      await onToast?.('Chào mừng bạn quay lại LOTUS TRAVEL.', {
         type: 'success',
         title: 'Đăng nhập thành công',
         variant: 'auth',

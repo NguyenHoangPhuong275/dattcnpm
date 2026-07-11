@@ -1,0 +1,124 @@
+import type { BudgetLevel, TravelInterestCode, TravelStyleCode } from '@/types/profile';
+
+export const BUDGET_LEVEL_OPTIONS: ReadonlyArray<{ value: BudgetLevel; label: string }> = [
+  { value: 'budget', label: 'Tiết kiệm' },
+  { value: 'mid', label: 'Trung bình' },
+  { value: 'comfortable', label: 'Thoải mái' },
+  { value: 'luxury', label: 'Sang trọng' },
+];
+
+export const TRAVEL_STYLE_OPTIONS: ReadonlyArray<{ value: TravelStyleCode; label: string }> = [
+  { value: 'solo', label: 'Một mình' },
+  { value: 'couple', label: 'Cặp đôi' },
+  { value: 'family', label: 'Gia đình' },
+  { value: 'group', label: 'Nhóm bạn' },
+  { value: 'adventure', label: 'Phiêu lưu' },
+  { value: 'relax', label: 'Nghỉ dưỡng' },
+];
+
+export const TRAVEL_INTEREST_OPTIONS: ReadonlyArray<{ value: TravelInterestCode; label: string }> = [
+  { value: 'beach', label: 'Biển' },
+  { value: 'mountain', label: 'Núi' },
+  { value: 'nature', label: 'Thiên nhiên' },
+  { value: 'culture', label: 'Văn hóa' },
+  { value: 'history', label: 'Lịch sử' },
+  { value: 'food', label: 'Ẩm thực' },
+  { value: 'adventure', label: 'Phiêu lưu' },
+  { value: 'photography', label: 'Chụp ảnh' },
+  { value: 'wellness', label: 'Spa và nghỉ dưỡng' },
+];
+
+export const BUDGET_LEVEL_ALIASES: Readonly<Record<string, BudgetLevel>> = {
+  budget: 'budget',
+  low: 'budget',
+  thap: 'budget',
+  'tiet kiem': 'budget',
+  economy: 'budget',
+  economical: 'budget',
+  mid: 'mid',
+  medium: 'mid',
+  'trung binh': 'mid',
+  comfortable: 'comfortable',
+  comfort: 'comfortable',
+  'thoai mai': 'comfortable',
+  luxury: 'luxury',
+  luxurious: 'luxury',
+  high: 'luxury',
+  cao: 'luxury',
+  'sang trong': 'luxury',
+};
+
+export const TRAVEL_STYLE_ALIASES: Readonly<Record<string, TravelStyleCode>> = {
+  solo: 'solo',
+  'mot minh': 'solo',
+  couple: 'couple',
+  'cap doi': 'couple',
+  family: 'family',
+  'gia dinh': 'family',
+  group: 'group',
+  nhom: 'group',
+  'nhom ban': 'group',
+  adventure: 'adventure',
+  'phieu luu': 'adventure',
+  relax: 'relax',
+  relaxation: 'relax',
+  'nghi duong': 'relax',
+  'thu gian': 'relax',
+};
+
+export const TRAVEL_INTEREST_ALIASES: Readonly<Record<string, TravelInterestCode>> = {
+  beach: 'beach',
+  sea: 'beach',
+  coast: 'beach',
+  bien: 'beach',
+  mountain: 'mountain',
+  mountains: 'mountain',
+  nui: 'mountain',
+  nature: 'nature',
+  natural: 'nature',
+  'thien nhien': 'nature',
+  culture: 'culture',
+  cultural: 'culture',
+  'van hoa': 'culture',
+  history: 'history',
+  historic: 'history',
+  historical: 'history',
+  heritage: 'history',
+  'lich su': 'history',
+  food: 'food',
+  cuisine: 'food',
+  culinary: 'food',
+  'am thuc': 'food',
+  adventure: 'adventure',
+  'phieu luu': 'adventure',
+  photography: 'photography',
+  photo: 'photography',
+  'chup anh': 'photography',
+  wellness: 'wellness',
+  spa: 'wellness',
+  resort: 'wellness',
+  'nghi duong': 'wellness',
+  'spa nghi duong': 'wellness',
+  'spa va nghi duong': 'wellness',
+};
+
+export const INTEREST_MATCH_TERMS: Readonly<Record<TravelInterestCode, readonly string[]>> = {
+  beach: ['beach', 'sea', 'coast', 'coastal', 'island', 'bay'],
+  mountain: ['mountain', 'mountains', 'hill', 'peak', 'highland'],
+  nature: ['nature', 'natural', 'park', 'garden', 'forest', 'waterfall', 'river', 'lake', 'bay'],
+  culture: ['culture', 'cultural', 'heritage', 'museum', 'temple', 'pagoda', 'historic'],
+  history: ['history', 'historic', 'historical', 'heritage', 'monument'],
+  food: ['food', 'cuisine', 'culinary', 'restaurant', 'market'],
+  adventure: ['adventure', 'hiking', 'trekking', 'climbing', 'outdoor', 'mountain'],
+  photography: ['photography', 'photo', 'scenic', 'viewpoint', 'landmark', 'nature'],
+  wellness: ['wellness', 'spa', 'resort', 'relax', 'retreat'],
+};
+
+export const STYLE_MATCH_TERMS: Readonly<Record<TravelStyleCode, readonly string[]>> = {
+  solo: ['solo', 'local', 'city', 'culture'],
+  couple: ['couple', 'romantic', 'resort', 'beach', 'scenic'],
+  family: ['family', 'park', 'zoo', 'museum', 'resort', 'city'],
+  group: ['group', 'adventure', 'city', 'food', 'nightlife'],
+  adventure: ['adventure', 'hiking', 'trekking', 'climbing', 'outdoor', 'mountain', 'nature'],
+  relax: ['relax', 'resort', 'spa', 'wellness', 'beach', 'nature'],
+};

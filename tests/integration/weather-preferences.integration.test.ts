@@ -28,7 +28,7 @@ function req(userId: string | null, body: unknown) {
   });
 }
 
-describe('Task 2.2 — Weather alert threshold preferences', () => {
+describe('Chức năng thiết lập ngưỡng cảnh báo thời tiết', () => {
   let userId: string;
 
   beforeEach(async () => {

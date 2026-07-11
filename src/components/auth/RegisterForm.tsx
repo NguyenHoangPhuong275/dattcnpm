@@ -359,7 +359,7 @@ export default function RegisterForm({ onSuccess, onAuthenticated, onToast }: Re
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`block w-full pl-3 pr-10 py-3 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none transition-all min-h-[44px] ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
-              placeholder="Tối thiểu 6 ký tự"
+              placeholder="Tối thiểu 8 ký tự"
             />
             {password.length > 0 && (
               <button

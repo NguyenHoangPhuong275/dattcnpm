@@ -121,6 +121,7 @@ interface ApiResponse {
 interface TripBudgetSummaryProps {
   tripId: string;
   userId: string | null;
+  canEdit?: boolean;
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -133,7 +134,7 @@ function resolveCurrency(items: BudgetItem[]): string {
   return 'VND';
 }
 
-export default function TripBudgetSummary({ tripId, userId }: TripBudgetSummaryProps): React.JSX.Element {
+export default function TripBudgetSummary({ tripId, userId, canEdit = true }: TripBudgetSummaryProps): React.JSX.Element {
   const [status, setStatus] = useState<Status>('idle');
   const [summary, setSummary] = useState<BudgetSummary>({ items: [], totalPlanned: 0, totalActual: 0 });
   const [errorMessage, setErrorMessage] = useState('');
@@ -174,7 +175,7 @@ export default function TripBudgetSummary({ tripId, userId }: TripBudgetSummaryP
   }, [load]);
 
   const handleAdd = async (): Promise<void> => {
-    if (!userId || saving) return;
+    if (!userId || !canEdit || saving) return;
     const amount = Number(draft.amount);
     if (!draft.amount.trim() || !Number.isFinite(amount) || amount <= 0) {
       showToast('Vui lòng nhập số tiền lớn hơn 0', 'warning');
@@ -211,7 +212,7 @@ export default function TripBudgetSummary({ tripId, userId }: TripBudgetSummaryP
   };
 
   const handleDelete = async (id: string): Promise<void> => {
-    if (!userId) return;
+    if (!userId || !canEdit) return;
     await feedback.confirmAction({
       confirm: {
         title: 'Xóa khoản chi?',
@@ -365,21 +366,23 @@ export default function TripBudgetSummary({ tripId, userId }: TripBudgetSummaryP
                 <span className="text-sm font-semibold text-[var(--color-text)]">
                   {formatMoney(item.amount, 'vi-VN', item.currency || currency)}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(item.id)}
-                  disabled={deletingId === item.id}
-                  className="text-xs font-semibold text-[var(--color-danger)] hover:underline disabled:opacity-50"
-                >
-                  {deletingId === item.id ? 'Đang xóa...' : 'Xóa'}
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(item.id)}
+                    disabled={deletingId === item.id}
+                    className="text-xs font-semibold text-[var(--color-danger)] hover:underline disabled:opacity-50"
+                  >
+                    {deletingId === item.id ? 'Đang xóa...' : 'Xóa'}
+                  </button>
+                )}
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      {(status === 'success' || status === 'error') && userId && (
+      {canEdit && (status === 'success' || status === 'error') && userId && (
         <div className="mt-3 rounded-xl border border-[var(--color-border)] p-3">
           <div className="mb-2 text-xs font-semibold text-[var(--color-text-secondary)]">Thêm khoản chi</div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

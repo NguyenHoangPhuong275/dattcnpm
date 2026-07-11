@@ -46,7 +46,7 @@ function req(userId: string | null, method: string, body?: unknown) {
   });
 }
 
-describe('PROMPT 2 — Trip Checklist CRUD', () => {
+describe('Chức năng quản lý checklist chuyến đi (CRUD)', () => {
   beforeEach(async () => {
     const db = await getDb();
     await db.trips.deleteMany({ userId: OWNER });

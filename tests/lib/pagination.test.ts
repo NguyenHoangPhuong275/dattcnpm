@@ -5,7 +5,7 @@ import {
   PAGINATION_MAX_LIMIT,
 } from '@/lib/db/collections';
 
-describe('normalizePagination (Task 2.6)', () => {
+describe('normalizePagination — chuẩn hóa phân trang', () => {
   it('dùng default khi thiếu tham số', () => {
     expect(normalizePagination({})).toEqual({ page: 1, limit: PAGINATION_DEFAULT_LIMIT });
   });

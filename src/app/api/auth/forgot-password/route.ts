@@ -5,6 +5,7 @@ import { getRedis, getDb, findUserByEmail, storeResetOtp } from '@/lib/db';
 import { forgotPasswordSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { escapeHtml } from '@/lib/html';
 
 const OTP_TTL_SECONDS = 600;
 const OTP_SEND_WINDOW_SECONDS = 900;
@@ -23,6 +24,7 @@ function maskEmail(email: string): string {
 }
 
 function buildResetEmailHTML(otp: string, fullName: string): string {
+  const safeFullName = escapeHtml(fullName);
   return `
 <!DOCTYPE html>
 <html>
@@ -43,7 +45,7 @@ function buildResetEmailHTML(otp: string, fullName: string): string {
           </tr>
           <tr>
             <td style="padding:32px 40px;">
-              <p style="margin:0 0 16px;color:#0f172a;font-size:16px;">Xin chào <strong>${fullName}</strong>,</p>
+              <p style="margin:0 0 16px;color:#0f172a;font-size:16px;">Xin chào <strong>${safeFullName}</strong>,</p>
               <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
                 Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng dùng mã xác minh bên dưới để tiếp tục:
               </p>
@@ -113,15 +115,27 @@ export async function POST(request: NextRequest) {
         targetId: user._id,
         metadata: { email: normalizedEmail, status: 'otp_generated' },
         createdAt: new Date(),
-      });
+      }).catch(() => {});
 
       const resend = getResend();
-      await resend.emails.send({
-        from: 'LOTUS TRAVEL <no-reply@cybersafe.tokyo>',
-        to: [normalizedEmail],
-        subject: `${otp} - Mã đặt lại mật khẩu LOTUS TRAVEL`,
-        html: buildResetEmailHTML(otp, user.fullName),
-      });
+      let sendError: unknown;
+      try {
+        const result = await resend.emails.send({
+          from: 'LOTUS TRAVEL <no-reply@cybersafe.tokyo>',
+          to: [normalizedEmail],
+          subject: `${otp} - Mã đặt lại mật khẩu LOTUS TRAVEL`,
+          html: buildResetEmailHTML(otp, user.fullName),
+        });
+        sendError = result.error;
+      } catch (error) {
+        sendError = error;
+      }
+
+      if (sendError) {
+        await redis.del(`otp:reset:${normalizedEmail}`).catch(() => 0);
+        await redis.decr(sendLimitKey).catch(() => 0);
+        throw new AppError('SERVICE_UNAVAILABLE', 'Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau.', 503);
+      }
     }
 
     return sendSuccess({

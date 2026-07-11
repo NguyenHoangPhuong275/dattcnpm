@@ -14,6 +14,7 @@ const mockedApiRequest = vi.mocked(apiRequest);
 
 interface PendingCall {
   url: string;
+  options?: unknown;
   resolve: (value: unknown) => void;
 }
 
@@ -34,17 +35,17 @@ beforeEach(() => {
   calls = [];
   mockedApiRequest.mockReset();
   mockedApiRequest.mockImplementation(
-    (url: unknown) =>
+    (url: unknown, options?: unknown) =>
       new Promise((resolve) => {
-        calls.push({ url: String(url), resolve: resolve as (value: unknown) => void });
+        calls.push({ url: String(url), options, resolve: resolve as (value: unknown) => void });
       }) as ReturnType<typeof apiRequest>
   );
 });
 
-const daNang = [{ id: '1', name: 'Mường Thanh Đà Nẵng', province: 'Đà Nẵng', district: 'Hải Châu', address: null, rating: 4, priceLevel: 'luxury' }];
-const haLong = [{ id: '2', name: 'Vinpearl Hạ Long', province: 'Quảng Ninh', district: 'Hạ Long', address: null, rating: 4, priceLevel: 'luxury' }];
+const daNang = [{ id: '507f1f77bcf86cd799439101', name: 'Mường Thanh Đà Nẵng', province: 'Đà Nẵng', district: 'Hải Châu', address: null, rating: 4, priceLevel: 'luxury' }];
+const haLong = [{ id: '507f1f77bcf86cd799439102', name: 'Vinpearl Hạ Long', province: 'Quảng Ninh', district: 'Hạ Long', address: null, rating: 4, priceLevel: 'luxury' }];
 
-describe('HotelSuggestions — chống race condition', () => {
+describe('Chức năng gợi ý khách sạn (HotelSuggestions) — chống race condition', () => {
   it('response cũ trả về muộn không ghi đè response mới', async () => {
     const { rerender } = render(<HotelSuggestions destination="Đà Nẵng" />);
     expect(calls.length).toBe(1);

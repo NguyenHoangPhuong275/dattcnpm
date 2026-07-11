@@ -1,5 +1,18 @@
+import type { TripAccess } from '@/types/trip';
+
 export type Gender = 'Nam' | 'Nữ' | 'Khác' | '';
-export type BudgetLevel = 'Tiết kiệm' | 'Trung bình' | 'Thoải mái' | 'Sang trọng';
+export type BudgetLevel = 'budget' | 'mid' | 'comfortable' | 'luxury';
+export type TravelStyleCode = 'solo' | 'couple' | 'family' | 'group' | 'adventure' | 'relax';
+export type TravelInterestCode =
+  | 'beach'
+  | 'mountain'
+  | 'nature'
+  | 'culture'
+  | 'history'
+  | 'food'
+  | 'adventure'
+  | 'photography'
+  | 'wellness';
 export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security' | 'search-history';
 
 export interface BasicUser {
@@ -26,8 +39,8 @@ export interface PersonalInfo {
 }
 
 export interface TravelPreferences {
-  travelStyles: string[];
-  interests: string[];
+  travelStyles: TravelStyleCode[];
+  interests: TravelInterestCode[];
   budgetLevel: BudgetLevel;
   preferredDestinations: string[];
 }
@@ -41,6 +54,7 @@ export interface TripSummary {
   isPublic: boolean;
   description?: string;
   coverImage?: string | null;
+  access?: TripAccess;
 }
 
 export interface FavoritePlaceSummary {

@@ -1,4 +1,4 @@
-import mongoose, { type Model } from 'mongoose';
+import mongoose, { type Model, type PipelineStage } from 'mongoose';
 
 import type { MongoId } from './schema';
 
@@ -171,6 +171,9 @@ export function createCollection<T extends { _id: MongoId }>(mongooseModel: Mode
     },
     async count(filter: CollectionFilter = {}): Promise<number> {
       return mongooseModel.countDocuments(filter);
+    },
+    async aggregate<TResult>(pipeline: PipelineStage[]): Promise<TResult[]> {
+      return mongooseModel.aggregate<TResult>(pipeline);
     },
   };
 }

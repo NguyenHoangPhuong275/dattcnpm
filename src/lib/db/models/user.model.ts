@@ -10,6 +10,7 @@ export interface IUser extends Document {
   fullName: string;
   avatarUrl?: string | null;
   role: 'USER' | 'ADMIN';
+  tokenVersion: number;
   isLocked: boolean;
   emailVerified: boolean;
   emailVerifiedAt?: Date | null;
@@ -46,6 +47,7 @@ export const UserSchema = new Schema<IUser>(
     fullName: { type: String, required: true, trim: true },
     avatarUrl: { type: String, default: null },
     role: { type: String, enum: ['USER', 'ADMIN'], default: 'USER' },
+    tokenVersion: { type: Number, default: 0, min: 0 },
     isLocked: { type: Boolean, default: false },
     emailVerified: { type: Boolean, default: false },
     emailVerifiedAt: { type: Date, default: null },
