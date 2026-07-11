@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Điều hướng nội dung du lịch', () => {
-  test('tin tức mở danh sách tham khảo và khám phá điền điểm đến vào planner', async ({ page }) => {
+  test('tin tức mở danh sách tham khảo và khám phá mở trang địa điểm theo chủ đề', async ({ page }) => {
     await page.goto('/local/ha-noi');
 
     await page.locator('#local-news-hoi-an-short-trip').click();
@@ -11,7 +11,6 @@ test.describe('Điều hướng nội dung du lịch', () => {
 
     await page.goto('/local/ha-noi');
     await page.locator('#local-discovery-1').click();
-    await expect(page).toHaveURL(/\?q=Hu%E1%BA%BF#planner$/);
-    await expect(page.locator('#destination-search-input')).toHaveValue('Huế');
+    await expect(page).toHaveURL(/\/local\/ha-noi\/places\?theme=van-hoa$/);
   });
 });
