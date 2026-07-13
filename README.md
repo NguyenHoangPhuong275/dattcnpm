@@ -1,34 +1,46 @@
-# 🌏 Smart Travel Guide
+# Smart Travel Guide
 
 > **Đề tài:** Smart Travel Guide — Web hướng dẫn hỗ trợ du lịch
 >
 > **Môn học:** Đồ án Thực tế Công nghệ Phần mềm
 
+<p align="left">
+  <img src="https://img.shields.io/badge/next.js-WEB-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/react-UI-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/typescript-TS-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/tailwindcss-UI-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/mongodb-NOSQL-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/redis-CACHE-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/docker-DEVOPS-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/vitest-TEST-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" />
+  <img src="https://img.shields.io/badge/playwright-E2E-e05d44?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright" />
+</p>
+
 Smart Travel Guide là web app hỗ trợ tìm kiếm địa điểm du lịch, xem POI/thời tiết, tìm, đánh giá và đặt phòng khách sạn, tra cứu hãng hàng không nội địa, chọn chuyến bay, đặt vé, quản lý hồ sơ người dùng, lưu địa điểm yêu thích, tạo chuyến đi và lập lịch trình cá nhân (ngân sách, checklist, chỗ ở, cộng tác viên, chia sẻ công khai).
 
 ---
 
-## 📑 Mục lục
+## Mục lục
 
-- [Trạng thái dự án](#-trạng-thái-dự-án)
-- [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
-- [Kiến trúc hệ thống](#-kiến-trúc-hệ-thống)
-- [Lược đồ Use Case](#-lược-đồ-use-case)
-- [Lược đồ Lớp (Class Diagram)](#-lược-đồ-lớp-class-diagram)
-- [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
-- [Cài đặt & Chạy local](#-cài-đặt--chạy-local)
-- [Biến môi trường](#-biến-môi-trường)
-- [Scripts & Migration](#-scripts--migration)
-- [Tính năng Khách sạn](#-tính-năng-khách-sạn)
-- [Đặt phòng & Vé máy bay](#-đặt-phòng--vé-máy-bay)
-- [API chính](#-api-chính)
-- [Kiểm thử](#-kiểm-thử)
-- [Trạng thái chức năng](#-trạng-thái-chức-năng)
-- [Tài liệu thiết kế](#-tài-liệu-thiết-kế)
+- [Trạng thái dự án](#trạng-thái-dự-án)
+- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
+- [Lược đồ Use Case](#lược-đồ-use-case)
+- [Lược đồ Lớp (Class Diagram)](#lược-đồ-lớp-class-diagram)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Cài đặt & Chạy local](#cài-đặt--chạy-local)
+- [Biến môi trường](#biến-môi-trường)
+- [Scripts & Migration](#scripts--migration)
+- [Tính năng Khách sạn](#tính-năng-khách-sạn)
+- [Đặt phòng & Vé máy bay](#đặt-phòng--vé-máy-bay)
+- [API chính](#api-chính)
+- [Kiểm thử](#kiểm-thử)
+- [Trạng thái chức năng](#trạng-thái-chức-năng)
+- [Tài liệu thiết kế](#tài-liệu-thiết-kế)
 
 ---
 
-## 📌 Trạng thái dự án
+## Trạng thái dự án
 
 Tại mốc kiểm kê **2026-07-14**, hệ thống có:
 
@@ -40,7 +52,7 @@ Tại mốc kiểm kê **2026-07-14**, hệ thống có:
 
 ---
 
-## 🛠 Công nghệ sử dụng
+## Công nghệ sử dụng
 
 | Nhóm | Công nghệ | Phiên bản |
 | :--- | :--- | :---: |
@@ -58,7 +70,7 @@ Tại mốc kiểm kê **2026-07-14**, hệ thống có:
 
 ---
 
-## 🏗 Kiến trúc hệ thống
+## Kiến trúc hệ thống
 
 Hệ thống áp dụng mô hình **Next.js App Router (Full-Stack Monolith)** với kiến trúc phân lớp, kết hợp SSR cho SEO và CSR cho trang tương tác.
 
@@ -123,7 +135,7 @@ graph TD
 
 ---
 
-## 📊 Lược đồ Use Case
+## Lược đồ Use Case
 
 Hệ thống có **4 tác nhân** tương tác với **6 nhóm chức năng**. User kế thừa Guest, Admin kế thừa User (generalization).
 
@@ -218,7 +230,7 @@ flowchart LR
 
 ---
 
-## 🗂 Lược đồ Lớp (Class Diagram)
+## Lược đồ Lớp (Class Diagram)
 
 Các thực thể dữ liệu chính được lưu trong **21 collection MongoDB**.
 
@@ -332,7 +344,7 @@ classDiagram
 
 ---
 
-## 📁 Cấu trúc thư mục
+## Cấu trúc thư mục
 
 ```
 DATTCNPM/
@@ -363,7 +375,7 @@ DATTCNPM/
 
 ---
 
-## 🚀 Cài đặt & Chạy local
+## Cài đặt & Chạy local
 
 ```bash
 # 1. Cài dependencies
@@ -384,7 +396,7 @@ npm run dev
 
 ---
 
-## 🔐 Biến môi trường
+## Biến môi trường
 
 | Biến | Mục đích |
 | :--- | :--- |
@@ -403,7 +415,7 @@ npm run dev
 
 ---
 
-## 📜 Scripts & Migration
+## Scripts & Migration
 
 | Lệnh | Mục đích |
 | :--- | :--- |
@@ -446,7 +458,7 @@ npx tsx scripts/import-hotels-osm.ts --import --radius=10000           # bán k�
 
 ---
 
-## 🏨 Tính năng Khách sạn
+## Tính năng Khách sạn
 
 - **Tìm kiếm:** Trang `/hotels` — tìm theo điểm đến, chuẩn hóa tiếng Việt
 - **Chi tiết:** `/hotels/[id]` — gallery, địa chỉ, Google Maps, đánh giá thật
@@ -458,7 +470,7 @@ npx tsx scripts/import-hotels-osm.ts --import --radius=10000           # bán k�
 
 ---
 
-## ✈️ Đặt phòng & Vé máy bay
+## ️ Đặt phòng & Vé máy bay
 
 - **Khách sạn:** Chọn loại phòng → nhập thông tin liên hệ → tạo booking → QR thanh toán
 - **Vé máy bay:** `/flights` → tìm lịch bay nội địa → chọn chiều đi/về → tạo booking
@@ -468,7 +480,7 @@ npx tsx scripts/import-hotels-osm.ts --import --radius=10000           # bán k�
 
 ---
 
-## 📡 API chính
+## API chính
 
 <details>
 <summary><strong>Bảng API đầy đủ</strong> (click để mở)</summary>
@@ -515,7 +527,7 @@ npx tsx scripts/import-hotels-osm.ts --import --radius=10000           # bán k�
 
 ---
 
-## 🧪 Kiểm thử
+## Kiểm thử
 
 ```bash
 npm run lint          # ESLint
@@ -531,7 +543,7 @@ npm run build         # Build production
 
 ---
 
-## ✅ Trạng thái chức năng
+## Trạng thái chức năng
 
 | Hạng mục | Trạng thái |
 | :--- | :---: |
@@ -548,7 +560,7 @@ npm run build         # Build production
 
 ---
 
-## 📚 Tài liệu thiết kế
+## Tài liệu thiết kế
 
 Toàn bộ tài liệu nằm trong thư mục `docs/`:
 
