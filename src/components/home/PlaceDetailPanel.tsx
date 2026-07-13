@@ -1,11 +1,11 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
-import * as Icons from '@/components/icons';
 import { SearchResult } from '@/hooks/usePlaceSearch';
 import { UsePlaceDetailsReturn } from '@/hooks/usePlaceDetails';
 import { TripSummary } from '@/types/profile';
-import EmptyState from '@/components/ui/EmptyState';
+import { getPlaceTypeLabel } from '@/lib/place-labels';
+import { apiRequest } from '@/lib/api-client';
 
 interface PlaceDetailPanelProps {
   selectedPlace: SearchResult;
@@ -15,32 +15,14 @@ interface PlaceDetailPanelProps {
   isTripsLoading?: boolean;
   isTripActionLoading: boolean;
   tripActionMessage: string;
-  onAddToTrip: (tripId: string) => void;
-  onCreateTripFromPlace?: () => void;
+  onAddToTrip: (tripId: string, focusHotel?: boolean, place?: SearchResult) => void;
+  onCreateTripFromPlace?: (place?: SearchResult) => void;
   onLogin: () => void;
   onOpenAddToTripModal?: (place?: SearchResult) => void;
   onSaveFavorite?: (place: SearchResult) => Promise<void>;
   favoriteSaving?: boolean;
   onCreateReview?: (payload: { placeId: string; rating: number; comment?: string }) => Promise<void>;
   reviewSaving?: boolean;
-}
-
-interface TripActionsProps {
-  trips: TripSummary[];
-  loading: boolean;
-  listLoading: boolean;
-  onAddToTrip: (tripId: string) => void;
-  onCreateTripFromPlace?: () => void;
-}
-
-interface WeatherCardProps {
-  weather: UsePlaceDetailsReturn['weather'];
-  loading: boolean;
-}
-
-interface PoiGridProps {
-  pois: UsePlaceDetailsReturn['pois'];
-  loading: boolean;
 }
 
 export default function PlaceDetailPanel({
@@ -55,268 +37,160 @@ export default function PlaceDetailPanel({
   onCreateTripFromPlace,
   onLogin,
   onOpenAddToTripModal,
-  onSaveFavorite,
-  favoriteSaving = false,
-  onCreateReview,
-  reviewSaving = false,
 }: PlaceDetailPanelProps) {
-  const { weather, pois, isWeatherLoading, isPoisLoading } = details;
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState('');
+  const { pois, isPoisLoading, weather } = details;
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const submitReview = async (): Promise<void> => {
-    if (!onCreateReview) return;
-    await onCreateReview({
-      placeId: selectedPlace._id,
-      rating: reviewRating,
-      comment: reviewComment.trim() || undefined,
-    });
-    setReviewRating(5);
-    setReviewComment('');
+  const handleAction = async (poi: { name: string; type: string; address?: string }, type: 'add' | 'create') => {
+    if (!isLoggedIn) {
+      onLogin();
+      return;
+    }
+    setProcessingId(poi.name);
+    try {
+      const { response, data } = await apiRequest<{ success: boolean; data: { results: SearchResult[] } }>(
+        `/api/places/search?q=${encodeURIComponent(poi.name)}`
+      );
+      if (response.ok && data.data?.results?.[0]) {
+        const place = data.data.results[0];
+        if (type === 'add') {
+          onOpenAddToTripModal?.(place);
+        } else if (type === 'create' && onCreateTripFromPlace) {
+          await onCreateTripFromPlace(place);
+        }
+      }
+    } catch {
+    } finally {
+      setProcessingId(null);
+    }
   };
+
+  const filteredPois = pois.filter(
+    (poi) => poi.name.toLowerCase() !== selectedPlace.name.toLowerCase()
+  );
 
   return (
     <div className="app-surface mx-auto mb-12 mt-2 max-w-7xl p-4 sm:p-6 lg:p-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="space-y-6">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wide text-[var(--color-primary-darker)]">Điểm đến đã chọn</span>
-            <h3 className="mt-1 font-display text-2xl font-extrabold text-[var(--color-text)]">{selectedPlace.name}</h3>
-            {selectedPlace.address && (
-              <p className="mt-1 text-sm font-medium text-[var(--color-text-muted)]">{selectedPlace.address}</p>
-            )}
-            <div className="mt-3 flex flex-wrap gap-2">
-              {onOpenAddToTripModal && (
-                <button
-                  type="button"
-                  aria-label={`Thêm ${selectedPlace.name} vào lịch trình`}
-                  onClick={() => (isLoggedIn ? onOpenAddToTripModal(selectedPlace) : onLogin())}
-                  className="inline-flex min-h-10 items-center rounded-2xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]"
-                >
-                  + Thêm vào lịch trình
-                </button>
-              )}
-              {onSaveFavorite && (
-                <button
-                  type="button"
-                  aria-label={`Lưu ${selectedPlace.name} vào yêu thích`}
-                  onClick={() => (isLoggedIn ? onSaveFavorite(selectedPlace) : onLogin())}
-                  disabled={favoriteSaving}
-                  className="inline-flex min-h-10 items-center rounded-2xl border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-bold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-lightest)] disabled:opacity-60"
-                >
-                  {favoriteSaving ? 'Đang lưu...' : 'Lưu yêu thích'}
-                </button>
-              )}
-            </div>
+      <div className="space-y-6">
+        <div>
+          <h3 className="font-display text-xl font-extrabold text-[var(--color-text)]">
+            Địa danh du lịch nổi bật tại khu vực này
+          </h3>
+          <p className="text-sm font-medium text-[var(--color-text-muted)] mt-1">
+            Gợi ý các địa điểm du lịch nổi tiếng xung quanh {selectedPlace.name}. Chọn một địa điểm để lập lịch trình.
+          </p>
+        </div>
+
+        {tripActionMessage && (
+          <div className="rounded-2xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3 text-sm font-semibold text-[var(--color-text-secondary)]">
+            {tripActionMessage}
           </div>
+        )}
 
-          {tripActionMessage && (
-            <div className="rounded-2xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3 text-sm font-semibold text-[var(--color-text-secondary)]">
-              {tripActionMessage}
-            </div>
-          )}
-
-          {isLoggedIn ? (
-            <TripActions
-              trips={myTrips}
-              loading={isTripActionLoading || isTripsLoading}
-              listLoading={isTripsLoading}
-              onAddToTrip={onAddToTrip}
-              onCreateTripFromPlace={onCreateTripFromPlace}
-            />
-          ) : (
-            <div className="border-t border-[var(--color-border)] pt-6">
-              <button
-                type="button"
-                onClick={onLogin}
-                className="min-h-12 w-full rounded-2xl border border-[var(--color-primary-dark)] px-4 py-3 text-sm font-bold text-[var(--color-primary-darker)] transition hover:bg-[var(--color-primary-lightest)]"
-              >
-                Đăng nhập để thêm vào chuyến đi
-              </button>
-            </div>
-          )}
-
-          <WeatherCard weather={weather} loading={isWeatherLoading} />
-
-          {isLoggedIn && onCreateReview && (
-            <div className="border-t border-[var(--color-border)] pt-6">
-              <h4 className="mb-3 text-sm font-bold text-[var(--color-text)]">Đánh giá địa điểm</h4>
-              <div className="space-y-3 rounded-2xl border border-[var(--color-border)] p-4">
-                <select
-                  value={reviewRating}
-                  onChange={(event) => setReviewRating(Number(event.target.value))}
-                  className="w-full rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
-                  aria-label="Điểm đánh giá"
-                >
-                  {[5, 4, 3, 2, 1].map((rating) => (
-                    <option key={rating} value={rating}>{rating}/5</option>
-                  ))}
-                </select>
-                <textarea
-                  value={reviewComment}
-                  onChange={(event) => setReviewComment(event.target.value)}
-                  rows={3}
-                  placeholder="Chia sẻ cảm nhận của bạn"
-                  className="w-full rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={submitReview}
-                  disabled={reviewSaving}
-                  className="min-h-10 w-full rounded-xl bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)] disabled:opacity-60"
-                >
-                  {reviewSaving ? 'Đang gửi...' : 'Gửi đánh giá'}
-                </button>
+        {isPoisLoading ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div key={item} className="animate-pulse space-y-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-6">
+                <div className="h-5 w-3/4 rounded bg-[var(--color-border)]" />
+                <div className="h-4 w-1/4 rounded bg-[var(--color-border)]" />
+                <div className="space-y-2 pt-2">
+                  <div className="h-3 w-full rounded bg-[var(--color-border)]" />
+                  <div className="h-3 w-5/6 rounded bg-[var(--color-border)]" />
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        <PoiGrid pois={pois} loading={isPoisLoading} />
-      </div>
-    </div>
-  );
-}
-
-function TripActions({
-  trips,
-  loading,
-  listLoading,
-  onAddToTrip,
-  onCreateTripFromPlace,
-}: TripActionsProps) {
-  return (
-    <div className="space-y-4 border-t border-[var(--color-border)] pt-6">
-      {listLoading ? (
-        <div className="space-y-3" role="status" aria-label="Đang tải chuyến đi">
-          <div className="h-4 w-40 animate-pulse rounded bg-[var(--color-bg)]" />
-          {[1, 2].map((item) => (
-            <div key={item} className="h-14 animate-pulse rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]" />
-          ))}
-        </div>
-      ) : trips.length > 0 ? (
-        <>
-          <h4 className="flex items-center gap-2 text-sm font-bold text-[var(--color-text)]">
-            <Icons.PlusIcon className="h-4 w-4 text-[var(--color-primary-darker)]" />
-            Thêm vào chuyến đi của bạn
-          </h4>
-          <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
-            {trips.map((trip) => (
-              <button
-                key={trip._id}
-                type="button"
-                onClick={() => onAddToTrip(trip._id)}
-                disabled={loading}
-                className="flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl border border-[var(--color-border)] px-4 py-3 text-left text-sm transition hover:border-[var(--color-primary-dark)] hover:bg-[var(--color-bg)] disabled:opacity-60"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate font-bold text-[var(--color-text)]">{trip.title}</span>
-                  <span className="block truncate text-xs font-medium text-[var(--color-text-muted)]">{trip.destination}</span>
-                </span>
-                <span className="shrink-0 text-xs font-extrabold text-[var(--color-primary-dark)]">Thêm</span>
-              </button>
             ))}
           </div>
+        ) : filteredPois.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredPois.map((poi) => {
+              const isProcessing = processingId === poi.name;
+              const hasNoTrips = myTrips.length === 0;
 
-          {onCreateTripFromPlace && (
-            <button
-              type="button"
-              onClick={onCreateTripFromPlace}
-              disabled={loading}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[var(--color-border)] px-4 py-3 text-sm font-bold text-[var(--color-text-secondary)] transition hover:border-[var(--color-primary-dark)] hover:bg-[var(--color-bg)] hover:text-[var(--color-primary-darker)] disabled:opacity-60"
-            >
-              <Icons.PlusIcon className="h-4 w-4" />
-              Tạo chuyến đi mới cho địa điểm này
-            </button>
-          )}
-        </>
-      ) : (
-        <div className="space-y-3">
-          <EmptyState
-            title="Chưa có chuyến đi nào"
-            description="Tạo chuyến đi đầu tiên để thêm địa điểm này."
-            {...(onCreateTripFromPlace ? {
-              actionLabel: 'Tạo chuyến đi mới',
-              onAction: onCreateTripFromPlace,
-            } : {})}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
+              return (
+                <div key={poi.id} className="flex flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-white p-5 transition hover:border-[var(--color-border-strong)] hover:shadow-md">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-base font-bold text-[var(--color-text)] line-clamp-1">{poi.name}</div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {weather && (
+                          <div className="text-xs font-bold text-[var(--color-text-secondary)] bg-[var(--color-bg)] px-2 py-0.5 rounded-full flex items-center">
+                            <span>{weather.temperature}°C</span>
+                          </div>
+                        )}
+                        {poi.rating && (
+                          <div className="flex items-center gap-0.5 text-xs font-bold text-[var(--color-warning)] bg-[var(--color-primary-lightest)] px-2 py-0.5 rounded-full">
+                            <svg className="h-3 w-3 fill-current text-[var(--color-warning)]" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <span>{poi.rating}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-xs font-extrabold uppercase tracking-wide text-[var(--color-success)]">
+                      {getPlaceTypeLabel(poi.type)}
+                    </div>
+                    {poi.description && (
+                      <div className="line-clamp-3 text-xs font-medium text-[var(--color-text-muted)] leading-relaxed">
+                        {poi.description}
+                      </div>
+                    )}
+                    {poi.address && poi.address !== 'Xung quanh khu vực này' && (
+                      <div className="truncate text-xs font-medium text-[var(--color-text-muted)] pt-1">
+                        {poi.address}
+                      </div>
+                    )}
+                  </div>
 
-function WeatherCard({ weather, loading }: WeatherCardProps) {
-  return (
-    <div className="border-t border-[var(--color-border)] pt-6">
-      <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--color-text)]">
-        <Icons.WeatherIcon code={0} className="h-4 w-4 text-[var(--color-warning)]" />
-        Thời tiết hiện tại
-      </h4>
-
-      {loading ? (
-        <div className="flex animate-pulse items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-[var(--color-bg)]" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 w-16 rounded bg-[var(--color-bg)]" />
-            <div className="h-3 w-24 rounded bg-[var(--color-bg)]" />
+                  <div className="mt-5 border-t border-[var(--color-border)] pt-4 flex gap-2">
+                    {hasNoTrips ? (
+                      <button
+                        type="button"
+                        onClick={() => handleAction(poi, 'create')}
+                        disabled={isProcessing || isTripsLoading || isTripActionLoading}
+                        className="flex-1 min-h-10 rounded-xl bg-[var(--color-primary-darker)] text-xs font-bold text-white transition hover:bg-[var(--color-primary-dark)] disabled:opacity-60 flex items-center justify-center gap-2"
+                      >
+                        {isProcessing ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        ) : (
+                          'Tạo chuyến đi mới'
+                        )}
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleAction(poi, 'add')}
+                          disabled={isProcessing || isTripsLoading || isTripActionLoading}
+                          className="flex-1 min-h-10 rounded-xl bg-[var(--color-primary-darker)] text-xs font-bold text-white transition hover:bg-[var(--color-primary-dark)] disabled:opacity-60 flex items-center justify-center gap-2"
+                        >
+                          {isProcessing ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          ) : (
+                            'Thêm vào chuyến đi'
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAction(poi, 'create')}
+                          disabled={isProcessing || isTripsLoading || isTripActionLoading}
+                          className="px-3 min-h-10 rounded-xl border border-[var(--color-border)] text-xs font-bold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg)] disabled:opacity-60 flex items-center justify-center"
+                        >
+                          Tạo mới
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      ) : weather ? (
-        <div className="flex items-center gap-6 rounded-2xl bg-[var(--color-bg)] p-4">
-          <Icons.WeatherIcon code={weather.weathercode} className="h-10 w-10 text-[var(--color-warning)]" />
-          <div>
-            <div className="text-2xl font-extrabold text-[var(--color-text)]">{weather.temperature}°C</div>
-            <div className="text-sm font-bold text-[var(--color-text-muted)]">{weather.description}</div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[var(--color-border)] py-12 text-center text-sm font-medium text-[var(--color-text-muted)] bg-[var(--color-bg)]">
+            Không tìm thấy địa danh du lịch nổi bật nào xung quanh khu vực này.
           </div>
-        </div>
-      ) : (
-        <p className="text-sm font-medium text-[var(--color-text-muted)]">Không thể tải thông tin thời tiết lúc này.</p>
-      )}
-    </div>
-  );
-}
-
-function PoiGrid({ pois, loading }: PoiGridProps) {
-  return (
-    <div className="border-t border-[var(--color-border)] pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-      <h4 className="mb-4 flex items-center gap-2 text-sm font-bold text-[var(--color-text)]">
-        <Icons.MapPinIcon className="h-4 w-4 text-[var(--color-success)]" />
-        Địa danh du lịch nổi bật
-      </h4>
-
-      {loading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="animate-pulse space-y-3 rounded-2xl border border-[var(--color-border)] p-4">
-              <div className="h-4 w-3/4 rounded bg-[var(--color-bg)]" />
-              <div className="h-3 w-1/2 rounded bg-[var(--color-bg)]" />
-            </div>
-          ))}
-        </div>
-      ) : pois.length > 0 ? (
-        <div className="grid max-h-[320px] grid-cols-1 gap-4 overflow-y-auto pr-2 sm:grid-cols-2">
-          {pois.map((poi) => (
-            <div key={poi.id} className="flex flex-col justify-between rounded-2xl border border-[var(--color-border)] p-4 transition hover:border-[var(--color-border-strong)] hover:shadow-sm">
-              <div>
-                <div className="line-clamp-2 text-sm font-bold text-[var(--color-text)]">{poi.name}</div>
-                <div className="mt-1 text-xs font-extrabold uppercase tracking-wide text-[var(--color-success)]">{poi.type}</div>
-                {poi.description && (
-                  <div className="mt-2 line-clamp-2 text-xs font-medium text-[var(--color-text-muted)]">{poi.description}</div>
-                )}
-              </div>
-              {poi.address && poi.address !== 'Xung quanh khu vực này' && (
-                <div className="mt-2 truncate text-xs font-medium text-[var(--color-text-muted)]">{poi.address}</div>
-              )}
-              {poi.rating && <div className="mt-2 text-xs font-bold text-[var(--color-warning)]">{poi.rating}</div>}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="py-8 text-center text-sm font-medium text-[var(--color-text-muted)]">
-          Không tìm thấy địa danh du lịch nổi bật xung quanh khu vực này.
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

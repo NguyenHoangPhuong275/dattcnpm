@@ -44,8 +44,8 @@ interface UseHomepageTripActionsReturn {
   setStartDate: (value: string) => void;
   setEndDate: (value: string) => void;
   setTravelerCount: (value: number) => void;
-  addSelectedPlaceToTrip: (tripId: string) => Promise<boolean>;
-  createTripFromSelectedPlace: () => Promise<void>;
+  addSelectedPlaceToTrip: (tripId: string, focusHotel?: boolean, place?: SelectedTripPlace) => Promise<boolean>;
+  createTripFromSelectedPlace: (place?: SelectedTripPlace) => Promise<void>;
   resetTripActionMessage: () => void;
   loadMyTrips: () => Promise<void>;
 }
@@ -89,8 +89,9 @@ export function useHomepageTripActions({
     }
   }, [loadMyTrips, selectedPlace, userId]);
 
-  const addSelectedPlaceToTrip = useCallback(async (tripId: string, focusHotel = false): Promise<boolean> => {
-    if (!userId || !selectedPlace) return false;
+  const addSelectedPlaceToTrip = useCallback(async (tripId: string, focusHotel = false, place?: SelectedTripPlace): Promise<boolean> => {
+    const targetPlace = place || selectedPlace;
+    if (!userId || !targetPlace) return false;
     if (tripActionStatus === 'loading') return false;
 
     setTripActionStatus('loading');
@@ -104,9 +105,9 @@ export function useHomepageTripActions({
           userId,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            placeId: selectedPlace._id,
+            placeId: targetPlace._id,
             day: FIRST_DAY,
-            note: selectedPlace.name,
+            note: targetPlace.name,
             currency: CURRENCY_CODE,
           }),
         }
@@ -130,9 +131,10 @@ export function useHomepageTripActions({
     }
   }, [resetTripActionMessage, router, selectedPlace, tripActionStatus, userId]);
 
-  const createTripFromSelectedPlace = useCallback(async (): Promise<void> => {
+  const createTripFromSelectedPlace = useCallback(async (place?: SelectedTripPlace): Promise<void> => {
     if (tripActionStatus === 'loading') return;
-    if (!selectedPlace || !userId) {
+    const targetPlace = place || selectedPlace;
+    if (!targetPlace || !userId) {
       onMissingPlace?.();
       return;
     }
@@ -148,8 +150,8 @@ export function useHomepageTripActions({
           userId,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: `Chuyến đi ${selectedPlace.name}`,
-            destination: getSelectedPlaceDestination(selectedPlace),
+            title: `Chuyến đi ${targetPlace.name}`,
+            destination: getSelectedPlaceDestination(targetPlace),
             startDate,
             endDate,
             description: `${travelerCount} người`,
@@ -170,7 +172,7 @@ export function useHomepageTripActions({
         return;
       }
 
-      await addSelectedPlaceToTrip(data.data._id, true);
+      await addSelectedPlaceToTrip(data.data._id, true, targetPlace);
     } catch {
       setTripActionMessage('Không thể tạo lịch trình lúc này');
       setTripActionStatus('error');
