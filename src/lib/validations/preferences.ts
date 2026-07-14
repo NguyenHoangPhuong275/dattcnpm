@@ -45,7 +45,7 @@ export const preferredDestinationsPreferenceSchema = z
   .max(10)
   .transform((values) => [...new Set(values)]);
 
-export const weatherAlertThresholdsSchema = z
+const weatherAlertThresholdsSchema = z
   .object({
     maxTemp: z.number().min(20).max(60).nullable().optional(),
     minTemp: z.number().min(-30).max(40).nullable().optional(),

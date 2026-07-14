@@ -240,9 +240,18 @@ export default function HotelReviews({ hotelId, hotelName }: HotelReviewsProps):
                 type="button"
                 onClick={submit}
                 disabled={submitting}
-                className="mt-2 rounded-lg bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
+                className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
               >
-                {submitting ? 'Đang gửi...' : summary.mine ? 'Cập nhật đánh giá' : 'Gửi đánh giá'}
+                {submitting ? (
+                  <>
+                    <LoadingSpinner size="sm" className="border-t-transparent" />
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : summary.mine ? (
+                  'Cập nhật đánh giá'
+                ) : (
+                  'Gửi đánh giá'
+                )}
               </button>
             </div>
           ) : (

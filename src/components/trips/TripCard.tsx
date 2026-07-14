@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CalendarIcon, TrashIcon } from '@/components/icons';
@@ -30,6 +31,7 @@ interface TripStatusProps {
 interface TripCardContentProps {
   trip: TripSummary;
   variant: 'horizontal' | 'vertical';
+  idPrefix: string;
   onDelete?: (id: string) => void;
 }
 
@@ -40,7 +42,7 @@ interface TripImageProps {
 
 function getCardClassName(selected = false): string {
   return [
-    'group overflow-hidden rounded-lg border bg-[var(--color-surface)] text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--color-primary-dark)] hover:shadow-md',
+    'group overflow-hidden rounded-lg border bg-[var(--color-surface)] text-left shadow-sm transition hover:border-[var(--color-primary-dark)] hover:shadow-md',
     selected ? 'border-[var(--color-primary-dark)] ring-2 ring-[var(--color-primary-dark)]/20' : 'border-[var(--color-border)]',
   ].join(' ');
 }
@@ -101,7 +103,7 @@ function TripImage({ trip, variant }: TripImageProps): React.JSX.Element {
   );
 }
 
-function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): React.JSX.Element {
+function TripCardContent({ trip, variant, idPrefix, onDelete }: TripCardContentProps): React.JSX.Element {
   const handleDelete = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
     event.stopPropagation();
@@ -128,7 +130,7 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): Rea
             <TripStatus isPublic={trip.isPublic} />
             {onDelete && (
               <button
-                id={`trip-card-delete-button-${trip._id}`}
+                id={`${idPrefix}-delete`}
                 type="button"
                 onClick={handleDelete}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-danger)] transition hover:bg-[var(--color-danger)]/10"
@@ -163,14 +165,16 @@ function TripCardContent({ trip, variant, onDelete }: TripCardContentProps): Rea
 }
 
 export default function TripCard({ trip, variant = 'vertical', href, onClick, onDelete, selected }: TripCardProps): React.JSX.Element {
+  const idPrefix = `trip-card-${trip._id}-${useId()}`;
+
   const handleClick = (): void => {
     onClick?.(trip);
   };
 
   if (href) {
     return (
-      <Link href={href} className={getCardClassName(selected)}>
-        <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
+      <Link id={`${idPrefix}-link`} href={href} className={getCardClassName(selected)}>
+        <TripCardContent trip={trip} variant={variant} idPrefix={idPrefix} onDelete={onDelete} />
       </Link>
     );
   }
@@ -178,12 +182,13 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
   if (onClick && !onDelete) {
     return (
       <button
+        id={`${idPrefix}-select`}
         type="button"
         onClick={handleClick}
         className={`w-full text-left ${getCardClassName(selected)}`}
         aria-pressed={selected}
       >
-        <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
+        <TripCardContent trip={trip} variant={variant} idPrefix={idPrefix} onDelete={onDelete} />
       </button>
     );
   }
@@ -204,7 +209,7 @@ export default function TripCard({ trip, variant = 'vertical', href, onClick, on
       onKeyDown={onClick ? handleKeyDown : undefined}
       className={getCardClassName(selected)}
     >
-      <TripCardContent trip={trip} variant={variant} onDelete={onDelete} />
+      <TripCardContent trip={trip} variant={variant} idPrefix={idPrefix} onDelete={onDelete} />
     </article>
   );
 }

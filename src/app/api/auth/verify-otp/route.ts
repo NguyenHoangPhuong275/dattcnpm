@@ -8,7 +8,7 @@ import { signAuthToken, setAuthCookie } from '@/lib/auth';
 const MAX_OTP_ATTEMPTS = 5;
 const PASSWORD_HASH_ROUNDS = 12;
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const body = await request.json().catch(() => ({}));
     const parsed = verifyOtpSchema.parse(body);

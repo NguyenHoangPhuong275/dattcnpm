@@ -1,14 +1,7 @@
 import mongoose from 'mongoose';
 import { connectMongo, resetConnectionState } from './connection';
 import { MANAGED_COLLECTIONS, CollectionName } from './collections';
-
-export async function listManagedCollections(): Promise<string[]> {
-  await connectMongo();
-  const db = mongoose.connection.db;
-  if (!db) return [];
-  const cols = await db.listCollections().toArray();
-  return cols.map((c) => c.name).filter((name) => MANAGED_COLLECTIONS.includes(name as CollectionName));
-}
+import { createMissingManagedCollections } from './managed-collections';
 
 export async function dropAllManagedCollections(): Promise<string[]> {
   await connectMongo();
@@ -65,18 +58,7 @@ export async function createAllCollections(): Promise<string[]> {
   }
   const db = mongoose.connection.db;
   if (!db) return [];
-
-  const existing = (await db.listCollections().toArray()).map((c) => c.name);
-  const created: string[] = [];
-
-  for (const name of MANAGED_COLLECTIONS) {
-    if (!existing.includes(name)) {
-      await db.createCollection(name);
-      created.push(name);
-    }
-  }
-
-  return created;
+  return createMissingManagedCollections(db);
 }
 
 export interface DatabaseConsistencyReport {

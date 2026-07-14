@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import AdminAlert from '@/components/admin/AdminAlert';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import DatabaseActions from '@/components/admin/DatabaseActions';
 import { useAdminWebhook } from '@/hooks/useAdminWebhook';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -19,16 +20,15 @@ export default function AdminDatabasePage(): React.JSX.Element {
   const { confirm } = useConfirm();
   const { alert, triggerAlert, request } = useAdminWebhook();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [secret, setSecret] = useState('');
 
   const runDbAction = async (event: string, payload?: Record<string, unknown>) => {
     setActionLoading(event);
     try {
-      const { response, data } = await request<DbActionPayload>(event, payload, secret || undefined);
+      const { response, data } = await request<DbActionPayload>(event, payload);
       if (!response.ok) throw new Error(getApiErrorMessage(data, 'Thao tác thất bại'));
 
       if (event === 'db.check') {
-        triggerAlert(data.message || 'Đã kiểm tra DB', data.report?.isClean ? 'success' : 'error');
+        triggerAlert(data.message || 'Đã hoàn tất kiểm tra dữ liệu', data.report?.isClean ? 'success' : 'error');
       } else {
         triggerAlert(data.message || 'Thao tác thành công', 'success');
       }
@@ -41,13 +41,13 @@ export default function AdminDatabasePage(): React.JSX.Element {
 
   const confirmDbAction = async (action: 'db.reset' | 'db.clear') => {
     const text = action === 'db.reset'
-      ? 'Bạn có chắc chắn muốn RESET Database về trạng thái mẫu ban đầu? (sẽ drop toàn bộ collections managed)'
-      : 'CẢNH BÁO: Hành động này sẽ DROP toàn bộ collections (xóa sạch duplicates + data + indexes). Bạn có chắc không?';
+      ? 'Hành động này sẽ xóa vĩnh viễn toàn bộ tài khoản, chuyến đi, nội dung và thông tin đặt chỗ của người dùng. Hệ thống sẽ tự động khởi tạo lại cấu trúc ban đầu.'
+      : 'Hành động này sẽ xóa sạch hoàn toàn cơ sở dữ liệu. Tất cả thông tin sẽ biến mất vĩnh viễn và không thể khôi phục.';
 
     const confirmed = await confirm({
-      title: action === 'db.reset' ? 'Reset database?' : 'Xóa sạch database?',
+      title: action === 'db.reset' ? 'Đặt lại dữ liệu hệ thống?' : 'Xóa sạch cơ sở dữ liệu?',
       description: text,
-      confirmLabel: action === 'db.reset' ? 'Reset' : 'Xóa sạch',
+      confirmLabel: action === 'db.reset' ? 'Xóa dữ liệu' : 'Xóa sạch',
       tone: 'danger',
     });
 
@@ -65,37 +65,15 @@ export default function AdminDatabasePage(): React.JSX.Element {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-extrabold text-[var(--color-text)]">Cơ sở dữ liệu</h1>
-        <p className="mt-1 text-sm font-medium text-[var(--color-text-secondary)]">
-          Kiểm tra tính nhất quán, tạo bảng và các tác vụ bảo trì nguy hiểm
-        </p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Bảo trì hệ thống"
+        description="Kiểm tra dữ liệu và khôi phục các thành phần còn thiếu. Hãy sao lưu trước khi thực hiện thao tác xóa."
+      />
 
       <AdminAlert alert={alert} />
 
       <DatabaseActions onDbAction={handleDbAction} actionLoading={actionLoading} />
-
-      <div className="rounded-3xl border border-[var(--color-border)] bg-white p-6 shadow-sm">
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-[var(--color-text)]">
-          <svg className="h-5 w-5 text-[var(--color-primary-darker)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          Webhook Token (tùy chọn)
-        </h2>
-        <p className="mb-3 text-xs text-[var(--color-text-muted)]">
-          Trang này dùng phiên quản trị hiện tại nên không cần token. Chỉ nhập x-webhook-secret khi muốn gọi thay bằng secret.
-          Token giữ trong bộ nhớ phiên, không lưu vào Browser Storage.
-        </p>
-        <input
-          type="password"
-          value={secret}
-          onChange={(e) => setSecret(e.target.value.trim())}
-          className="w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/70 px-4 py-3 text-sm font-medium text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary-dark)] focus:bg-white focus:ring-4 focus:ring-[var(--color-primary-lightest)]"
-          placeholder="x-webhook-secret (bỏ trống nếu đã đăng nhập quản trị)..."
-        />
-      </div>
     </div>
   );
 }

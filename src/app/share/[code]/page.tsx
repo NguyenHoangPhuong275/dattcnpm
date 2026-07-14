@@ -1,66 +1,20 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
+
+import { AppError } from '@/lib/api-response';
+import {
+  loadSharedTrip,
+  type PublicSharedItineraryItem,
+  type SharedTripData,
+} from '@/lib/shared-trip';
+import { shareCodeSchema } from '@/lib/validations/trip';
+
+export const dynamic = 'force-dynamic';
+
 interface SharePageProps {
   params: Promise<{ code: string }>;
-}
-
-interface PublicTrip {
-  _id: string;
-  title: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  description?: string | null;
-  coverImage?: string | null;
-  isPublic?: boolean;
-}
-
-interface PublicItineraryItem {
-  _id: string;
-  day: number;
-  orderIndex: number;
-  note?: string;
-  placeId: string;
-  place?: {
-    name: string;
-    address?: string | null;
-  } | null;
-  startTime?: string | null;
-  endTime?: string | null;
-  cost?: number | null;
-  currency?: string | null;
-}
-
-interface PublicAccommodation {
-  _id: string;
-  hotelId?: string | null;
-  name: string;
-  address?: string | null;
-  checkIn: string;
-  checkOut: string;
-}
-
-interface PublicBudgetItem {
-  _id: string;
-  category: string;
-  amount: number;
-  currency: string;
-  note?: string | null;
-  type: 'planned' | 'actual';
-}
-
-interface PublicBudget {
-  items: PublicBudgetItem[];
-  totalPlanned: number;
-  totalActual: number;
-}
-
-interface SharedTripData {
-  trip: PublicTrip;
-  items: PublicItineraryItem[];
-  accommodations: PublicAccommodation[];
-  budget: PublicBudget;
 }
 
 const BUDGET_CATEGORY_LABELS: Record<string, string> = {
@@ -82,24 +36,17 @@ function formatAmount(value: number, currency: string): string {
   return `${value.toLocaleString('vi-VN')} ${currency || 'VND'}`;
 }
 
-async function getSharedTrip(code: string): Promise<SharedTripData | null> {
+const getSharedTrip = cache(async (code: string): Promise<SharedTripData | null> => {
+  const parsed = shareCodeSchema.safeParse(code);
+  if (!parsed.success) return null;
+
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/share/${code}`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    const body = await res.json();
-    if (!body.success || !body.data?.trip) return null;
-    return {
-      trip: body.data.trip,
-      items: body.data.items ?? [],
-      accommodations: body.data.accommodations ?? [],
-      budget: body.data.budget ?? { items: [], totalPlanned: 0, totalActual: 0 },
-    };
-  } catch {
-    return null;
+    return await loadSharedTrip(parsed.data);
+  } catch (error) {
+    if (error instanceof AppError && error.code === 'NOT_FOUND') return null;
+    throw error;
   }
-}
+});
 
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
   const { code } = await params;
@@ -128,7 +75,7 @@ export default async function SharedTripPage({ params }: SharePageProps) {
 
   const { trip, items, accommodations, budget } = data;
 
-  const groupedByDay = items.reduce<Record<number, PublicItineraryItem[]>>((acc, item) => {
+  const groupedByDay = items.reduce<Record<number, PublicSharedItineraryItem[]>>((acc, item) => {
     if (!acc[item.day]) acc[item.day] = [];
     acc[item.day].push(item);
     return acc;
@@ -141,7 +88,7 @@ export default async function SharedTripPage({ params }: SharePageProps) {
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-4xl px-4">
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center text-sm font-semibold text-amber-700">
-          Đây là lịch trình được chia sẻ • Chỉ xem
+          Lịch trình được chia sẻ ở chế độ chỉ xem
         </div>
 
         <div className="rounded-2xl bg-white p-8 shadow">
@@ -150,10 +97,10 @@ export default async function SharedTripPage({ params }: SharePageProps) {
 
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
             <div>
-              <span className="font-semibold">Bắt đầu:</span> {formatDate(trip.startDate)}
+              <span className="font-semibold">Ngày đi:</span> {formatDate(trip.startDate)}
             </div>
             <div>
-              <span className="font-semibold">Kết thúc:</span> {formatDate(trip.endDate)}
+              <span className="font-semibold">Ngày về:</span> {formatDate(trip.endDate)}
             </div>
             {trip.description && <div className="w-full text-slate-600">{trip.description}</div>}
           </div>
@@ -230,6 +177,7 @@ export default async function SharedTripPage({ params }: SharePageProps) {
                     <li key={item._id}>
                       {item.hotelId ? (
                         <Link
+                          id={`shared-trip-hotel-${item._id}`}
                           href={`/hotels/${item.hotelId}`}
                           className="block rounded-xl border bg-white p-3 text-sm transition-colors hover:border-[color:var(--color-primary-darker)] hover:bg-slate-50"
                         >
@@ -273,10 +221,6 @@ export default async function SharedTripPage({ params }: SharePageProps) {
             </div>
           )}
         </div>
-
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Lịch trình được chia sẻ công khai. Dữ liệu chỉ để xem.
-        </p>
       </div>
     </div>
   );

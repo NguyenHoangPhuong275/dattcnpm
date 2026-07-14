@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { apiRequest } from '@/lib/api-client';
+import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { FavoritePlaceSummary } from '@/types/profile';
 import { RequestStatus } from '@/types/common';
 
@@ -61,10 +61,11 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
         }
         setStatus('success');
       } else {
+        setError(getApiErrorMessage(data, 'Không thể tải danh sách địa điểm yêu thích'));
         setStatus('error');
       }
-    } catch {
-      setError('Không thể tải danh sách địa điểm yêu thích');
+    } catch (errorValue: unknown) {
+      setError(getApiErrorMessage(errorValue, 'Không thể tải danh sách địa điểm yêu thích'));
       setStatus('error');
     }
   }, [userId]);
@@ -81,7 +82,7 @@ export function useFavorites({ userId }: UseFavoritesOptions): UseFavoritesRetur
       if (!response.ok) throw new Error();
     } catch {
       setFavorites(previous);
-      throw new Error('Remove favorite failed');
+      throw new Error('Không thể xóa địa điểm khỏi danh sách yêu thích.');
     } finally {
       setRemovingIds(prev => {
         const next = new Set(prev);

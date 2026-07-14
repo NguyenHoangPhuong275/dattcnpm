@@ -7,8 +7,8 @@ function isChronologicalDateRange(data: { startDate?: string; endDate?: string }
 }
 
 const tripCoreSchema = z.object({
-  title: trimString(2, 120),
-  destination: trimString(2, 120),
+  title: trimString(2, 120, 'Tiêu đề là bắt buộc'),
+  destination: trimString(2, 120, 'Điểm đến là bắt buộc'),
   startDate: z.string().date().optional(),
   endDate: z.string().date().optional(),
   description: optionalTrimString(2000),
@@ -24,7 +24,9 @@ const tripCoreSchema = z.object({
   isPublic: z.boolean().optional(),
 });
 
-export const createTripSchema = tripCoreSchema.refine(isChronologicalDateRange, {
+export const createTripSchema = tripCoreSchema.extend({
+  initialPlaceId: objectIdSchema.optional(),
+}).refine(isChronologicalDateRange, {
   message: 'Ngày kết thúc phải sau ngày bắt đầu',
   path: ['endDate'],
 });
@@ -62,10 +64,6 @@ export const updateItineraryItemSchema = createItineraryItemSchema.partial().ext
   itemId: objectIdSchema.optional(),
 }).refine((d) => Object.keys(d).some(k => k !== 'itemId' && d[k as keyof typeof d] !== undefined), {
   message: 'Không có trường hợp lệ để cập nhật',
-});
-
-export const deleteItineraryItemSchema = z.object({
-  itemId: objectIdSchema,
 });
 
 export const reorderItinerarySchema = z.object({

@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 interface AdminAlertProps {
   alert: { message: string; type: 'success' | 'error' } | null;
 }
@@ -11,7 +9,8 @@ export default function AdminAlert({ alert }: AdminAlertProps) {
 
   return (
     <div
-      className={`p-4 rounded-2xl flex items-center gap-3 border transition-all animate-fade-in-up ${
+      role={alert.type === 'error' ? 'alert' : 'status'}
+      className={`flex items-center gap-3 rounded-2xl border p-4 shadow-sm transition-all animate-fade-in-up ${
         alert.type === 'success'
           ? 'border-[var(--color-success)]/40 bg-[var(--color-success)]/10 text-emerald-700'
           : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 text-red-700'

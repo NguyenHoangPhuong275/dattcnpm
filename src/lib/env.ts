@@ -18,6 +18,11 @@ const envSchema = z.object({
   API_KEY_RESEND: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   NEXT_PUBLIC_BASE_URL: z.string().optional(),
+
+  PAYMENT_MODE: z.enum(['demo', 'live']),
+  PAYMENT_BANK_CODE: z.string().trim().optional().default(''),
+  PAYMENT_ACCOUNT_NO: z.string().trim().optional().default(''),
+  PAYMENT_ACCOUNT_NAME: z.string().trim().optional().default(''),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -32,9 +37,12 @@ function formatIssues(error: z.ZodError): string {
 }
 
 export function parseEnv(raw: NodeJS.ProcessEnv = process.env): Env {
+  const nodeEnv = raw.NODE_ENV || 'development';
   const source = {
     ...raw,
+    NODE_ENV: nodeEnv,
     MONGODB_URI: raw.MONGODB_URI || raw.MONGO_URI,
+    PAYMENT_MODE: raw.PAYMENT_MODE || (nodeEnv === 'production' ? 'live' : 'demo'),
   };
 
   const result = envSchema.safeParse(source);

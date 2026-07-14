@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { apiRequestStrictJson } from '@/lib/api-client';
 
 export interface AdminAlertState {
@@ -8,7 +9,6 @@ export interface AdminAlertState {
   type: 'success' | 'error';
 }
 
-// sendSuccess bọc payload trong { success, data } — unwrap để trang đọc trực tiếp.
 interface WebhookEnvelope<T> {
   success?: boolean;
   message?: string;
@@ -39,7 +39,6 @@ export function useAdminWebhook() {
     alertTimerRef.current = setTimeout(() => setAlert(null), ALERT_DURATION_MS);
   }, []);
 
-  // Webhook nhận phiên quản trị qua cookie; secret chỉ cần khi gọi thay bằng x-webhook-secret.
   const request = useCallback(async <T,>(
     event: string,
     payload?: Record<string, unknown>,

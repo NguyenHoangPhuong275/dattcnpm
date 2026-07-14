@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server';
 import { connectRedis, getRedis } from '@/lib/db';
 import { debugGuard } from '@/lib/debug-guard';
-import { sendSuccess, sendError } from '@/lib/api-response';
+import { AppError, handleApiError, sendSuccess } from '@/lib/api-response';
 
-export async function GET(request: NextRequest) {
-  const guardRes = debugGuard(request);
-  if (guardRes) return guardRes;
-
+export async function GET(request: NextRequest): Promise<Response> {
   try {
+    const guardResponse = debugGuard(request);
+    if (guardResponse) return guardResponse;
+
     await connectRedis();
     const response = await getRedis().ping();
 
@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
       response,
       timestamp: new Date().toISOString(),
     });
-  } catch {
-    return sendError('INTERNAL_ERROR', 'Redis connection failed', { connected: false }, 500);
+  } catch (error) {
+    return handleApiError(error instanceof AppError
+      ? error
+      : new AppError('INTERNAL_ERROR', 'Không thể kết nối Redis', 500, { connected: false }));
   }
 }

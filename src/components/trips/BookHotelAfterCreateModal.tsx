@@ -22,6 +22,8 @@ export default function BookHotelAfterCreateModal({
   endDate,
   onClose,
 }: BookHotelAfterCreateModalProps): React.JSX.Element | null {
+  const idPrefix = `book-hotel-${tripId}-${React.useId()}`;
+
   if (!open) return null;
 
   return (
@@ -29,7 +31,7 @@ export default function BookHotelAfterCreateModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="book-hotel-title"
+      aria-labelledby={`${idPrefix}-title`}
       onClick={onClose}
     >
       <div
@@ -38,12 +40,13 @@ export default function BookHotelAfterCreateModal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-[var(--color-border)] px-6 py-4">
           <div>
-            <h2 id="book-hotel-title" className="text-xl font-bold text-[var(--color-text)]">Đặt khách sạn cho chuyến đi</h2>
+            <h2 id={`${idPrefix}-title`} className="text-xl font-bold text-[var(--color-text)]">Thêm khách sạn vào chuyến đi</h2>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Gợi ý khách sạn tại {destination || 'điểm đến'}. Bấm &quot;Lưu vào chuyến đi&quot; để đặt ngay, hoặc để sau.
+              Gợi ý khách sạn tại {destination || 'điểm đến'}. Chọn một khách sạn để lưu vào kế hoạch, hoặc thực hiện sau.
             </p>
           </div>
           <button
+            id={`${idPrefix}-close`}
             type="button"
             onClick={onClose}
             className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-bg)]"
@@ -64,6 +67,7 @@ export default function BookHotelAfterCreateModal({
 
         <div className="flex justify-end gap-3 border-t border-[var(--color-border)] px-6 py-4">
           <button
+            id={`${idPrefix}-defer`}
             type="button"
             onClick={onClose}
             className="rounded-lg border border-[var(--color-border)] px-5 py-2 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]"
@@ -71,6 +75,7 @@ export default function BookHotelAfterCreateModal({
             Để sau
           </button>
           <button
+            id={`${idPrefix}-done`}
             type="button"
             onClick={onClose}
             className="rounded-lg bg-[var(--color-primary-darker)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--color-primary-hover)]"

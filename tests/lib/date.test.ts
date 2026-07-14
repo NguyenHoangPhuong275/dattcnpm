@@ -1,14 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import {
+  differenceInCalendarDays,
   formatDate,
   formatDateInputValue,
   formatUtcDateOnly,
   formatUtcDateOnlyStrict,
+  getVietnamDateTimeParts,
   getDefaultEndDate,
   getDefaultStartDate,
   getDefaultTripDates,
+  isValidDateOnly,
+  parseDateOnly,
   parseValidDate,
 } from '@/lib/date';
+
+describe('date-only validation and Vietnam time', () => {
+  it('rejects normalized or malformed calendar dates', () => {
+    expect(isValidDateOnly('2026-02-31')).toBe(false);
+    expect(isValidDateOnly('2026-02-29')).toBe(false);
+    expect(isValidDateOnly('14/07/2026')).toBe(false);
+    expect(parseDateOnly('2026-13-01')).toBeNull();
+  });
+
+  it('accepts valid leap dates and calculates calendar nights', () => {
+    expect(isValidDateOnly('2024-02-29')).toBe(true);
+    expect(differenceInCalendarDays('2026-07-30', '2026-08-02')).toBe(3);
+    expect(differenceInCalendarDays('invalid', '2026-08-02')).toBeNull();
+  });
+
+  it('derives the business date and time in Vietnam independently of server timezone', () => {
+    expect(getVietnamDateTimeParts(new Date('2026-07-13T18:30:00.000Z'))).toEqual({
+      date: '2026-07-14',
+      time: '01:30',
+    });
+  });
+});
 
 describe('formatDateInputValue', () => {
   it('returns empty string for nullish input', () => {

@@ -6,27 +6,17 @@ import { objectIdSchema } from '@/lib/validations/common';
 import { updateChecklistItemSchema, normalizeChecklistLabel } from '@/lib/validations/checklist';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { toChecklistResponse } from '@/lib/trip-formatters';
 
 type RouteCtx = {
   params: Promise<{ id: string; itemId: string }>;
 };
 
-function toChecklistResponse(item: TripChecklist) {
-  return {
-    id: String(item._id),
-    tripId: String(item.tripId),
-    title: item.label,
-    completed: item.isDone,
-    dueDate: item.dueDate ? new Date(item.dueDate).toISOString() : null,
-    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null,
-  };
-}
-
 export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -48,7 +38,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
       itemId,
       userId,
       select: (d) => d.tripChecklists,
-      notFoundMessage: 'Không tìm thấy mục checklist',
+      notFoundMessage: 'Không tìm thấy mục chuẩn bị',
     });
 
     const body = await request.json().catch(() => ({}));
@@ -61,7 +51,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
 
     const updated = (await db.tripChecklists.updateOne(itemId, { $set: updates })) as TripChecklist | null;
     if (!updated) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy mục checklist', 404);
+      throw new AppError('NOT_FOUND', 'Không tìm thấy mục chuẩn bị', 404);
     }
 
     await createAuditLog(userId, 'UPDATE_CHECKLIST_ITEM', 'TRIP_CHECKLIST', itemId, {
@@ -79,7 +69,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -92,19 +82,19 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
       itemId,
       userId,
       select: (d) => d.tripChecklists,
-      notFoundMessage: 'Không tìm thấy mục checklist',
+      notFoundMessage: 'Không tìm thấy mục chuẩn bị',
     });
 
     const deleted = await db.tripChecklists.deleteOne(itemId);
     if (!deleted) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy mục checklist', 404);
+      throw new AppError('NOT_FOUND', 'Không tìm thấy mục chuẩn bị', 404);
     }
 
     await createAuditLog(userId, 'DELETE_CHECKLIST_ITEM', 'TRIP_CHECKLIST', itemId, { tripId: id }).catch(
       () => {}
     );
 
-    return sendSuccess({ message: 'Đã xóa mục checklist' });
+    return sendSuccess({ message: 'Đã xóa mục chuẩn bị' });
   } catch (error) {
     return handleApiError(error);
   }

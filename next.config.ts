@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "commons.wikimedia.org" },
       { protocol: "https", hostname: "upload.wikimedia.org" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "api.qrserver.com", pathname: "/v1/create-qr-code/**" },
+      { protocol: "https", hostname: "img.vietqr.io", pathname: "/image/**" },
     ],
   },
 

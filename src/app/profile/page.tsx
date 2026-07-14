@@ -5,27 +5,25 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import ProfileMenu from '@/components/profile/ProfileMenu';
 import PersonalInfoForm from '@/components/profile/PersonalInfoForm';
-import TravelPreferencesForm from '@/components/profile/TravelPreferencesForm';
 import MyTripsSection from '@/components/profile/MyTripsSection';
 import FavoritesSection from '@/components/profile/FavoritesSection';
-import ReviewsSection from '@/components/profile/ReviewsSection';
-import SearchHistorySection from '@/components/profile/SearchHistorySection';
 import SecuritySection from '@/components/profile/SecuritySection';
 import CreateTripModal from '@/components/profile/CreateTripModal';
-import BookHotelAfterCreateModal from '@/components/trips/BookHotelAfterCreateModal';
 import PasswordChangeModal from '@/components/profile/PasswordChangeModal';
 import TripDetailModal from '@/components/profile/TripDetailModal';
 import ProfileLoading from '@/components/profile/ProfileLoading';
+import MyBookingsSection from '@/components/profile/MyBookingsSection';
+import MyFlightBookingsSection from '@/components/profile/MyFlightBookingsSection';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useToast } from '@/hooks/useToast';
 import { useProfile } from '@/hooks/useProfile';
 import { useMyTrips } from '@/hooks/useMyTrips';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useMyReviews } from '@/hooks/useMyReviews';
-import { TripSummary, ProfileTab, TravelInterestCode } from '@/types/profile';
+import { TripSummary, ProfileTab } from '@/types/profile';
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
-import { getDefaultTripDates } from '@/lib/date';
+import { formatDate, getDefaultTripDates } from '@/lib/date';
+import { normalizeProfileTab } from '@/lib/profile-tabs';
 
 export default function ProfilePage() {
   return (
@@ -51,6 +49,29 @@ function ProfileSectionSkeleton() {
   );
 }
 
+interface ProfileLoadErrorProps {
+  id: string;
+  message: string | null;
+  fallback: string;
+  onRetry: () => void;
+}
+
+function ProfileLoadError({ id, message, fallback, onRetry }: ProfileLoadErrorProps) {
+  return (
+    <div role="alert" className="flex flex-col items-start justify-between gap-3 rounded-xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 px-4 py-4 text-sm sm:flex-row sm:items-center">
+      <span className="text-[var(--color-danger)]">{message || fallback}</span>
+      <button
+        id={id}
+        type="button"
+        onClick={onRetry}
+        className="shrink-0 font-bold text-[var(--color-primary-darker)] hover:underline"
+      >
+        Thử lại
+      </button>
+    </div>
+  );
+}
+
 function ProfilePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -62,20 +83,17 @@ function ProfilePageContent() {
   const { showToast } = toastHook.actions;
   const { actions: feedback } = useFeedback();
 
-  const initialTab = (searchParams.get('tab') as ProfileTab) || 'personal';
+  const initialTab = normalizeProfileTab(searchParams.get('tab'));
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
-  const shouldLoadProfile = activeTab === 'personal' || activeTab === 'preferences' || activeTab === 'security';
-  const shouldLoadTrips = activeTab === 'trips' || activeTab === 'search-history';
+  const shouldLoadProfile = activeTab === 'personal' || activeTab === 'security';
+  const shouldLoadTrips = activeTab === 'trips';
   const shouldLoadFavorites = activeTab === 'favorites';
-  const shouldLoadReviews = activeTab === 'reviews';
 
   const profile = useProfile({ userId: shouldLoadProfile ? user?.id ?? null : null });
   const myTripsHook = useMyTrips({ userId: shouldLoadTrips ? user?.id ?? null : null });
   const favoritesHook = useFavorites({ userId: shouldLoadFavorites ? user?.id ?? null : null });
-  const reviewsHook = useMyReviews({ userId: shouldLoadReviews ? user?.id ?? null : null });
 
   const [showCreateTripModal, setShowCreateTripModal] = useState(false);
-  const [hotelTrip, setHotelTrip] = useState<TripSummary | null>(null);
   const [newTripTitle, setNewTripTitle] = useState('');
   const [newTripDest, setNewTripDest] = useState('');
   const { startDate: defaultStart, endDate: defaultEnd } = getDefaultTripDates(3);
@@ -96,44 +114,39 @@ function ProfilePageContent() {
   const profileData = profile.data;
   const profileStatus = profile.status;
   const personal = profileData.personal;
-  const preferences = profileData.preferences;
   const memberSince = profileData.memberSince;
   const savingPersonal = profileData.savingPersonal;
-  const savingPreferences = profileData.savingPreferences;
   const {
     setPersonal,
-    setPreferences,
     savePersonal,
-    savePreferences,
     updateAvatar,
+    reloadProfile,
   } = profile.actions;
+  const profileError = profile.error;
   const profileLoading = !!user?.id && shouldLoadProfile && (profileStatus === 'idle' || profileStatus === 'loading');
 
   const myTrips = myTripsHook.data;
   const tripsStatus = myTripsHook.status;
   const creatingTrip = myTripsHook.creating;
+  const tripsError = myTripsHook.error;
   const { createTrip, deleteTrip, loadTrips } = myTripsHook.actions;
   const loadingTrips = !!user?.id && shouldLoadTrips && (tripsStatus === 'idle' || tripsStatus === 'loading');
 
   const favorites = favoritesHook.data;
   const favsStatus = favoritesHook.status;
+  const favoritesError = favoritesHook.error;
   const { removeFavorite, loadFavorites } = favoritesHook.actions;
   const loadingFavorites = !!user?.id && shouldLoadFavorites && (favsStatus === 'idle' || favsStatus === 'loading');
   const removingIds = favoritesHook.removingIds;
 
-  const myReviews = reviewsHook.data;
-  const reviewsStatus = reviewsHook.status;
-  const reviewsSavingId = reviewsHook.savingId;
-  const reviewDeletingIds = reviewsHook.deletingIds;
-  const { loadReviews, updateReview, deleteReview } = reviewsHook.actions;
-  const loadingReviews = !!user?.id && shouldLoadReviews && (reviewsStatus === 'idle' || reviewsStatus === 'loading');
+
 
   const handleTabChange = useCallback((tab: ProfileTab) => {
     router.push(`/profile?tab=${tab}`);
   }, [router]);
 
   useEffect(() => {
-    const tabParam = (searchParams.get('tab') as ProfileTab | null) || 'personal';
+    const tabParam = normalizeProfileTab(searchParams.get('tab'));
     if (tabParam !== activeTab) {
       setActiveTab(tabParam);
     }
@@ -153,19 +166,7 @@ function ProfilePageContent() {
     }));
   }, [setPersonal]);
 
-  const handlePreferenceChange = useCallback(<K extends keyof typeof preferences,>(field: K, value: (typeof preferences)[K]) => {
-    setPreferences((prev) => ({ ...prev, [field]: value }));
-  }, [setPreferences]);
 
-  const toggleInterest = useCallback((tag: TravelInterestCode) => {
-    setPreferences((prev) => {
-      const hasTag = prev.interests.includes(tag);
-      return {
-        ...prev,
-        interests: hasTag ? prev.interests.filter((item) => item !== tag) : [...prev.interests, tag],
-      };
-    });
-  }, [setPreferences]);
 
   const handleDeleteTrip = useCallback(async (id: string) => {
     await feedback.confirmAction({
@@ -199,30 +200,7 @@ function ProfilePageContent() {
     });
   }, [feedback, removeFavorite]);
 
-  const handleUpdateReview = useCallback(async (
-    reviewId: string,
-    payload: { rating: number; comment?: string },
-  ) => {
-    await feedback.runAction({
-      action: () => updateReview(reviewId, payload),
-      success: 'Đã cập nhật đánh giá',
-      error: 'Không thể cập nhật đánh giá',
-    });
-  }, [feedback, updateReview]);
 
-  const handleDeleteReview = useCallback(async (reviewId: string) => {
-    await feedback.confirmAction({
-      confirm: {
-        title: 'Xóa đánh giá?',
-        description: 'Đánh giá này sẽ bị xóa khỏi hồ sơ của bạn.',
-        confirmLabel: 'Xóa',
-        tone: 'danger',
-      },
-      action: () => deleteReview(reviewId),
-      success: 'Đã xóa đánh giá',
-      error: 'Không thể xóa đánh giá',
-    });
-  }, [deleteReview, feedback]);
 
   const resetCreateTripForm = useCallback(() => {
     setShowCreateTripModal(false);
@@ -254,11 +232,11 @@ function ProfilePageContent() {
       resetCreateTripForm();
       showToast('Chuyến đi mới đã được tạo', 'success');
       loadTrips();
-      if (result.trip) setHotelTrip(result.trip);
+      if (result.trip) router.push(`/trips/${result.trip._id}/book-wizard`);
     } else {
       showToast(result.message || 'Tạo chuyến đi thất bại', 'error');
     }
-  }, [newTripTitle, newTripDest, newTripStartDate, newTripEndDate, newTripDescription, newTripIsPublic, createTrip, showToast, creatingTrip, loadTrips, resetCreateTripForm]);
+  }, [newTripTitle, newTripDest, newTripStartDate, newTripEndDate, newTripDescription, newTripIsPublic, createTrip, showToast, creatingTrip, loadTrips, resetCreateTripForm, router]);
 
   const handleChangePassword = useCallback(async () => {
     if (!user?.id) return;
@@ -311,21 +289,7 @@ function ProfilePageContent() {
     }
   }, [savePersonal, showToast]);
 
-  const handleSavePreferences = useCallback(async (event: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const result = await savePreferences(event);
-      if (result.success) {
-        showToast('Đã cập nhật sở thích du lịch', 'success');
-      } else {
-        showToast(result.error || 'Lưu sở thích thất bại, vui lòng thử lại', 'error');
-      }
-      return result;
-    } catch (error: unknown) {
-      const errorMsg = getApiErrorMessage(error, 'Lưu sở thích thất bại, vui lòng thử lại');
-      showToast(errorMsg, 'error');
-      return { success: false, error: errorMsg };
-    }
-  }, [savePreferences, showToast]);
+
 
   useEffect(() => {
     if (!user?.id) return;
@@ -334,20 +298,15 @@ function ProfilePageContent() {
       loadTrips();
     } else if (shouldLoadFavorites && favsStatus === 'idle') {
       loadFavorites();
-    } else if (shouldLoadReviews && reviewsStatus === 'idle') {
-      loadReviews();
     }
   }, [
     user?.id,
     shouldLoadTrips,
     shouldLoadFavorites,
-    shouldLoadReviews,
     tripsStatus,
     favsStatus,
-    reviewsStatus,
     loadTrips,
     loadFavorites,
-    loadReviews,
   ]);
 
   useEffect(() => {
@@ -390,24 +349,29 @@ function ProfilePageContent() {
             <ProfileMenu activeTab={activeTab} onTabChange={handleTabChange} />
 
             <div className="min-w-0 flex-1">
-              <div className="mb-6 flex items-center justify-between gap-4">
+              <div className="mb-6 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-4">
                 <h2 className="font-display text-2xl font-extrabold text-slate-800">
                   {activeTab === 'personal' && 'Thông tin của bạn'}
-                  {activeTab === 'preferences' && 'Sở thích du lịch'}
                   {activeTab === 'trips' && 'Danh sách chuyến đi'}
+                  {activeTab === 'bookings' && 'Đặt chỗ của tôi'}
                   {activeTab === 'favorites' && 'Địa điểm yêu thích'}
-                  {activeTab === 'search-history' && 'Lịch sử tìm kiếm'}
-                  {activeTab === 'reviews' && 'Đánh giá của tôi'}
                   {activeTab === 'security' && 'Bảo mật tài khoản'}
                 </h2>
                 {activeTab === 'personal' && memberSince && (
-                  <div className="text-xs text-slate-500">Thành viên từ {memberSince}</div>
+                  <div className="text-xs text-slate-500">Thành viên từ {formatDate(memberSince)}</div>
                 )}
               </div>
 
               {activeTab === 'personal' && (
                 profileLoading ? (
                   <ProfileSectionSkeleton />
+                ) : profileStatus === 'error' ? (
+                  <ProfileLoadError
+                    id="profile-retry-personal"
+                    message={profileError}
+                    fallback="Không thể tải thông tin hồ sơ"
+                    onRetry={reloadProfile}
+                  />
                 ) : (
                   <PersonalInfoForm
                     personal={personal}
@@ -421,56 +385,70 @@ function ProfilePageContent() {
                 )
               )}
 
-              {activeTab === 'preferences' && (
-                profileLoading ? (
-                  <ProfileSectionSkeleton />
+              {activeTab === 'trips' && (
+                tripsStatus === 'error' ? (
+                  <ProfileLoadError
+                    id="profile-retry-trips"
+                    message={tripsError}
+                    fallback="Không thể tải danh sách chuyến đi"
+                    onRetry={() => { void loadTrips(); }}
+                  />
                 ) : (
-                  <TravelPreferencesForm
-                    preferences={preferences}
-                    onPreferenceChange={handlePreferenceChange}
-                    onToggleInterest={toggleInterest}
-                    onSave={handleSavePreferences}
-                    saving={savingPreferences}
+                  <MyTripsSection
+                    trips={myTrips}
+                    onCreateNew={() => setShowCreateTripModal(true)}
+                    onViewDetail={handleViewTrip}
+                    onDelete={handleDeleteTrip}
+                    loading={loadingTrips}
                   />
                 )
               )}
 
-              {activeTab === 'trips' && (
-                <MyTripsSection
-                  trips={myTrips}
-                  onCreateNew={() => setShowCreateTripModal(true)}
-                  onViewDetail={handleViewTrip}
-                  onDelete={handleDeleteTrip}
-                  loading={loadingTrips}
-                />
-              )}
-
               {activeTab === 'favorites' && (
-                <FavoritesSection places={favorites} onRemove={handleRemoveFavorite} loading={loadingFavorites} removingIds={removingIds} />
+                favsStatus === 'error' ? (
+                  <ProfileLoadError
+                    id="profile-retry-favorites"
+                    message={favoritesError}
+                    fallback="Không thể tải danh sách địa điểm yêu thích"
+                    onRetry={() => { void loadFavorites(); }}
+                  />
+                ) : (
+                  <FavoritesSection places={favorites} onRemove={handleRemoveFavorite} loading={loadingFavorites} removingIds={removingIds} />
+                )
               )}
 
-              {activeTab === 'reviews' && (
-                <ReviewsSection
-                  reviews={myReviews}
-                  loading={loadingReviews}
-                  savingId={reviewsSavingId}
-                  deletingIds={reviewDeletingIds}
-                  onUpdate={handleUpdateReview}
-                  onDelete={handleDeleteReview}
-                />
-              )}
-
-              {activeTab === 'search-history' && (
-                <SearchHistorySection userId={user.id} trips={myTrips} />
+              {activeTab === 'bookings' && (
+                <div className="space-y-10">
+                  <section aria-labelledby="my-hotel-bookings-title">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-primary-dark)]">Khách sạn</p>
+                        <h3 id="my-hotel-bookings-title" className="mt-1 text-lg font-extrabold">Phòng đã đặt</h3>
+                      </div>
+                      <a id="profile-find-hotels" href="/hotels" className="text-sm font-bold text-[var(--color-primary-darker)] hover:underline">Tìm khách sạn</a>
+                    </div>
+                    <MyBookingsSection userId={user.id} />
+                  </section>
+                  <div className="border-t border-slate-100 my-8 pt-8">
+                    <MyFlightBookingsSection userId={user.id} />
+                  </div>
+                </div>
               )}
 
               {activeTab === 'security' && (
                 profileLoading ? (
                   <ProfileSectionSkeleton />
+                ) : profileStatus === 'error' ? (
+                  <ProfileLoadError
+                    id="profile-retry-security"
+                    message={profileError}
+                    fallback="Không thể tải thông tin bảo mật"
+                    onRetry={reloadProfile}
+                  />
                 ) : (
                   <SecuritySection
                     onChangePassword={() => setShowPasswordModal(true)}
-                    saving={savingPersonal || savingPreferences}
+                    saving={savingPersonal}
                   />
                 )
               )}
@@ -497,17 +475,7 @@ function ProfilePageContent() {
           onCreate={handleCreateNewTrip}
         />
 
-        {hotelTrip && (
-          <BookHotelAfterCreateModal
-            open
-            tripId={hotelTrip._id}
-            destination={hotelTrip.destination}
-            userId={user?.id ?? null}
-            startDate={hotelTrip.startDate}
-            endDate={hotelTrip.endDate}
-            onClose={() => setHotelTrip(null)}
-          />
-        )}
+
 
         <PasswordChangeModal
           open={showPasswordModal}

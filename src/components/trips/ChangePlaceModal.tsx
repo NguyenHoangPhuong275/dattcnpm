@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { usePlaceSearch, type SearchResult } from '@/hooks/usePlaceSearch';
 import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 
@@ -26,6 +26,7 @@ export default function ChangePlaceModal({
   onClose,
   onChanged,
 }: ChangePlaceModalProps): React.JSX.Element {
+  const idPrefix = `change-place-${tripId}-${itemId}-${useId()}`;
   const {
     searchQuery,
     setSearchQuery,
@@ -81,6 +82,7 @@ export default function ChangePlaceModal({
 
         <div ref={searchContainerRef} className="relative">
           <input
+            id={`${idPrefix}-search`}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -96,6 +98,7 @@ export default function ChangePlaceModal({
               {searchResults.map((place) => (
                 <li key={place._id}>
                   <button
+                    id={`${idPrefix}-result-${place._id}`}
                     type="button"
                     onClick={() => onPick(place)}
                     className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-[var(--color-primary-lightest)]"
@@ -119,6 +122,7 @@ export default function ChangePlaceModal({
 
         <div className="mt-5 flex justify-end gap-2">
           <button
+            id={`${idPrefix}-cancel`}
             type="button"
             onClick={onClose}
             className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
@@ -126,6 +130,7 @@ export default function ChangePlaceModal({
             Huỷ
           </button>
           <button
+            id={`${idPrefix}-confirm`}
             type="button"
             onClick={onConfirm}
             disabled={!picked || saving}

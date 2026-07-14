@@ -15,7 +15,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -51,16 +51,23 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     }
 
     const now = new Date();
-    const tempOps = orderedIds.map((itemId, index) => ({
+    const nextIndexByDay = new Map<number, number>();
+    const normalizedOrder = orderedIds.map((itemId) => {
+      const item = existingById.get(itemId)!;
+      const orderIndex = nextIndexByDay.get(item.day) ?? 0;
+      nextIndexByDay.set(item.day, orderIndex + 1);
+      return { itemId, orderIndex };
+    });
+    const tempOps = normalizedOrder.map(({ itemId, orderIndex }) => ({
       updateOne: {
         filter: { _id: itemId },
-        update: { $set: { orderIndex: -(index + 1) } },
+        update: { $set: { orderIndex: -(orderIndex + 1) } },
       },
     }));
-    const finalOps = orderedIds.map((itemId, index) => ({
+    const finalOps = normalizedOrder.map(({ itemId, orderIndex }) => ({
       updateOne: {
         filter: { _id: itemId },
-        update: { $set: { orderIndex: index, updatedAt: now } },
+        update: { $set: { orderIndex, updatedAt: now } },
       },
     }));
 

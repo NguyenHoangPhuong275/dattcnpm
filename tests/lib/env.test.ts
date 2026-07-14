@@ -17,6 +17,12 @@ describe('env validation (parseEnv)', () => {
     expect(env.WEBHOOK_IP_ALLOWLIST).toBe('');
     expect(env.TRUSTED_PROXY_CIDRS).toBe('');
     expect(env.CRON_SECRET).toBeUndefined();
+    expect(env.PAYMENT_MODE).toBe('live');
+  });
+
+  it('dùng thanh toán QR nội bộ ngoài môi trường production', () => {
+    expect(parseEnv({ ...validEnv, NODE_ENV: 'development' }).PAYMENT_MODE).toBe('demo');
+    expect(parseEnv({ ...validEnv, NODE_ENV: 'test' }).PAYMENT_MODE).toBe('demo');
   });
 
   it('throws and names the missing required variable', () => {

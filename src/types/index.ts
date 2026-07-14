@@ -9,8 +9,6 @@ export type {
   TravelPreferences,
   TripSummary,
   FavoritePlaceSummary,
-  ReviewedPlace,
-  MyReview,
 } from './profile';
 
 export type {
@@ -25,10 +23,26 @@ export type {
 
 export type {
   Place,
-  Review,
   FavoritePlace,
-  SearchHistory,
 } from './place';
 
 export type { Notification, AuditLog, User } from '@/lib/db';
 
+export type {
+  BookingPaymentStatus,
+  BookingStatus,
+  BookingPaymentMode,
+  BookingPaymentInfo,
+  BookingPaymentProps,
+  BookingListPagination,
+  BookingListPage,
+  HotelBookingListItem,
+  HotelBookingListPage,
+  CreatedHotelBooking,
+  CreateHotelBookingPayload,
+  FlightBookingSegmentSummary,
+  FlightBookingListItem,
+  FlightBookingListPage,
+  CreatedFlightBooking,
+  CreateFlightBookingPayload,
+} from './booking';

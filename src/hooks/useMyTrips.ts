@@ -41,7 +41,7 @@ export function useMyTrips({ userId }: UseMyTripsOptions): UseMyTripsReturn {
   const creating = createStatus === 'loading';
 
   const createTrip = useCallback(async (payload: CreateTripPayload): Promise<{ success: boolean; message?: string; trip?: TripSummary }> => {
-    if (!userId) return { success: false, message: 'No user' };
+    if (!userId) return { success: false, message: 'Phiên đăng nhập không còn hiệu lực. Vui lòng đăng nhập lại.' };
 
     const trimmedTitle = payload.title.trim();
     const trimmedDest = payload.destination.trim();

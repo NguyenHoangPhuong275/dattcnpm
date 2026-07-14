@@ -35,11 +35,12 @@ export default function OtpStep({
     <div className="space-y-5 flex-1 flex flex-col justify-between py-1">
       <div className="space-y-4">
         <button
+          id="register-otp-back"
           type="button"
           onClick={onBack}
           className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
         >
-          ← Quay lại
+          Quay lại
         </button>
 
         <div className="text-center space-y-1.5">
@@ -63,6 +64,7 @@ export default function OtpStep({
         <div className="flex justify-center gap-2" onPaste={onOtpPaste}>
           {otpDigits.map((digit, i) => (
             <input
+              id={`register-otp-digit-${i + 1}`}
               key={i}
               ref={(el) => {
                 if (otpRefs.current) {
@@ -75,7 +77,7 @@ export default function OtpStep({
               value={digit}
               onChange={(e) => onOtpChange(i, e.target.value)}
               onKeyDown={(e) => onOtpKeyDown(i, e)}
-              className={`w-11 h-13 text-center text-lg font-bold rounded-xl border-0 bg-white ring-1 ring-slate-200 text-slate-900 focus:outline-none transition-all cursor-text ${error ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+              className={`h-13 w-11 cursor-text rounded-xl border bg-white text-center text-lg font-bold text-slate-900 transition-all ${error ? 'border-red-300' : 'border-slate-200'}`}
               autoComplete="one-time-code"
             />
           ))}
@@ -84,20 +86,22 @@ export default function OtpStep({
 
       <div className="space-y-4 mt-auto pt-4">
         <button
+          id="register-otp-verify"
           type="button"
           onClick={() => onVerify()}
           disabled={isLoading || otpDigits.some((d) => !d)}
           className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all min-h-[44px] cursor-pointer flex items-center justify-center"
         >
-          {isLoading ? 'Đang xác minh...' : 'XÁC MINH'}
+          {isLoading ? 'Đang xác minh...' : 'Xác minh'}
         </button>
 
         <div className="text-center text-xs">
           <span className="text-slate-500">Không nhận mã? </span>
           {resendCooldown > 0 ? (
-            <span className="text-slate-400">Gửi lại sau {resendCooldown}s</span>
+            <span className="text-slate-400">Gửi lại sau {resendCooldown} giây</span>
           ) : (
             <button
+              id="register-otp-resend"
               type="button"
               onClick={onResend}
               disabled={isLoading}

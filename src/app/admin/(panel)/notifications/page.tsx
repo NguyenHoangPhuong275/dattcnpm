@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import AdminAlert from '@/components/admin/AdminAlert';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import BroadcastForm from '@/components/admin/BroadcastForm';
 import { useAdminWebhook } from '@/hooks/useAdminWebhook';
 import { getApiErrorMessage } from '@/lib/api-client';
@@ -32,20 +33,18 @@ export default function AdminNotificationsPage(): React.JSX.Element {
       triggerAlert(data.message || 'Đã gửi thông báo', 'success');
       setNotifContent('');
     } catch (err: unknown) {
-      triggerAlert(err instanceof Error ? err.message : 'Đã xảy ra lỗi', 'error');
+      triggerAlert(err instanceof Error ? err.message : 'Không thể gửi thông báo. Vui lòng thử lại.', 'error');
     } finally {
       setActionLoading(null);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-extrabold text-[var(--color-text)]">Thông báo</h1>
-        <p className="mt-1 text-sm font-medium text-[var(--color-text-secondary)]">
-          Gửi thông báo hệ thống đến toàn bộ người dùng thật (không gửi cho tài khoản seed)
-        </p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Gửi thông báo"
+        description="Soạn và gửi thông báo quan trọng đến toàn bộ người dùng đang hoạt động trên Lotus Travel."
+      />
 
       <AdminAlert alert={alert} />
 

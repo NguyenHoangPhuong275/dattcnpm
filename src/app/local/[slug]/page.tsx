@@ -31,6 +31,7 @@ interface RegionOverviewProps {
 interface SectionTitleProps {
   title: string;
   href?: string;
+  linkId?: string;
 }
 
 interface StoryGridProps {
@@ -122,12 +123,14 @@ function RegionOverview({ locality }: RegionOverviewProps): React.JSX.Element {
 function SectionTitle({
   title,
   href,
+  linkId,
 }: SectionTitleProps): React.JSX.Element {
   return (
     <div className="flex items-center justify-between gap-4">
       <h2 className="font-display text-3xl font-bold text-[var(--color-text)]">{title}</h2>
       {href && (
         <Link
+          id={linkId}
           href={href}
           className="whitespace-nowrap text-sm font-semibold text-[var(--color-primary-darker)] transition-colors hover:text-[var(--color-primary-dark)]"
         >
@@ -175,7 +178,7 @@ function RegionNews(): React.JSX.Element {
   return (
     <section id="travel-news" className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <SectionTitle title="Tin tức du lịch" href={ROUTES.travelReferences} />
+        <SectionTitle title="Cẩm nang du lịch" href={ROUTES.travelReferences} linkId="local-news-view-more" />
         <StoryGrid items={LOCALITY_NEWS} />
       </div>
     </section>
@@ -186,11 +189,11 @@ function RegionDiscover({ locality }: { locality: Locality }): React.JSX.Element
   return (
     <section className="bg-white py-10 lg:py-14">
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <SectionTitle title="Khám phá thêm" href={`/local/${locality.slug}/places`} />
+        <SectionTitle title="Khám phá thêm" href={`/local/${locality.slug}/places`} linkId="local-discovery-view-more" />
         <div className="mt-6 grid gap-5 md:grid-cols-3">
-          {LOCALITY_DISCOVERY.map((item, index) => (
+          {LOCALITY_DISCOVERY.map((item) => (
             <Link
-              id={`local-discovery-${index + 1}`}
+              id={`local-discovery-${item.action.type}-${item.action.type === 'places' ? item.action.theme : 'all'}`}
               key={item.title}
               href={resolveDiscoveryHref(item.action, locality)}
               className="group overflow-hidden rounded-[18px] border border-[var(--color-border)] bg-white transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       throw new AppError('RATE_LIMITED', 'Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau.', 429);
     }
     if (!process.env.ADMIN_PASSWORD && !process.env.ADMIN_PASSWORD_HASH) {
-      throw new AppError('SERVICE_UNAVAILABLE', 'Chưa cấu hình mật khẩu quản trị', 503);
+      throw new AppError('SERVICE_UNAVAILABLE', 'Đăng nhập quản trị tạm thời không khả dụng. Vui lòng liên hệ bộ phận phụ trách.', 503);
     }
     if (!await verifyAdminPassword(password)) {
       throw new AppError('UNAUTHORIZED', 'Mật khẩu quản trị không chính xác', 401);

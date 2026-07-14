@@ -112,6 +112,74 @@ export interface Hotel {
   updatedAt: Date;
 }
 
+export type HotelBookingStatus = 'pending' | 'confirmed' | 'cancelled';
+export type HotelPaymentStatus = 'unpaid' | 'paid';
+
+export interface HotelBooking {
+  _id: MongoId;
+  hotelId: MongoId;
+  userId: MongoId;
+  tripId?: MongoId | null;
+  roomCode: string;
+  roomName: string;
+  checkIn: Date;
+  checkOut: Date;
+  nights: number;
+  guests: number;
+  guestTitle: string;
+  guestName: string;
+  phone: string;
+  contactEmail: string;
+  note?: string | null;
+  pricePerNight: number;
+  totalPrice: number;
+  currency: string;
+  status: HotelBookingStatus;
+  paymentStatus: HotelPaymentStatus;
+  paidAt?: Date | null;
+  confirmedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FlightBookingSegment {
+  scheduleId: string;
+  flightNumber: string;
+  airlineCode: string;
+  from: string;
+  to: string;
+  flightDate: Date;
+  departureTime: string;
+  arrivalTime: string;
+  duration: string;
+  pricePerPassenger: number;
+}
+
+export type FlightBookingStatus = 'pending' | 'confirmed' | 'cancelled';
+export type FlightPaymentStatus = 'unpaid' | 'paid';
+
+export interface FlightBooking {
+  _id: MongoId;
+  userId: MongoId;
+  tripId?: MongoId | null;
+  outbound: FlightBookingSegment;
+  returnFlight?: FlightBookingSegment | null;
+  passengers: number;
+  passengerNames: string[];
+  contactName: string;
+  phone: string;
+  contactEmail: string;
+  note?: string | null;
+  totalPrice: number;
+  currency: string;
+  status: FlightBookingStatus;
+  paymentStatus: FlightPaymentStatus;
+  paidAt?: Date | null;
+  confirmedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface HotelReview {
   _id: MongoId;
   hotelId: MongoId;
@@ -211,12 +279,6 @@ export interface Tag {
   createdAt: Date;
 }
 
-export interface PlaceTag {
-  _id: MongoId;
-  placeId: MongoId;
-  tagId: MongoId;
-}
-
 export interface UserPreference {
   _id: MongoId;
   userId: MongoId;
@@ -240,17 +302,6 @@ export interface TripBudget {
   type: TripBudgetType;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface ItineraryTransport {
-  _id: MongoId;
-  tripId: MongoId;
-  fromItemId: MongoId;
-  toItemId: MongoId;
-  transportMode: 'WALK' | 'BIKE' | 'CAR' | 'BUS' | 'TAXI' | 'OTHER';
-  durationMinutes?: number | null;
-  distanceKm?: number | null;
-  note?: string | null;
 }
 
 export interface TripAccommodation {
@@ -298,74 +349,3 @@ export interface ReviewReport {
   status: ReviewReportStatus;
   createdAt: Date;
 }
-
-export interface CachedGeoResult {
-  query: string;
-  lat: number;
-  lng: number;
-  displayName?: string;
-
-}
-
-export interface CachedPOI {
-  lat: number;
-  lng: number;
-  radius: number;
-  type?: string;
-  places: Array<Pick<Place, '_id' | 'name' | 'type' | 'lat' | 'lng' | 'address'>>;
-}
-
-export interface CachedWeather {
-  lat: number;
-  lng: number;
-  current: Record<string, unknown>;
-  forecast?: Record<string, unknown>[];
-  fetchedAt: Date;
-}
-
-export interface RateLimitEntry {
-  count: number;
-  firstAttempt: number;
-}
-
-export interface SessionData {
-  userId: string;
-  role: 'USER' | 'ADMIN';
-
-}
-
-export interface BlacklistEntry {
-
-  reason?: string;
-}
-
-export const RedisKey = {
-  geoSearch: (query: string) => `geo:search:${encodeURIComponent(query)}`,
-  poi: (lat: number, lng: number, radius: number, type = 'all') =>
-    `poi:${lat.toFixed(4)}:${lng.toFixed(4)}:${radius}:${type}`,
-  weather: (lat: number, lng: number) => `weather:${lat.toFixed(4)}:${lng.toFixed(4)}`,
-  rateLimitLogin: (ip: string) => `rl:login:${ip}`,
-  rateLimitSearch: (ip: string) => `rl:search:${ip}`,
-  session: (sessionId: string) => `session:${sessionId}`,
-  tokenBlacklist: (jti: string) => `blacklist:${jti}`,
-} as const;
-
-export type MongoDocument =
-  | User
-  | Trip
-  | Place
-  | ItineraryItem
-  | FavoritePlace
-  | SearchHistory
-  | AuditLog
-  | Review
-  | TripShare
-  | Notification
-  | Tag
-  | PlaceTag
-  | UserPreference
-  | TripBudget
-  | ItineraryTransport
-  | TripAccommodation
-  | TripChecklist
-  | UserFollow;

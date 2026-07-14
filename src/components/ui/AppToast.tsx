@@ -11,6 +11,7 @@ interface AppToastProps {
   visible: boolean;
   leaving?: boolean;
   onClose?: () => void;
+  idPrefix?: string;
 }
 
 const ICON_MAP: Record<ToastType, React.ReactNode> = {
@@ -58,7 +59,10 @@ export default function AppToast({
   visible,
   leaving = false,
   onClose,
+  idPrefix,
 }: AppToastProps) {
+  const generatedId = React.useId().replace(/:/g, '');
+  const closeButtonId = `${idPrefix ?? `app-toast-${generatedId}`}-close`;
   if (!visible || !message) return null;
 
   return (
@@ -74,6 +78,7 @@ export default function AppToast({
       </span>
       {onClose && (
         <button
+          id={closeButtonId}
           type="button"
           onClick={onClose}
           className="app-toast-close"

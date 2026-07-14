@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import AdminAlert from '@/components/admin/AdminAlert';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AuditLogViewer, { type AdminAuditLog } from '@/components/admin/AuditLogViewer';
 import { useAdminWebhook } from '@/hooks/useAdminWebhook';
 import { getApiErrorMessage } from '@/lib/api-client';
@@ -66,13 +67,11 @@ function AdminLogsContent(): React.JSX.Element {
   }, [fetchLogs]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-extrabold text-[var(--color-text)]">Nhật ký hoạt động</h1>
-        <p className="mt-1 text-sm font-medium text-[var(--color-text-secondary)]">
-          Ai đã làm gì trong hệ thống — lọc theo hành động hoặc theo từng người dùng
-        </p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Nhật ký hoạt động"
+        description="Theo dõi các sự kiện quan trọng, xác định người thực hiện và hỗ trợ đối soát khi có phát sinh."
+      />
 
       <AdminAlert alert={alert} />
 
@@ -83,7 +82,7 @@ function AdminLogsContent(): React.JSX.Element {
         totalPages={pagination.totalPages}
         total={pagination.total}
         actionFilter={actionFilter}
-        selectedUserLabel={actorUserId ? (actorLabel ?? actorUserId) : undefined}
+        selectedUserLabel={actorUserId ? (actorLabel ?? 'Người dùng đã chọn') : undefined}
         onActionFilterChange={(value) => { setActionFilter(value); setPage(1); }}
         onPageChange={setPage}
         onClearUser={() => { setPage(1); router.replace('/admin/logs'); }}

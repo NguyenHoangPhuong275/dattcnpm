@@ -21,6 +21,8 @@ export interface PoiData {
   description?: string;
   rating?: string;
   image?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface UsePlaceDetailsReturn {

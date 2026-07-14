@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -103,7 +103,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 

@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+
 import {
   getDb,
   dropAllManagedCollections,
@@ -16,14 +17,12 @@ import { timingSafeEqualString } from '@/lib/crypto';
 import { normalizeEmail } from '@/lib/string';
 import { isAdminRequest } from '@/lib/admin-authorization';
 
-// Tài khoản seed đứng tên đánh giá khách sạn import từ TripAdvisor — không phải người dùng thật,
-// không hiển thị trong quản trị và không nhận thông báo (nhưng phải giữ vì hotel_reviews tham chiếu).
 const SEED_EMAIL_PATTERN = /@tripadvisor\.local$/i;
 
 function getWebhookSecret() {
   const secret = process.env.WEBHOOK_SECRET;
   if (!secret) {
-    throw new AppError('INTERNAL_ERROR', 'WEBHOOK_SECRET is not configured', 500);
+    throw new AppError('INTERNAL_ERROR', 'Hệ thống chưa được cấu hình đầy đủ', 500);
   }
   return secret;
 }
@@ -38,7 +37,7 @@ function isIpAllowedForRestrictedEvent(ip: string): boolean {
   return allowed.includes(ip);
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const authHeader = request.headers.get('x-webhook-secret');
     const hasAdminAccess = await isAdminRequest(request);
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!hasValidSecret && !hasAdminAccess) {
-      throw new AppError('UNAUTHORIZED', 'Unauthorized admin access', 401);
+      throw new AppError('UNAUTHORIZED', 'Bạn không có quyền thực hiện thao tác này', 401);
     }
 
     const ip = getClientIp(request);
@@ -59,19 +58,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (rate.limited) {
-      throw new AppError('RATE_LIMITED', 'Too many webhook requests. Please try again later.', 429);
+      throw new AppError('RATE_LIMITED', 'Bạn đang thao tác quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     let body;
     try {
       body = await request.json();
     } catch {
-      throw new AppError('VALIDATION_ERROR', 'Invalid JSON body', 400);
+      throw new AppError('VALIDATION_ERROR', 'Dữ liệu gửi lên không hợp lệ', 400);
     }
 
     const { event, data } = body;
     if (!event || typeof event !== 'string') {
-      throw new AppError('VALIDATION_ERROR', 'Missing event field', 400);
+      throw new AppError('VALIDATION_ERROR', 'Thiếu thông tin thao tác', 400);
     }
 
     const destructiveEvents = new Set([
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
     if (ipRestrictedEvents.has(event) && !isIpAllowedForRestrictedEvent(ip)) {
       throw new AppError(
         'FORBIDDEN',
-        'IP không được phép thực hiện thao tác này (thiếu WEBHOOK_IP_ALLOWLIST trong production hoặc IP không nằm trong allowlist)',
+        'Thiết bị hiện tại không được phép thực hiện thao tác nhạy cảm này',
         403
       );
     }
@@ -109,17 +108,17 @@ export async function POST(request: NextRequest) {
     if (destructiveEvents.has(event) && data?.confirm !== true) {
       throw new AppError(
         'VALIDATION_ERROR',
-        'Missing confirmation for destructive webhook action',
+        'Vui lòng xác nhận trước khi thực hiện thao tác xóa dữ liệu',
         400
       );
     }
 
     if ((event === 'db.hardReset' || event === 'db.nuke') && data?.confirmText !== 'HARD_RESET_DATABASE') {
-      throw new AppError('VALIDATION_ERROR', 'Missing hard reset confirmation text', 400);
+      throw new AppError('VALIDATION_ERROR', 'Nội dung xác nhận xóa dữ liệu không hợp lệ', 400);
     }
 
     if (event === 'user.delete' && data?.hard === true && data?.confirm !== true) {
-      throw new AppError('VALIDATION_ERROR', 'Missing confirmation for hard user delete', 400);
+      throw new AppError('VALIDATION_ERROR', 'Vui lòng xác nhận trước khi xóa vĩnh viễn tài khoản', 400);
     }
 
     const db = await getDb();
@@ -129,7 +128,7 @@ export async function POST(request: NextRequest) {
       const normalized = normalizeEmail(email);
       const user = await db.users.findOne({ email: normalized, deletedAt: null });
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('Không tìm thấy người dùng');
       }
       return user;
     }
@@ -150,7 +149,7 @@ export async function POST(request: NextRequest) {
       case 'db.clear': {
         const dropped = await dropAllManagedCollections();
         return sendSuccess({
-          message: `Đã xóa trắng ${dropped.length} collection(s): ${dropped.join(', ') || '(không có)'}. Collection sẽ tự tạo lại khi có dữ liệu mới.`,
+          message: 'Đã xóa toàn bộ dữ liệu ứng dụng.',
           dropped,
         });
       }
@@ -159,8 +158,8 @@ export async function POST(request: NextRequest) {
         const dropped = await dropUnknownCollections();
         return sendSuccess({
           message: dropped.length
-            ? `Đã xóa ${dropped.length} collection(s) lạ: ${dropped.join(', ')}`
-            : 'Không có collection lạ nào cần xóa.',
+            ? `Đã xóa ${dropped.length} vùng lưu trữ không còn sử dụng.`
+            : 'Không phát hiện vùng lưu trữ dư thừa.',
           dropped,
         });
       }
@@ -169,7 +168,7 @@ export async function POST(request: NextRequest) {
       case 'db.nuke': {
         await hardResetDatabase();
         return sendSuccess({
-          message: 'Hard reset hoàn tất: tất cả collection managed + unknown đã bị drop. Lần getDb() tiếp theo sẽ tạo lại sạch.',
+          message: 'Đã hoàn tất làm mới toàn bộ cấu trúc dữ liệu.',
         });
       }
 
@@ -192,8 +191,8 @@ export async function POST(request: NextRequest) {
         return sendSuccess({
           report,
           message: report.isClean
-            ? 'Database is clean and consistent with current code.'
-            : 'Inconsistencies or old collections detected. See report for details.',
+            ? 'Không phát hiện vấn đề với dữ liệu.'
+            : 'Phát hiện dữ liệu chưa đồng nhất. Vui lòng kiểm tra trước khi tiếp tục.',
         });
       }
 
@@ -206,8 +205,8 @@ export async function POST(request: NextRequest) {
           created,
           report,
           message: created.length > 0
-            ? `Đã tạo ${created.length} bảng mới: ${created.join(', ')}`
-            : 'Tất cả bảng đã tồn tại sẵn.',
+            ? `Đã khôi phục ${created.length} phần lưu trữ còn thiếu.`
+            : 'Dữ liệu đã có đầy đủ cấu trúc cần thiết.',
         });
       }
 
@@ -215,7 +214,7 @@ export async function POST(request: NextRequest) {
       case 'user.unlock': {
         const { email } = data || {};
         if (!email || typeof email !== 'string') {
-          throw new AppError('VALIDATION_ERROR', 'Missing user email', 400);
+          throw new AppError('VALIDATION_ERROR', 'Vui lòng cung cấp email người dùng', 400);
         }
 
         try {
@@ -229,17 +228,17 @@ export async function POST(request: NextRequest) {
           await logAudit(isLocked ? 'LOCK_USER' : 'UNLOCK_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
 
           return sendSuccess({
-            message: `User ${user.email} is now ${isLocked ? 'LOCKED' : 'UNLOCKED'}.`,
+            message: `Đã ${isLocked ? 'khóa' : 'mở khóa'} tài khoản ${user.email}.`,
           });
         } catch (e: unknown) {
-          throw new AppError('NOT_FOUND', e instanceof Error ? e.message : 'User not found', 404);
+          throw new AppError('NOT_FOUND', e instanceof Error ? e.message : 'Không tìm thấy người dùng', 404);
         }
       }
 
       case 'user.delete': {
         const { email, hard } = data || {};
         if (!email || typeof email !== 'string') {
-          throw new AppError('VALIDATION_ERROR', 'Missing user email', 400);
+          throw new AppError('VALIDATION_ERROR', 'Vui lòng cung cấp email người dùng', 400);
         }
 
         try {
@@ -256,17 +255,17 @@ export async function POST(request: NextRequest) {
           await logAudit(hard ? 'HARD_DELETE_USER' : 'SOFT_DELETE_USER', user._id, { email: user.email, triggeredBy: 'webhook' });
 
           return sendSuccess({
-            message: `User ${user.email} has been ${hard ? 'hard' : 'soft'} deleted.`,
+            message: `Đã ${hard ? 'xóa vĩnh viễn' : 'vô hiệu hóa'} tài khoản ${user.email}.`,
           });
         } catch (e: unknown) {
-          throw new AppError('NOT_FOUND', e instanceof Error ? e.message : 'User not found', 404);
+          throw new AppError('NOT_FOUND', e instanceof Error ? e.message : 'Không tìm thấy người dùng', 404);
         }
       }
 
       case 'notification.broadcast': {
         const { title, content, type } = data || {};
         if (!content || typeof content !== 'string') {
-          throw new AppError('VALIDATION_ERROR', 'Missing notification content', 400);
+          throw new AppError('VALIDATION_ERROR', 'Vui lòng nhập nội dung thông báo', 400);
         }
 
         const users = await db.users.find(
@@ -288,7 +287,7 @@ export async function POST(request: NextRequest) {
         }
 
         return sendSuccess({
-          message: `Successfully broadcasted notification to ${notificationCount} users.`,
+          message: `Đã gửi thông báo đến ${notificationCount.toLocaleString('vi-VN')} người dùng.`,
         });
       }
 
@@ -430,7 +429,7 @@ export async function POST(request: NextRequest) {
 
         const fetchRes = await fetch(VN_ADMIN_URL);
         if (!fetchRes.ok) {
-          throw new AppError('SERVICE_UNAVAILABLE', 'Failed to fetch Vietnam administrative data', 502);
+          throw new AppError('SERVICE_UNAVAILABLE', 'Không thể cập nhật danh mục địa phương', 502);
         }
 
         const vnData = (await fetchRes.json()) as Record<string, VnProvince>;
@@ -538,7 +537,7 @@ export async function POST(request: NextRequest) {
         });
 
         return sendSuccess({
-          message: `Đã seed thành công dữ liệu hành chính Việt Nam. Inserted: ${inserted}, Updated: ${updated}. Dữ liệu ~11k phường/xã đã sẵn sàng cho search nhanh trong DB.`,
+          message: 'Đã cập nhật danh mục địa phương trên toàn quốc.',
         });
       }
 
@@ -558,12 +557,12 @@ export async function POST(request: NextRequest) {
         await delInBatches(poiKeys);
 
         return sendSuccess({
-          message: `Đã xóa cache trong database places (dùng reset). Cleared ${geoKeys.length} geo caches and ${poiKeys.length} poi caches in Redis. Giờ search sẽ dùng dữ liệu thật 100% từ API (không sample). Re-seed admin nếu cần với event 'locations.seed-vn'.`,
+          message: 'Đã làm mới dữ liệu địa điểm. Kết quả tìm kiếm mới sẽ được cập nhật ở lần truy vấn tiếp theo.',
         });
       }
 
       default: {
-        throw new AppError('VALIDATION_ERROR', `Unsupported event: ${event}`, 400);
+        throw new AppError('VALIDATION_ERROR', 'Thao tác không được hệ thống hỗ trợ', 400);
       }
     }
   } catch (error) {

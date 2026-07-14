@@ -5,8 +5,4 @@ export const addCollaboratorSchema = z.object({
   permission: z.enum(['READ', 'EDIT']).optional().default('READ'),
 });
 
-export const updateCollaboratorSchema = z.object({
-  permission: z.enum(['READ', 'EDIT']),
-});
-
 export type AddCollaboratorInput = z.infer<typeof addCollaboratorSchema>;

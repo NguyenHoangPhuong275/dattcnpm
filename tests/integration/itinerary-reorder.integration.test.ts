@@ -76,6 +76,41 @@ describe('Chức năng sắp xếp lại lịch trình (reorder 2 pha)', () => {
     }
   });
 
+  it('chuẩn hóa orderIndex riêng về 0..n-1 cho từng ngày khi sắp xếp nhiều ngày', async () => {
+    const { owner, tripId, ids, placeId } = await setup();
+    const database = await db.getDb();
+    const secondDayIds: string[] = [];
+    for (let orderIndex = 0; orderIndex < 2; orderIndex += 1) {
+      const item = await database.itineraryItems.insertOne({
+        tripId,
+        placeId,
+        day: 2,
+        orderIndex,
+      });
+      secondDayIds.push(String(item._id));
+    }
+
+    const orderedIds = [secondDayIds[1], ids[2], secondDayIds[0], ids[0], ids[1]];
+    const response = await reorderPATCH(
+      req(owner, { orderedIds }) as never,
+      ctx(tripId) as never,
+    );
+    expect(response.status).toBe(200);
+
+    const expected = new Map<string, number>([
+      [secondDayIds[1], 0],
+      [secondDayIds[0], 1],
+      [ids[2], 0],
+      [ids[0], 1],
+      [ids[1], 2],
+    ]);
+    const items = (await database.itineraryItems.find({ tripId })) as ItineraryItem[];
+    expect(items).toHaveLength(5);
+    items.forEach((item) => {
+      expect(item.orderIndex).toBe(expected.get(String(item._id)));
+    });
+  });
+
   it('unauthenticated → 401', async () => {
     const { ids } = await setup();
     const res = await reorderPATCH(req(null, { orderedIds: ids }) as never, ctx('x') as never);

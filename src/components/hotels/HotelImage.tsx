@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+
 import {
   getHotelGradient,
   getHotelInitial,
@@ -32,20 +33,6 @@ export default function HotelImage({ src, seed, name, sizes, className, priority
     );
   }
 
-  if (!isOptimizableImage(src)) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={name}
-        sizes={sizes}
-        loading={priority ? 'eager' : 'lazy'}
-        className={`absolute inset-0 h-full w-full ${className ?? ''}`}
-        onError={() => setFailed(true)}
-      />
-    );
-  }
-
   return (
     <Image
       src={src}
@@ -53,6 +40,7 @@ export default function HotelImage({ src, seed, name, sizes, className, priority
       fill
       sizes={sizes}
       priority={priority}
+      unoptimized={!isOptimizableImage(src)}
       className={className}
       onError={() => setFailed(true)}
     />

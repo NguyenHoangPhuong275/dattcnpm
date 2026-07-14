@@ -8,7 +8,7 @@ import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 
 const DUMMY_PASSWORD_HASH = '$2b$12$UcxloMIgcOGbqH451uo4Au5TFjafb4Mt4m1oJO/cvTJY.EmpMv0p6';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const body = await request.json().catch(() => ({}));
     const parsed = loginSchema.parse(body);

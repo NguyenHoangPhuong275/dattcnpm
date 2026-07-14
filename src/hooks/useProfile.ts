@@ -1,17 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { apiRequest, getApiErrorMessage } from '@/lib/api-client';
 import { formatDateInputValue } from '@/lib/date';
-import {
-  normalizeBudgetLevel,
-  normalizeTravelInterests,
-  normalizeTravelStyles,
-} from '@/lib/travel-preferences';
 import { updateStoredUser } from '@/lib/user';
-import { RequestStatus } from '@/types/common';
-import { PersonalInfo, TravelPreferences } from '@/types/profile';
+import type { RequestStatus } from '@/types/common';
+import type { PersonalInfo } from '@/types/profile';
 
 interface UseProfileOptions {
   userId: string | null;
@@ -31,21 +26,24 @@ type ProfileApiData = {
     phone?: string | null;
   } | null;
   avatarUrl?: string | null;
-  travelStyles?: string[];
-  interests?: string[];
-  budgetLevel?: string | null;
-  preferredDestinations?: string[];
   createdAt?: string | null;
 };
 
 type ProfileFormData = {
   personal: PersonalInfo;
-  preferences: TravelPreferences;
   memberSince: string;
 };
 
 type ProfileCacheEntry = ProfileFormData & {
   fetchedAt: number;
+};
+
+type SaveProfileResult = { success: boolean; error?: string };
+
+type SaveProfileRequest = {
+  key: symbol;
+  userId: string;
+  promise: Promise<SaveProfileResult>;
 };
 
 const PROFILE_CACHE_TTL_MS = 60_000;
@@ -59,24 +57,12 @@ const DEFAULT_PROFILE: ProfileFormData = {
     email: '',
     phone: '',
   },
-  preferences: {
-    travelStyles: [],
-    interests: [],
-    budgetLevel: 'mid',
-    preferredDestinations: [],
-  },
   memberSince: '',
 };
 
 function cloneProfileData(data: ProfileFormData): ProfileFormData {
   return {
     personal: { ...data.personal },
-    preferences: {
-      travelStyles: [...data.preferences.travelStyles],
-      interests: [...data.preferences.interests],
-      budgetLevel: data.preferences.budgetLevel,
-      preferredDestinations: [...data.preferences.preferredDestinations],
-    },
     memberSince: data.memberSince,
   };
 }
@@ -98,12 +84,6 @@ function normalizeProfile(profile: ProfileApiData): ProfileFormData {
       emergencyContactName: profile.emergencyContact?.name || '',
       emergencyContactPhone: profile.emergencyContact?.phone || '',
       avatarUrl: profile.avatarUrl || '',
-    },
-    preferences: {
-      travelStyles: normalizeTravelStyles(profile.travelStyles),
-      interests: normalizeTravelInterests(profile.interests),
-      budgetLevel: normalizeBudgetLevel(profile.budgetLevel) || 'mid',
-      preferredDestinations: profile.preferredDestinations || [],
     },
     memberSince: profile.createdAt || '',
   };
@@ -148,44 +128,65 @@ function requestProfile(userId: string): Promise<ProfileFormData> {
 export interface UseProfileReturn {
   data: {
     personal: PersonalInfo;
-    preferences: TravelPreferences;
     memberSince: string;
     savingPersonal: boolean;
-    savingPreferences: boolean;
   };
   status: RequestStatus;
   error: string | null;
   actions: {
     setPersonal: React.Dispatch<React.SetStateAction<PersonalInfo>>;
-    setPreferences: React.Dispatch<React.SetStateAction<TravelPreferences>>;
     savePersonal: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }>;
-    savePreferences: (e: React.FormEvent) => Promise<{ success: boolean; error?: string }>;
     updateAvatar: (url: string) => void;
+    reloadProfile: () => void;
   };
 }
 
 export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
   const [personal, setPersonal] = useState<PersonalInfo>(() => cloneProfileData(DEFAULT_PROFILE).personal);
-  const [preferences, setPreferences] = useState<TravelPreferences>(() => cloneProfileData(DEFAULT_PROFILE).preferences);
   const [memberSince, setMemberSince] = useState('');
   const [status, setStatus] = useState<RequestStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [savePersonalStatus, setSavePersonalStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [savePreferencesStatus, setSavePreferencesStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [stateUserId, setStateUserId] = useState<string | null>(null);
+  const [loadRevision, setLoadRevision] = useState(0);
+  const avatarChangedRef = useRef(false);
+  const profileEditRevisionRef = useRef(0);
+  const activeUserIdRef = useRef(userId);
+  const saveRequestRef = useRef<SaveProfileRequest | null>(null);
 
-  const savingPersonal = savePersonalStatus === 'loading';
-  const savingPreferences = savePreferencesStatus === 'loading';
+  useEffect(() => {
+    activeUserIdRef.current = userId;
+  }, [userId]);
 
-  const applyProfileData = useCallback((data: ProfileFormData): void => {
+  const hasCurrentUserState = !!userId && stateUserId === userId;
+  const visibleProfile = hasCurrentUserState
+    ? { personal, memberSince }
+    : cloneProfileData(DEFAULT_PROFILE);
+  const visibleStatus: RequestStatus = !userId
+    ? 'idle'
+    : hasCurrentUserState
+      ? status
+      : 'loading';
+  const savingPersonal = hasCurrentUserState && savePersonalStatus === 'loading';
+
+  const applyProfileData = useCallback((ownerId: string, data: ProfileFormData): void => {
     const nextData = cloneProfileData(data);
+    setStateUserId(ownerId);
     setPersonal(nextData.personal);
-    setPreferences(nextData.preferences);
     setMemberSince(nextData.memberSince);
+    avatarChangedRef.current = false;
   }, []);
 
   useEffect(() => {
+    profileEditRevisionRef.current += 1;
     if (!userId) {
+      setStateUserId(null);
+      setPersonal(cloneProfileData(DEFAULT_PROFILE).personal);
+      setMemberSince('');
       setStatus('idle');
+      setError(null);
+      setSavePersonalStatus('idle');
+      avatarChangedRef.current = false;
       return;
     }
 
@@ -193,20 +194,32 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     const cached = readProfileCache(userId);
 
     if (cached) {
-      applyProfileData(cached);
+      applyProfileData(userId, cached);
       setStatus('success');
       setError(null);
       if (isProfileCacheFresh(cached)) return;
     } else {
+      setStateUserId(userId);
+      setPersonal(cloneProfileData(DEFAULT_PROFILE).personal);
+      setMemberSince('');
       setStatus('loading');
       setError(null);
+      setSavePersonalStatus('idle');
+      avatarChangedRef.current = false;
     }
+
+    const requestEditRevision = profileEditRevisionRef.current;
 
     requestProfile(userId)
       .then((data) => {
         if (!active) return;
+        if (profileEditRevisionRef.current !== requestEditRevision) {
+          setStatus('success');
+          setError(null);
+          return;
+        }
         writeProfileCache(userId, data);
-        applyProfileData(data);
+        applyProfileData(userId, data);
         setStatus('success');
         setError(null);
       })
@@ -225,37 +238,46 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
     return () => {
       active = false;
     };
-  }, [applyProfileData, userId]);
+  }, [applyProfileData, loadRevision, userId]);
 
-  const updateProfileCache = useCallback((nextProfile: Partial<ProfileFormData>): void => {
+  const reloadProfile = useCallback((): void => {
     if (!userId) return;
-    writeProfileCache(userId, {
-      personal,
-      preferences,
-      memberSince,
-      ...nextProfile,
-    });
-  }, [memberSince, personal, preferences, userId]);
+    profileEditRevisionRef.current += 1;
+    profileCache.delete(userId);
+    setLoadRevision((revision) => revision + 1);
+  }, [userId]);
+
+  const setPersonalDirty = useCallback<React.Dispatch<React.SetStateAction<PersonalInfo>>>((value) => {
+    profileEditRevisionRef.current += 1;
+    setPersonal(value);
+  }, []);
 
   const updateAvatar = useCallback((url: string): void => {
+    profileEditRevisionRef.current += 1;
+    avatarChangedRef.current = true;
     setPersonal((prev) => ({ ...prev, avatarUrl: url }));
   }, []);
 
-  const savePersonal = useCallback(async (e: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
+  const savePersonal = useCallback((e: React.FormEvent): Promise<SaveProfileResult> => {
     e.preventDefault();
-    if (!userId) return { success: false, error: 'No user' };
+    if (!userId || stateUserId !== userId) {
+      return Promise.resolve({ success: false, error: 'Hồ sơ chưa tải xong. Vui lòng thử lại.' });
+    }
 
+    const currentRequest = saveRequestRef.current;
+    if (currentRequest?.userId === userId) return currentRequest.promise;
+
+    profileEditRevisionRef.current += 1;
+    const saveEditRevision = profileEditRevisionRef.current;
     setSavePersonalStatus('loading');
     const fullName = `${personal.firstName} ${personal.lastName}`.trim();
+    const avatarChanged = avatarChangedRef.current;
+    const requestKey = Symbol();
 
-    try {
-      const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
-        method: 'PATCH',
-        userId,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    const request = (async (): Promise<SaveProfileResult> => {
+      try {
+        const payload: Record<string, unknown> = {
           fullName,
-          email: personal.email,
           phone: personal.phone,
           dateOfBirth: personal.dateOfBirth,
           gender: personal.gender,
@@ -266,84 +288,83 @@ export function useProfile({ userId }: UseProfileOptions): UseProfileReturn {
             name: personal.emergencyContactName,
             phone: personal.emergencyContactPhone,
           },
-          avatarUrl: personal.avatarUrl || null,
-        }),
-      });
+        };
+        if (avatarChanged) {
+          payload.avatarUrl = personal.avatarUrl || null;
+        }
 
-      if (!response.ok || !data.success) {
-        setSavePersonalStatus('error');
-        return { success: false, error: getApiErrorMessage(data, 'Lưu thất bại') };
+        const { response, data } = await apiRequest<{
+          success?: boolean;
+          data?: { profile?: ProfileApiData };
+        }>('/api/profile', {
+          method: 'PATCH',
+          userId,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const serverProfile = data.data?.profile;
+        if (!response.ok || !data.success || !serverProfile) {
+          if (activeUserIdRef.current === userId) setSavePersonalStatus('error');
+          return { success: false, error: getApiErrorMessage(data, 'Lưu thất bại') };
+        }
+
+        const normalized = normalizeProfile({
+          ...serverProfile,
+          avatarUrl: !avatarChanged && !serverProfile.avatarUrl && personal.avatarUrl
+            ? personal.avatarUrl
+            : serverProfile.avatarUrl,
+          createdAt: serverProfile.createdAt || memberSince,
+        });
+        const normalizedFullName = `${normalized.personal.firstName} ${normalized.personal.lastName}`.trim();
+
+        writeProfileCache(userId, normalized);
+        if (activeUserIdRef.current === userId) {
+          updateStoredUser((current) => current.id === userId
+            ? {
+                ...current,
+                fullName: normalizedFullName,
+                email: normalized.personal.email,
+                avatarUrl: normalized.personal.avatarUrl || null,
+              }
+            : current);
+          if (profileEditRevisionRef.current === saveEditRevision) {
+            applyProfileData(userId, normalized);
+          }
+          setSavePersonalStatus('success');
+        }
+
+        return { success: true };
+      } catch (err) {
+        if (activeUserIdRef.current === userId) setSavePersonalStatus('error');
+        return {
+          success: false,
+          error: getApiErrorMessage(err, 'Không thể lưu thông tin lúc này'),
+        };
+      } finally {
+        if (saveRequestRef.current?.key === requestKey) {
+          saveRequestRef.current = null;
+        }
       }
+    })();
 
-      updateStoredUser((current) => ({
-        ...current,
-        fullName,
-        email: personal.email,
-      }));
-      updateProfileCache({ personal });
-
-      setSavePersonalStatus('success');
-      return { success: true };
-    } catch (err) {
-      setSavePersonalStatus('error');
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Không thể lưu thông tin lúc này',
-      };
-    }
-  }, [personal, updateProfileCache, userId]);
-
-  const savePreferences = useCallback(async (e: React.FormEvent): Promise<{ success: boolean; error?: string }> => {
-    e.preventDefault();
-    if (!userId) return { success: false, error: 'No user' };
-
-    setSavePreferencesStatus('loading');
-
-    try {
-      const { response, data } = await apiRequest<{ success?: boolean }>('/api/profile', {
-        method: 'PATCH',
-        userId,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          travelStyles: preferences.travelStyles,
-          budgetLevel: preferences.budgetLevel,
-          preferredDestinations: preferences.preferredDestinations,
-          interests: preferences.interests,
-        }),
-      });
-
-      if (!response.ok || !data.success) {
-        setSavePreferencesStatus('error');
-        return { success: false, error: getApiErrorMessage(data, 'Lưu thất bại') };
-      }
-      updateProfileCache({ preferences });
-      setSavePreferencesStatus('success');
-      return { success: true };
-    } catch (err) {
-      setSavePreferencesStatus('error');
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Không thể lưu sở thích lúc này',
-      };
-    }
-  }, [preferences, updateProfileCache, userId]);
+    saveRequestRef.current = { key: requestKey, userId, promise: request };
+    return request;
+  }, [applyProfileData, memberSince, personal, stateUserId, userId]);
 
   return {
     data: {
-      personal,
-      preferences,
-      memberSince,
+      personal: visibleProfile.personal,
+      memberSince: visibleProfile.memberSince,
       savingPersonal,
-      savingPreferences,
     },
-    status,
-    error,
+    status: visibleStatus,
+    error: hasCurrentUserState ? error : null,
     actions: {
-      setPersonal,
-      setPreferences,
+      setPersonal: setPersonalDirty,
       savePersonal,
-      savePreferences,
       updateAvatar,
+      reloadProfile,
     },
   };
 }

@@ -2,7 +2,7 @@
 
 Đề tài: **Smart Travel Guide - Web hướng dẫn hỗ trợ du lịch**
 
-Ngày cập nhật: 2026-07-11 (đồng bộ với báo cáo `DATTCNPM_Smart_Travel_Guide.docx`)
+Ngày cập nhật: 2026-07-14
 
 ## 1. Mục đích tài liệu
 
@@ -10,7 +10,9 @@ Tài liệu SRS mô tả phạm vi, tác nhân, yêu cầu chức năng và yêu
 
 ## 2. Phạm vi hệ thống
 
-- Ứng dụng web Next.js giúp người dùng tìm kiếm địa điểm/POI, xem thời tiết, tìm và xem đánh giá khách sạn, tạo chuyến đi và lập lịch trình chi tiết.
+- Ứng dụng web Next.js giúp người dùng tìm kiếm địa điểm/POI, xem thời tiết, tìm, xem đánh giá và đặt phòng khách sạn, tạo chuyến đi và lập lịch trình chi tiết.
+- Tra cứu thông tin hãng hàng không nội địa, tìm lịch bay, chọn hành trình một chiều hoặc khứ hồi và đặt vé máy bay.
+- Hiển thị thông tin chuyển khoản bằng QR và ghi nhận trạng thái thanh toán nội bộ cho booking khách sạn/vé máy bay.
 - Quản lý toàn diện một chuyến đi: lịch trình theo ngày, ngân sách, checklist chuẩn bị, chỗ ở, cộng tác viên và chia sẻ công khai qua mã.
 - Hồ sơ cá nhân với sở thích du lịch, địa điểm yêu thích, lịch sử tìm kiếm và gợi ý cá nhân hóa.
 - Đánh giá địa điểm/khách sạn kèm cơ chế báo cáo và xử lý đánh giá vi phạm.
@@ -20,7 +22,7 @@ Tài liệu SRS mô tả phạm vi, tác nhân, yêu cầu chức năng và yêu
 
 ## 3. Ngoài phạm vi đồ án (hướng phát triển)
 
-- Tích hợp thanh toán thật cho đặt phòng/đặt vé.
+- Tích hợp cổng thanh toán thật, xác minh giao dịch tự động, đối soát ngân hàng và hoàn tiền cho đặt phòng/đặt vé. Phiên bản hiện tại chỉ ghi nhận xác nhận chuyển khoản nội bộ do người dùng thực hiện.
 - Gợi ý bằng AI nâng cao (mô hình học máy huấn luyện riêng thay vì gợi ý theo tag/sở thích).
 - Mở rộng bộ kiểm thử E2E (Playwright) bao phủ toàn bộ luồng nghiệp vụ mới (ngân sách, checklist, chia sẻ).
 - Cấu hình triển khai production chính thức (CI/CD, hosting, giám sát).
@@ -31,9 +33,9 @@ Tài liệu SRS mô tả phạm vi, tác nhân, yêu cầu chức năng và yêu
 
 | Actor | Mô tả | Quyền hạn chính |
 | --- | --- | --- |
-| Guest | Khách chưa đăng nhập | Tìm địa danh, xem POI, thời tiết, tìm khách sạn, đăng ký, đăng nhập, quên mật khẩu |
-| User | Người dùng đã đăng nhập | Toàn bộ quyền Guest; quản lý chuyến đi (lịch trình, ngân sách, checklist, chỗ ở, cộng tác viên, chia sẻ), yêu thích, đánh giá, hồ sơ cá nhân |
-| Admin | Quản trị viên hệ thống | Toàn bộ quyền User; quản lý người dùng, xem thống kê, audit log, xử lý report đánh giá |
+| Guest | Khách chưa đăng nhập | Tìm địa danh, xem POI, thời tiết, tìm khách sạn, tra cứu hãng hàng không và lịch bay, đăng ký, đăng nhập, quên mật khẩu |
+| User | Người dùng đã đăng nhập | Toàn bộ quyền Guest; đặt phòng, đặt vé và ghi nhận thanh toán nội bộ; quản lý chuyến đi (lịch trình, ngân sách, checklist, chỗ ở, cộng tác viên, chia sẻ), yêu thích, đánh giá, hồ sơ cá nhân |
+| Admin | Quản trị viên hệ thống | Toàn bộ quyền User; quản lý người dùng, đặt phòng, xem thống kê, audit log, xử lý report đánh giá |
 | External Service | Dịch vụ bên ngoài | Cung cấp geocoding/POI (Nominatim, Overpass), thời tiết (Open-Meteo), gửi email/OTP (Resend) |
 | Scheduler (Cron) | Tác vụ định kỳ hệ thống | Gọi API cảnh báo thời tiết theo lịch, xác thực bằng `x-cron-secret` |
 
@@ -72,15 +74,20 @@ Tài liệu SRS mô tả phạm vi, tác nhân, yêu cầu chức năng và yêu
 | FR-22 | Đánh giá địa điểm / khách sạn | Chấm điểm 1-5 sao và viết nhận xét |
 | FR-23 | Báo cáo đánh giá vi phạm | Báo cáo một đánh giá không phù hợp kèm lý do cụ thể |
 | FR-24 | Nhận cảnh báo thời tiết | Nhận thông báo và email khi thời tiết vượt ngưỡng cảnh báo đã thiết lập |
+| FR-25 | Tra cứu hãng và lịch bay | Xem thông tin hãng hàng không nội địa, tìm chuyến bay theo chặng/ngày và chọn hành trình một chiều hoặc khứ hồi |
+| FR-26 | Đặt phòng khách sạn | Chọn loại phòng, ngày ở, số khách, nhập thông tin liên hệ và tạo booking với giá được tính ở server |
+| FR-27 | Đặt vé máy bay | Chọn chuyến đi/chuyến về, khai báo hành khách, thông tin liên hệ và tạo booking với giá được tính ở server |
+| FR-28 | Ghi nhận thanh toán nội bộ | Xem QR chuyển khoản và xác nhận đã chuyển khoản cho booking thuộc tài khoản hiện tại; không xác minh giao dịch qua cổng thanh toán |
 
 ### 5.3. Nhóm Admin
 
 | Mã | Tên chức năng | Mô tả |
 | --- | --- | --- |
-| FR-25 | Quản lý người dùng | Xem danh sách người dùng, khóa hoặc mở khóa tài khoản |
-| FR-26 | Xem thống kê | Theo dõi số lượng người dùng, chuyến đi, địa điểm, khách sạn, lượt tìm kiếm |
-| FR-27 | Xem audit log | Xem nhật ký thao tác quan trọng trong hệ thống |
-| FR-28 | Xử lý report đánh giá | Xem xét report đánh giá vi phạm và đánh dấu đã xử lý hoặc bỏ qua |
+| FR-29 | Quản lý người dùng | Xem danh sách người dùng, khóa hoặc mở khóa tài khoản |
+| FR-30 | Xem thống kê | Theo dõi số lượng người dùng, chuyến đi, địa điểm, khách sạn, lượt tìm kiếm |
+| FR-31 | Xem audit log | Xem nhật ký thao tác quan trọng trong hệ thống |
+| FR-32 | Xử lý report đánh giá | Xem xét report đánh giá vi phạm và đánh dấu đã xử lý hoặc bỏ qua |
+| FR-33 | Quản lý đặt phòng | Xem danh sách đặt phòng khách sạn và cập nhật trạng thái xử lý |
 
 ## 6. Yêu cầu phi chức năng
 
@@ -93,7 +100,7 @@ Tài liệu SRS mô tả phạm vi, tác nhân, yêu cầu chức năng và yêu
 | NFR-05 | Bảo vệ API | Mọi route theo chuẩn: xác thực JWT, rate limit cho thao tác ghi, validate bằng Zod, ẩn lỗi chi tiết ở production |
 | NFR-06 | Độ tin cậy | MongoDB dùng lại kết nối qua `getDb()`; Redis lỗi không làm sập chức năng không bắt buộc (fallback in-memory) |
 | NFR-07 | Khả năng bảo trì | TypeScript strict, ESLint, kiến trúc tách lib/db/validations, không import model Mongoose trực tiếp trong route |
-| NFR-08 | Khả năng mở rộng | 19 collection MongoDB, có thể bổ sung tính năng mới mà không phá vỡ cấu trúc hiện tại |
+| NFR-08 | Khả năng mở rộng | 21 collection MongoDB, có thể bổ sung tính năng mới mà không phá vỡ cấu trúc hiện tại |
 | NFR-09 | Kiểm thử tự động | Bộ kiểm thử Vitest (unit + integration chạm DB thật) và cấu hình Playwright cho E2E |
 | NFR-10 | Audit & truy vết | Ghi audit log cho các thao tác ghi quan trọng (tạo/sửa/xóa chuyến đi, khóa tài khoản, xử lý report...) |
 

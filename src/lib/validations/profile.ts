@@ -38,7 +38,7 @@ export const updateProfileSchema = z.object({
             return false;
           }
         }
-        return /^data:image\/(jpeg|png|webp|jpg);base64,[a-zA-Z0-9+/=]+$/.test(val);
+        return /^data:image\/(jpeg|png|webp|jpg);base64,[a-zA-Z0-9+/]+={0,2}$/.test(val);
       },
       {
         message: 'Avatar phải là URL hợp lệ hoặc dữ liệu ảnh Base64 hợp lệ (jpeg, png, webp, jpg)',

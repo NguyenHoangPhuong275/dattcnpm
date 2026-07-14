@@ -54,8 +54,8 @@ export async function generateMetadata({ params }: LocalityPlacesPageProps): Pro
   }
 
   return {
-    title: `Địa điểm tham khảo tại ${locality.name} | LOTUS TRAVEL`,
-    description: `Danh sách địa điểm du lịch tham khảo tại ${locality.name}.`,
+    title: `Điểm đến nổi bật tại ${locality.name} | LOTUS TRAVEL`,
+    description: `Khám phá những điểm đến nổi bật tại ${locality.name}.`,
   };
 }
 
@@ -76,19 +76,20 @@ export default async function LocalityPlacesPage({ params, searchParams }: Local
 
       <main className="mx-auto w-full max-w-[1180px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         <Link
+          id={`locality-places-back-${locality.slug}`}
           href={`/local/${locality.slug}`}
           className="text-sm font-semibold text-[var(--color-primary-darker)] transition-colors hover:text-[var(--color-primary-dark)]"
         >
-          ← Quay lại {locality.name}
+          Quay lại {locality.name}
         </Link>
 
         <h1 className="mt-4 font-display text-3xl font-extrabold sm:text-4xl">
-          Địa điểm tham khảo tại {locality.name}
+          Điểm đến nổi bật tại {locality.name}
         </h1>
         <p className="mt-2 max-w-3xl text-base leading-7 text-[var(--color-text-secondary)]">
           {theme
-            ? `Danh sách gợi ý, ưu tiên nhóm ${THEMES[theme].label}. Chọn một địa điểm để đưa vào lịch trình của bạn.`
-            : 'Danh sách gợi ý những điểm đến nổi bật. Chọn một địa điểm để đưa vào lịch trình của bạn.'}
+            ? `Khám phá các điểm ${THEMES[theme].label} nổi bật và lên kế hoạch cho hành trình của bạn.`
+            : 'Khám phá những điểm đến nổi bật và lên kế hoạch cho hành trình của bạn.'}
         </p>
 
         {destinations.length > 0 ? (
@@ -100,7 +101,8 @@ export default async function LocalityPlacesPage({ params, searchParams }: Local
         ) : (
           <div className="mt-8">
             <EmptyState
-              title={`Chưa có dữ liệu địa điểm tham khảo cho ${locality.name}.`}
+              idPrefix={`locality-places-${locality.slug}`}
+              title={`Chưa có gợi ý điểm đến cho ${locality.name}.`}
               description="Bạn có thể tìm kiếm địa điểm trực tiếp trên trang chủ."
               actionLabel="Tìm kiếm địa điểm"
               actionHref={`/?q=${encodeURIComponent(locality.name)}`}

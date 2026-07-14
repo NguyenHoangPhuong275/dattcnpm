@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { ItineraryItem, TripAccommodation, TripBudget } from '@/types/trip';
+import type { ItineraryItem, TripAccommodation, TripBudget, TripChecklist } from '@/types/trip';
 import {
   extractTrips,
   extractTripsPagination,
   toAccommodationResponse,
   toBudgetResponse,
+  toChecklistResponse,
   toItineraryItemResponse,
 } from '@/lib/trip-formatters';
 
@@ -75,6 +76,40 @@ describe('toAccommodationResponse', () => {
     } as unknown as TripAccommodation;
 
     expect(toAccommodationResponse(item).hotelId).toBe('507f1f77bcf86cd799439101');
+  });
+});
+
+describe('toChecklistResponse', () => {
+  it('maps checklist fields and serializes dates', () => {
+    const item = {
+      _id: 'c1',
+      tripId: 't1',
+      label: 'Hộ chiếu',
+      isDone: true,
+      dueDate: new Date('2026-04-01T00:00:00Z'),
+      createdAt: new Date('2026-03-01T00:00:00Z'),
+    } as unknown as TripChecklist;
+
+    expect(toChecklistResponse(item)).toEqual({
+      id: 'c1',
+      tripId: 't1',
+      title: 'Hộ chiếu',
+      completed: true,
+      dueDate: '2026-04-01T00:00:00.000Z',
+      createdAt: '2026-03-01T00:00:00.000Z',
+    });
+  });
+
+  it('keeps optional dates null', () => {
+    const item = {
+      _id: 'c2',
+      tripId: 't1',
+      label: 'Vé',
+      isDone: false,
+    } as unknown as TripChecklist;
+
+    expect(toChecklistResponse(item).dueDate).toBeNull();
+    expect(toChecklistResponse(item).createdAt).toBeNull();
   });
 });
 

@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 interface DatabaseActionsProps {
   onDbAction: (action: 'db.reset' | 'db.clear' | 'db.check' | 'db.createTables') => void;
   actionLoading: string | null;
@@ -9,47 +7,53 @@ interface DatabaseActionsProps {
 
 export default function DatabaseActions({ onDbAction, actionLoading }: DatabaseActionsProps) {
   return (
-    <div className="rounded-3xl border border-[var(--color-border)] bg-white p-6 shadow-sm space-y-4">
-      <h2 className="flex items-center gap-2 border-b border-[var(--color-border)] pb-3 text-lg font-extrabold text-[var(--color-text)]">
-        <svg className="w-5 h-5 text-[var(--color-danger)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-        Tác vụ Cơ sở dữ liệu
-      </h2>
-      <div className="flex flex-col sm:flex-row gap-3">
+    <section className="admin-surface overflow-hidden">
+      <div className="border-b border-black/[0.055] px-6 py-5 sm:px-7">
+        <h2 className="text-lg font-extrabold text-[var(--color-text)]">Bảo trì dữ liệu</h2>
+        <p className="mt-1 text-sm text-[var(--color-text-muted)]">Kiểm tra hoặc khôi phục dữ liệu của Lotus Travel.</p>
+      </div>
+      <div className="grid gap-4 p-6 sm:grid-cols-2 sm:p-7">
         <button
-          type="button"
-          onClick={() => onDbAction('db.reset')}
-          disabled={actionLoading !== null}
-          className="flex-1 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 text-sm font-bold text-[var(--color-text-secondary)] transition-all hover:bg-[var(--color-primary-lightest)] cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {actionLoading === 'db.reset' ? 'Đang reset DB...' : 'Reset DB (Seed mẫu)'}
-        </button>
-        <button
-          type="button"
-          onClick={() => onDbAction('db.clear')}
-          disabled={actionLoading !== null}
-          className="flex-1 rounded-2xl border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 py-3 text-sm font-bold text-red-700 transition-all hover:bg-[var(--color-danger)]/20 cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {actionLoading === 'db.clear' ? 'Đang xóa DB...' : 'Xóa trắng Database (drop collections + duplicates)'}
-        </button>
-        <button
+          id="admin-db-check"
           type="button"
           onClick={() => onDbAction('db.check')}
           disabled={actionLoading !== null}
-          className="flex-1 rounded-2xl border border-[var(--color-success)]/40 bg-[var(--color-success)]/10 py-3 text-sm font-bold text-emerald-700 transition-all hover:bg-[var(--color-success)]/20 cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-left transition hover:border-emerald-300 hover:bg-emerald-100/70 disabled:opacity-50"
         >
-          {actionLoading === 'db.check' ? 'Đang kiểm tra...' : 'Check DB Consistency'}
+          <span className="text-sm font-extrabold text-emerald-800">{actionLoading === 'db.check' ? 'Đang kiểm tra...' : 'Kiểm tra cơ sở dữ liệu'}</span>
+          <span className="mt-2 block text-xs leading-5 text-emerald-700/75">Kiểm tra cấu trúc và đảm bảo tính nhất quán của dữ liệu hệ thống.</span>
         </button>
         <button
+          id="admin-db-create-tables"
           type="button"
           onClick={() => onDbAction('db.createTables')}
           disabled={actionLoading !== null}
-          className="flex-1 rounded-2xl border border-[var(--color-primary)]/60 bg-[var(--color-primary-lightest)] py-3 text-sm font-bold text-[var(--color-primary-darker)] transition-all hover:bg-[var(--color-primary-light)] cursor-pointer min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
+          className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-primary-lightest)] p-5 text-left transition hover:border-[var(--color-border-strong)] hover:bg-[var(--color-primary-light)]/35 disabled:opacity-50"
         >
-          {actionLoading === 'db.createTables' ? 'Đang tạo bảng...' : 'Tạo tất cả bảng'}
+          <span className="text-sm font-extrabold text-[var(--color-primary-darker)]">{actionLoading === 'db.createTables' ? 'Đang khôi phục...' : 'Khôi phục cấu trúc dữ liệu'}</span>
+          <span className="mt-2 block text-xs leading-5 text-[var(--color-primary-dark)]">Bổ sung các bảng dữ liệu còn thiếu mà không làm ảnh hưởng đến dữ liệu hiện có.</span>
+        </button>
+        <button
+          id="admin-db-reset"
+          type="button"
+          onClick={() => onDbAction('db.reset')}
+          disabled={actionLoading !== null}
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-left transition hover:border-amber-300 hover:bg-amber-100/70 disabled:opacity-50"
+        >
+          <span className="text-sm font-extrabold text-amber-800">{actionLoading === 'db.reset' ? 'Đang xử lý...' : 'Đặt lại dữ liệu hệ thống'}</span>
+          <span className="mt-2 block text-xs leading-5 text-amber-700/75">Xóa sạch toàn bộ dữ liệu người dùng để thiết lập lại hệ thống từ đầu.</span>
+        </button>
+        <button
+          id="admin-db-clear"
+          type="button"
+          onClick={() => onDbAction('db.clear')}
+          disabled={actionLoading !== null}
+          className="rounded-2xl border border-red-200 bg-red-50 p-5 text-left transition hover:border-red-300 hover:bg-red-100/70 disabled:opacity-50"
+        >
+          <span className="text-sm font-extrabold text-red-800">{actionLoading === 'db.clear' ? 'Đang xóa...' : 'Xóa sạch cơ sở dữ liệu'}</span>
+          <span className="mt-2 block text-xs leading-5 text-red-700/75">Xóa vĩnh viễn tất cả tài khoản, chuyến đi và đặt chỗ. Cần sao lưu trước khi thực hiện.</span>
         </button>
       </div>
-    </div>
+    </section>
   );
 }

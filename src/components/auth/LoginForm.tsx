@@ -128,8 +128,8 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
         )}
 
         <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-semibold text-slate-800">
-            Địa chỉ Email
+          <label htmlFor="login-email" className="block text-sm font-semibold text-slate-800">
+            Email
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -138,13 +138,13 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
               </svg>
             </div>
             <input
-              id="email"
+              id="login-email"
               name="email"
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`block w-full pl-10 pr-3 py-3.5 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-base focus:outline-none transition-all min-h-[44px] cursor-text ${errors.email ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+              className={`block min-h-[44px] w-full cursor-text rounded-2xl border bg-white py-3.5 pr-3 pl-10 text-base text-slate-900 placeholder-slate-400 transition-all ${errors.email ? 'border-red-300' : 'border-slate-200'}`}
               placeholder="email@example.com"
             />
           </div>
@@ -152,7 +152,7 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="password" className="block text-sm font-semibold text-slate-800">
+          <label htmlFor="login-password" className="block text-sm font-semibold text-slate-800">
             Mật khẩu
           </label>
           <div className="relative">
@@ -162,17 +162,18 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
               </svg>
             </div>
             <input
-              id="password"
+              id="login-password"
               name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`block w-full pl-10 pr-10 py-3.5 bg-white ring-1 ring-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 text-base focus:outline-none transition-all min-h-[44px] cursor-text ${errors.password ? 'ring-2 ring-red-300 ring-slate-200' : ''}`}
+              className={`block min-h-[44px] w-full cursor-text rounded-2xl border bg-white py-3.5 pr-10 pl-10 text-base text-slate-900 placeholder-slate-400 transition-all ${errors.password ? 'border-red-300' : 'border-slate-200'}`}
               placeholder="••••••••"
             />
             {password.length > 0 && (
               <button
+                id="login-password-visibility"
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
@@ -195,9 +196,10 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
               <input
+                id="login-remember-me"
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
@@ -205,15 +207,6 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
               />
               Duy trì đăng nhập
             </label>
-            <button
-              type="button"
-              className="text-xs font-bold text-[var(--color-primary-darker)] hover:text-[var(--color-primary-dark)] transition-colors"
-              onClick={() => {
-                onToast?.('Tính năng đặt lại mật khẩu sẽ sớm có. Vui lòng liên hệ hỗ trợ.', 'info');
-              }}
-            >
-              Quên mật khẩu?
-            </button>
           </div>
 
           {errors.password && <p className="text-sm text-red-600 mt-1 pl-1">{errors.password}</p>}
@@ -222,6 +215,7 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
 
       <div className="space-y-4 mt-auto pt-7">
         <button
+          id="login-submit"
           type="submit"
           disabled={isLoading}
           className="w-full py-3 px-4 rounded-2xl text-base font-bold text-white bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] focus:outline-none transition-all min-h-[44px] cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-60"
@@ -235,30 +229,10 @@ export default function LoginForm({ onSuccess, onAuthenticated, onToast }: Login
               <span>Đang đăng nhập...</span>
             </>
           ) : (
-            <span>TIẾP TỤC</span>
+            <span>Tiếp tục</span>
           )}
         </button>
 
-        <div className="relative flex items-center justify-center my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-          <span className="relative px-3 bg-white text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Hoặc đăng nhập bằng
-          </span>
-        </div>
-
-        <button
-          type="button"
-          disabled
-          title="Tính năng đang phát triển"
-          className="w-full flex items-center justify-center px-3 py-2.5 bg-white ring-1 ring-slate-200 rounded-full text-xs font-semibold text-slate-800 opacity-60 cursor-not-allowed min-h-[44px] space-x-2"
-        >
-          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-            <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.53 5.53 0 0 1 8.4 13a5.53 5.53 0 0 1 5.59-5.519c2.494 0 4.597 1.637 5.253 3.896l3.962-3.07C21.08 4.265 17.784 2 13.99 2 7.92 2 3 6.92 3 13s4.92 11 10.99 11c5.73 0 10.51-4.114 10.99-9.715H12.24z" />
-          </svg>
-          <span className="truncate text-slate-800 font-semibold">Đăng nhập với Google</span>
-        </button>
       </div>
     </form>
   );

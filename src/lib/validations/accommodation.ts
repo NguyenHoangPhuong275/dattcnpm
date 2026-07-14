@@ -3,7 +3,7 @@ import { objectIdSchema, optionalTrimString, trimString } from './common';
 
 const isoDate = z.string().refine((v) => !isNaN(new Date(v).getTime()), { message: 'Ngày không hợp lệ' });
 
-export const ACCOMMODATION_CURRENCIES = ['VND', 'USD', 'EUR', 'THB', 'JPY', 'KRW', 'SGD'] as const;
+const ACCOMMODATION_CURRENCIES = ['VND', 'USD', 'EUR', 'THB', 'JPY', 'KRW', 'SGD'] as const;
 
 const currencyField = z.enum(ACCOMMODATION_CURRENCIES, { message: 'Loại tiền tệ không hợp lệ' });
 

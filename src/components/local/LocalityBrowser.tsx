@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { SearchIcon } from '@/components/icons';
 import {
   DEFAULT_REGION,
   REGIONS,
@@ -10,6 +12,7 @@ import {
   type Locality,
   type RegionName,
 } from '@/data/localities';
+import { normalizeVietnameseText } from '@/lib/string';
 
 function LocalitySearch({
   query,
@@ -20,22 +23,26 @@ function LocalitySearch({
 }) {
   return (
     <form
-      className="mx-auto mt-7 flex h-[60px] max-w-[750px] items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4"
+      id="locality-search-form"
+      className="app-composite-control mx-auto mt-7 flex h-[60px] max-w-[750px] items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4"
       onSubmit={(event) => event.preventDefault()}
     >
       <input
+        id="locality-search-input"
         type="search"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
-        placeholder="Nhập nội dung tìm kiếm"
-        className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] sm:text-base"
+        placeholder="Tìm tỉnh hoặc thành phố"
+        aria-label="Tìm tỉnh hoặc thành phố"
+        className="app-search-input app-composite-input flex-1 py-3 text-sm sm:text-base"
       />
       <button
+        id="locality-search-submit"
         type="submit"
         className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)]"
         aria-label="Tìm kiếm địa phương"
       >
-        <span className="relative block h-5 w-5 rounded-full border-2 border-current after:absolute after:-bottom-1 after:-right-1 after:h-2 after:w-0.5 after:rotate-[-45deg] after:rounded-full after:bg-current" />
+        <SearchIcon className="h-5 w-5" />
       </button>
     </form>
   );
@@ -56,6 +63,7 @@ function RegionNavigation({
 
           return (
             <button
+              id={`locality-region-${normalizeVietnameseText(region).replace(/\s+/g, '-')}`}
               key={region}
               type="button"
               onClick={() => onRegionChange(region)}
@@ -77,8 +85,9 @@ function RegionNavigation({
 function LocalityCard({ locality }: { locality: Locality }) {
   return (
     <Link
+      id={`locality-card-${locality.slug}`}
       href={`/local/${locality.slug}`}
-      className="group relative aspect-[1.05/1] overflow-hidden rounded-[18px] bg-[var(--color-primary-lightest)] text-left transition-all hover:-translate-y-1"
+      className="group relative aspect-[1.05/1] overflow-hidden rounded-[18px] bg-[var(--color-primary-lightest)] text-left transition-all"
     >
       <Image
         src={locality.image}
@@ -127,7 +136,7 @@ export default function LocalityBrowser() {
     <>
       <section className="mx-auto max-w-4xl text-center">
         <h1 className="font-display text-3xl font-bold tracking-normal text-[var(--color-text)] sm:text-4xl">
-          Danh sách địa phương
+          Khám phá các địa phương
         </h1>
 
         <LocalitySearch query={query} onQueryChange={setQuery} />

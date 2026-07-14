@@ -3,33 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import * as Icons from '@/components/icons';
 import type { SearchResult, UsePlaceSearchReturn } from '@/hooks/usePlaceSearch';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-
-const PLACE_TYPE_LABELS: Record<string, string> = {
-  attraction: 'Điểm tham quan',
-  museum: 'Bảo tàng',
-  viewpoint: 'Ngắm cảnh',
-  artwork: 'Nghệ thuật',
-  gallery: 'Phòng tranh',
-  theme_park: 'Khu vui chơi',
-  zoo: 'Sở thú',
-  monument: 'Đài tưởng niệm',
-  memorial: 'Tưởng niệm',
-  castle: 'Lâu đài',
-  ruins: 'Di tích',
-  archaeological_site: 'Khảo cổ',
-  place_of_worship: 'Tôn giáo',
-  historic: 'Lịch sử',
-  tourism: 'Du lịch',
-  park: 'Công viên',
-  nature_reserve: 'Khu bảo tồn',
-  garden: 'Vườn',
-  beach_resort: 'Biển',
-  province: 'Tỉnh/Thành',
-};
-
-function getPlaceTypeLabel(type: string): string {
-  return PLACE_TYPE_LABELS[type] || type.replace(/_/g, ' ');
-}
+import { getPlaceTypeLabel } from '@/lib/place-labels';
 
 interface TripPlannerFormProps {
   search: UsePlaceSearchReturn;
@@ -47,9 +21,12 @@ interface TripPlannerFormProps {
 }
 
 interface DateFieldProps {
+  id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
+  min?: string;
+  max?: string;
 }
 
 interface SearchDropdownProps {
@@ -129,6 +106,7 @@ export default function TripPlannerForm({
                 ) : selectedPlace ? (
                   <button
                     type="button"
+                    id="clear-planner-destination"
                     onClick={clearSelectedPlace}
                     className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg)] hover:text-[var(--color-text)]"
                     aria-label="Xóa địa điểm đã chọn"
@@ -138,6 +116,7 @@ export default function TripPlannerForm({
                 ) : (
                   <button
                     type="button"
+                    id="search-planner-destination"
                     onClick={handleSearch}
                     disabled={!searchQuery.trim()}
                     className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-primary-darker)] transition hover:bg-[var(--color-primary-lightest)] disabled:opacity-40"
@@ -161,29 +140,45 @@ export default function TripPlannerForm({
           </div>
 
           <div className="grid grid-cols-1 gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]/40 p-2 md:grid-cols-[1fr_1fr_0.8fr_1fr] md:gap-0">
-            <DateField label="Ngày đi" value={startDate} onChange={onStartDateChange} />
-            <DateField label="Ngày về" value={endDate} onChange={onEndDateChange} />
+            <DateField
+              id="trip-start-date"
+              label="Ngày đi"
+              value={startDate}
+              max={endDate || undefined}
+              onChange={onStartDateChange}
+            />
+            <DateField
+              id="trip-end-date"
+              label="Ngày về"
+              value={endDate}
+              min={startDate || undefined}
+              onChange={onEndDateChange}
+            />
 
             <div className="flex min-h-14 flex-col justify-center px-4 py-2 md:border-r md:border-[var(--color-border)]">
               <span className="mb-1 text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Số người</span>
-              <div className="flex items-center gap-2">
+              <div id="trip-traveler-count-control" className="app-composite-control flex items-center gap-2 rounded-lg">
                 <Icons.UsersIcon className="h-5 w-5 shrink-0 text-[var(--color-text-muted)]" aria-hidden="true" />
                 <input
+                  id="trip-traveler-count"
                   type="number"
                   min="1"
                   max="100"
                   value={travelerCount}
                   aria-label="Số người"
-                  onChange={(event) => onTravelerCountChange(Math.max(1, parseInt(event.target.value) || 1))}
-                  className="w-full border-none bg-transparent p-0 text-sm font-bold text-[var(--color-text)] outline-none"
+                  onChange={(event) => onTravelerCountChange(
+                    Math.min(100, Math.max(1, Number.parseInt(event.target.value, 10) || 1))
+                  )}
+                  className="app-composite-input w-full border-none bg-transparent p-0 text-sm font-bold text-[var(--color-text)] outline-none"
                 />
               </div>
             </div>
 
             <div className="flex items-center p-1 md:p-2">
               <button
+                id="create-trip-from-planner"
                 type="button"
-                onClick={onCreateTrip}
+                onClick={() => onCreateTrip()}
                 disabled={!selectedPlace || isCreating || isUserLoading}
                 className={`min-h-12 w-full rounded-full px-4 text-center text-sm font-extrabold tracking-wide shadow-sm transition ${
                   selectedPlace
@@ -191,7 +186,7 @@ export default function TripPlannerForm({
                     : 'border border-[var(--color-border)] bg-white text-[var(--color-primary-darker)]'
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                {isCreating ? 'ĐANG XỬ LÝ...' : selectedPlace ? 'TẠO LỊCH TRÌNH' : 'CHỌN ĐỊA ĐIỂM'}
+                {isCreating ? 'Đang tạo lịch trình…' : selectedPlace ? 'Tạo lịch trình' : 'Chọn địa điểm'}
               </button>
             </div>
           </div>
@@ -201,18 +196,22 @@ export default function TripPlannerForm({
   );
 }
 
-function DateField({ label, value, onChange }: DateFieldProps) {
+function DateField({ id, label, value, onChange, min, max }: DateFieldProps) {
   return (
     <div className="flex min-h-14 flex-col justify-center px-4 py-2 md:border-r md:border-[var(--color-border)]">
       <span className="mb-1 text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">{label}</span>
-      <div className="flex items-center gap-2">
+      <div id={`${id}-control`} className="app-composite-control flex items-center gap-2 rounded-lg">
         <Icons.CalendarIcon className="h-5 w-5 shrink-0 text-[var(--color-text-muted)]" aria-hidden="true" />
         <input
+          id={id}
           type="date"
           value={value}
+          min={min}
+          max={max}
+          required
           aria-label={label}
           onChange={(event) => onChange(event.target.value)}
-          className="w-full border-none bg-transparent p-0 text-sm font-bold text-[var(--color-text)] outline-none"
+          className="app-composite-input w-full border-none bg-transparent p-0 text-sm font-bold text-[var(--color-text)] outline-none"
         />
       </div>
     </div>
@@ -254,15 +253,17 @@ function SearchDropdown({
         {showFilters && (
           <div className="flex flex-wrap gap-1.5 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
             <button
+              id="planner-filter-all"
               type="button"
               onClick={() => setTypeFilter('all')}
               className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${typeFilter === 'all' ? 'bg-[var(--color-primary-darker)] text-white' : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]'}`}
             >
               Tất cả
             </button>
-            {availableTypes.map((type) => (
+            {availableTypes.map((type, index) => (
               <button
                 key={type}
+                id={`planner-filter-type-${index}`}
                 type="button"
                 onClick={() => setTypeFilter(type)}
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${typeFilter === type ? 'bg-[var(--color-primary-darker)] text-white' : 'bg-[var(--color-bg)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]'}`}
@@ -287,6 +288,7 @@ function SearchDropdown({
                 className={`flex w-full items-stretch transition hover:bg-[var(--color-bg)] ${isSelected ? 'bg-[var(--color-primary-lightest)]' : ''}`}
               >
                 <button
+                  id={`planner-result-${index}-select`}
                   type="button"
                   onClick={() => onSelect(place)}
                   className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3 text-left"
@@ -300,9 +302,10 @@ function SearchDropdown({
                       <div className="truncate text-sm text-[var(--color-text-muted)]">{place.address}</div>
                     )}
                   </div>
-                  {isSelected && <div className="self-center text-xs font-bold text-[var(--color-success)]">ĐÃ CHỌN</div>}
+                  {isSelected && <div className="self-center text-xs font-bold text-[var(--color-success)]">Đã chọn</div>}
                 </button>
                 <button
+                  id={`planner-result-${index}-add`}
                   type="button"
                   onClick={() => onAddToTrip(place)}
                   className="flex shrink-0 items-center gap-1.5 border-l border-[var(--color-border)] px-3 text-xs font-bold text-[var(--color-primary-darker)] transition hover:bg-[var(--color-primary-lightest)]"

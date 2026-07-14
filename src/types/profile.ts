@@ -1,6 +1,7 @@
 import type { TripAccess } from '@/types/trip';
 
-export type Gender = 'Nam' | 'Nữ' | 'Khác' | '';
+export type ProfileTab = 'personal' | 'trips' | 'bookings' | 'favorites' | 'security';
+
 export type BudgetLevel = 'budget' | 'mid' | 'comfortable' | 'luxury';
 export type TravelStyleCode = 'solo' | 'couple' | 'family' | 'group' | 'adventure' | 'relax';
 export type TravelInterestCode =
@@ -13,7 +14,13 @@ export type TravelInterestCode =
   | 'adventure'
   | 'photography'
   | 'wellness';
-export type ProfileTab = 'personal' | 'preferences' | 'trips' | 'favorites' | 'reviews' | 'security' | 'search-history';
+
+export interface TravelPreferences {
+  travelStyles: TravelStyleCode[];
+  interests: TravelInterestCode[];
+  budgetLevel: BudgetLevel;
+  preferredDestinations: string[];
+}
 
 export interface BasicUser {
   id: string;
@@ -38,12 +45,7 @@ export interface PersonalInfo {
   avatarUrl?: string;
 }
 
-export interface TravelPreferences {
-  travelStyles: TravelStyleCode[];
-  interests: TravelInterestCode[];
-  budgetLevel: BudgetLevel;
-  preferredDestinations: string[];
-}
+export type Gender = 'Nam' | 'Nữ' | 'Khác' | '';
 
 export interface TripSummary {
   _id: string;
@@ -64,19 +66,4 @@ export interface FavoritePlaceSummary {
   address?: string;
   lat: number;
   lng: number;
-}
-
-export interface ReviewedPlace {
-  _id?: string;
-  name?: string;
-  type?: string;
-  address?: string;
-}
-
-export interface MyReview {
-  _id: string;
-  rating: number;
-  comment?: string;
-  createdAt: string;
-  place?: ReviewedPlace;
 }

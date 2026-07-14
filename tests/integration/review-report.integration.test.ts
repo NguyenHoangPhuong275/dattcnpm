@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { getDb, disconnectMongo, getRedis } from '@/lib/db';
 
-// DB test trên Atlas có độ trễ dao động — timeout 5s mặc định gây flaky.
 vi.setConfig({ testTimeout: 30_000 });
 import { POST as reportPOST } from '@/app/api/reviews/[id]/report/route';
 import { GET as adminReportsGET } from '@/app/api/admin/reviews/reports/route';
@@ -43,7 +42,6 @@ describe('Chức năng báo cáo đánh giá vi phạm', () => {
     const db = await getDb();
     await db.reviewReports.deleteMany({ reportedBy: REPORTER });
     await db.reviews.deleteMany({ userId: AUTHOR });
-    // Xóa rate limit tích lũy giữa các lần chạy test (Redis dùng chung)
     await getRedis().del(
       `rl:report-review:${REPORTER}`,
       `rl:report-review:${AUTHOR}`,
@@ -147,8 +145,20 @@ describe('Chức năng báo cáo đánh giá vi phạm', () => {
     expect(second.status).toBe(409);
   }, 30_000);
 
+  it('chỉ một quyết định đồng thời được áp dụng cho cùng báo cáo', async () => {
+    const reportId = await createPendingReport();
+    const responses = await Promise.all([
+      adminReportPATCH(patchReq(ADMIN, reportId, { status: 'resolved' }) as never, ctx(reportId) as never),
+      adminReportPATCH(patchReq(ADMIN, reportId, { status: 'dismissed' }) as never, ctx(reportId) as never),
+    ]);
+
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 409]);
+    const db = await getDb();
+    const audits = await db.auditLogs.find({ targetId: reportId, action: 'RESOLVE_REVIEW_REPORT' });
+    expect(audits).toHaveLength(1);
+  }, 30_000);
+
   it('non-admin PATCH report → 403; status không hợp lệ → 400; report không tồn tại → 404', async () => {
-    // 403 và 400 bị chặn trước khi chạm DB nên dùng id hợp lệ bất kỳ, không cần tạo report thật.
     const anyId = '507f1f77bcf86cd7994390aa';
 
     const forbidden = await adminReportPATCH(patchReq(REPORTER, anyId, { status: 'resolved' }) as never, ctx(anyId) as never);

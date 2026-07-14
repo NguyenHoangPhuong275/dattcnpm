@@ -18,3 +18,13 @@ if (!process.env.REDIS_URL) {
 if (!process.env.WEBHOOK_SECRET) {
   process.env.WEBHOOK_SECRET = 'test-webhook-secret';
 }
+process.env.PAYMENT_MODE = 'demo';
+if (!process.env.PAYMENT_BANK_CODE) {
+  process.env.PAYMENT_BANK_CODE = 'VCB';
+}
+if (!process.env.PAYMENT_ACCOUNT_NO) {
+  process.env.PAYMENT_ACCOUNT_NO = '0123456789';
+}
+if (!process.env.PAYMENT_ACCOUNT_NAME) {
+  process.env.PAYMENT_ACCOUNT_NAME = 'LOTUS TRAVEL TEST';
+}

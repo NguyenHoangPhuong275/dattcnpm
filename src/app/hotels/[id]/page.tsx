@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
+import HotelBookingSection from '@/components/hotels/HotelBookingSection';
 import HotelSuggestions from '@/components/hotels/HotelSuggestions';
 import HotelReviews from '@/components/hotels/HotelReviews';
 import HotelImage from '@/components/hotels/HotelImage';
@@ -82,12 +83,12 @@ export default function HotelDetailPage(): React.JSX.Element {
       <AppHeader active="hotels" showSearch={false} />
 
       <main className="mx-auto w-full max-w-[1100px] px-4 py-8 sm:px-6 lg:px-8">
-        <Link href="/hotels" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-primary-darker)] hover:underline">
+        <Link id={`hotel-detail-back-${hotelId}`} href="/hotels" className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-primary-darker)] hover:underline">
           Quay lại danh sách khách sạn
         </Link>
 
         {status === 'loading' && (
-          <div className="flex items-center gap-2 py-16 text-sm text-[var(--color-text-muted)]">
+          <div className="flex items-center justify-center gap-2 py-16 text-sm text-[var(--color-text-muted)]">
             <LoadingSpinner size="md" className="text-[var(--color-primary-dark)]" />
             Đang tải thông tin khách sạn...
           </div>
@@ -96,7 +97,7 @@ export default function HotelDetailPage(): React.JSX.Element {
         {status === 'error' && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 px-4 py-3">
             <span className="text-sm text-[var(--color-danger)]">{errorMessage || 'Không thể tải thông tin khách sạn'}</span>
-            <button type="button" onClick={load} className="shrink-0 text-xs font-semibold text-[var(--color-primary-darker)] hover:underline">
+            <button id={`hotel-detail-retry-${hotelId}`} type="button" onClick={load} className="shrink-0 text-xs font-semibold text-[var(--color-primary-darker)] hover:underline">
               Thử lại
             </button>
           </div>
@@ -120,6 +121,7 @@ export default function HotelDetailPage(): React.JSX.Element {
                   <div className="flex flex-wrap gap-2">
                     {gallery.map((src, index) => (
                       <button
+                        id={`hotel-detail-${hotel.id}-image-${index}`}
                         key={src}
                         type="button"
                         onClick={() => setActiveImage(index)}
@@ -165,6 +167,7 @@ export default function HotelDetailPage(): React.JSX.Element {
                 )}
 
                 <a
+                  id={`hotel-detail-map-${hotel.id}`}
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -180,6 +183,13 @@ export default function HotelDetailPage(): React.JSX.Element {
                 )}
               </div>
             </div>
+
+            <HotelBookingSection
+              hotelId={hotel.id}
+              hotelName={hotel.name}
+              priceLevel={hotel.priceLevel}
+              rating={hotel.rating}
+            />
 
             <HotelReviews hotelId={hotel.id} hotelName={hotel.name} />
 

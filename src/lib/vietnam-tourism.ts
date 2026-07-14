@@ -21,6 +21,8 @@ export type TourismSearchPlace = {
   tags: string[];
 };
 
+const TOURISM_DESTINATIONS = tourismDestinations as TourismDestination[];
+
 const PROVINCE_CENTERS: Record<string, { lat: number; lng: number; label: string }> = {
   'an giang': { lat: 10.5216, lng: 105.1259, label: 'An Giang' },
   'ba ria vung tau': { lat: 10.5417, lng: 107.243, label: 'Bà Rịa - Vũng Tàu' },
@@ -124,7 +126,7 @@ export function knownProvinceKeys(): string[] {
   return Object.keys(PROVINCE_CENTERS);
 }
 
-function destinationToSearchPlace(destination: TourismDestination): TourismSearchPlace {
+export function tourismDestinationToSearchPlace(destination: TourismDestination): TourismSearchPlace {
   const center = provinceCenter(destination.province);
   return {
     osmId: `curated:${destination.id}`,
@@ -154,17 +156,21 @@ export function getTourismDestinationsByRegion(region?: string): TourismDestinat
   if (!region) return [];
 
   const regionKey = provinceKey(region);
-  return (tourismDestinations as TourismDestination[]).filter((item) => {
+  return TOURISM_DESTINATIONS.filter((item) => {
     const itemProvinceKey = provinceKey(item.province);
     return itemProvinceKey === regionKey || regionKey.includes(itemProvinceKey) || itemProvinceKey.includes(regionKey);
   });
+}
+
+export function getTourismDestinationById(id: string): TourismDestination | null {
+  return TOURISM_DESTINATIONS.find((item) => item.id === id) ?? null;
 }
 
 export function searchTourismPlaces(query: string): TourismSearchPlace[] {
   const normalized = normalizeTourismText(query);
   if (!normalized) return [];
 
-  const destinations = tourismDestinations as TourismDestination[];
+  const destinations = TOURISM_DESTINATIONS;
   const provinceMatches = Array.from(new Set(
     destinations
       .map((item) => item.province)
@@ -197,7 +203,7 @@ export function searchTourismPlaces(query: string): TourismSearchPlace[] {
     })
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)
-    .map(({ item }) => destinationToSearchPlace(item));
+    .map(({ item }) => tourismDestinationToSearchPlace(item));
 
   const seen = new Set<string>();
   return [...provinceMatches, ...destinationMatches]

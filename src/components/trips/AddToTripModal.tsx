@@ -23,6 +23,7 @@ export default function AddToTripModal({
   placeId,
   onClose,
 }: AddToTripModalProps): React.JSX.Element | null {
+  const idPrefix = `add-to-trip-${placeId}-${React.useId()}`;
   const { status, trips, errorMessage, openModal, closeModal, addToTrip } = useAddToTrip();
   const { actions: { showToast } } = useToast();
   const [selectedTripId, setSelectedTripId] = useState<string>('');
@@ -76,7 +77,7 @@ export default function AddToTripModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="add-to-trip-title"
+      aria-labelledby={`${idPrefix}-title`}
       onClick={onClose}
     >
       <div
@@ -84,10 +85,11 @@ export default function AddToTripModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-4">
-          <h2 id="add-to-trip-title" className="text-xl font-bold text-[var(--color-text)]">
+          <h2 id={`${idPrefix}-title`} className="text-xl font-bold text-[var(--color-text)]">
             Thêm {placeName} vào lịch trình
           </h2>
           <button
+            id={`${idPrefix}-close`}
             type="button"
             onClick={onClose}
             aria-label="Đóng"
@@ -127,6 +129,7 @@ export default function AddToTripModal({
             <p className="font-medium">Không thể tải danh sách chuyến đi</p>
             <p className="mt-1 text-[var(--color-danger)]/80">{errorMessage ?? 'Vui lòng thử lại sau.'}</p>
             <button
+              id={`${idPrefix}-retry`}
               type="button"
               onClick={openModal}
               className="mt-3 text-xs font-semibold text-[var(--color-danger)] underline underline-offset-2 hover:no-underline"
@@ -143,6 +146,7 @@ export default function AddToTripModal({
               description="Tạo một lịch trình trước khi thêm địa điểm này."
             />
             <Link
+              id={`${idPrefix}-create-trip`}
               href={ROUTES.trips}
               className="mt-3 inline-flex w-full justify-center rounded-lg bg-[var(--color-primary-darker)] px-4 py-2 text-sm font-bold text-white"
               onClick={onClose}
@@ -170,11 +174,11 @@ export default function AddToTripModal({
             </div>
 
             <div className="mt-4">
-              <label htmlFor="day" className="mb-1 block text-sm font-semibold text-[var(--color-text)]">
+              <label htmlFor={`${idPrefix}-day`} className="mb-1 block text-sm font-semibold text-[var(--color-text)]">
                 Ngày thứ
               </label>
               <input
-                id="day"
+                id={`${idPrefix}-day`}
                 type="number"
                 min={1}
                 max={30}
@@ -188,6 +192,7 @@ export default function AddToTripModal({
 
             <div className="mt-6 flex gap-3">
               <button
+                id={`${idPrefix}-cancel`}
                 type="button"
                 onClick={onClose}
                 className="flex-1 rounded-lg border border-[var(--color-border)] py-2 text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg)]"
@@ -195,6 +200,7 @@ export default function AddToTripModal({
                 Hủy
               </button>
               <button
+                id={`${idPrefix}-submit`}
                 type="button"
                 onClick={handleAdd}
                 disabled={!selectedTripId || isLoading}

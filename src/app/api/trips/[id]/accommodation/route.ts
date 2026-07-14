@@ -68,9 +68,25 @@ export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response
     items.sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime());
     const legacyHotelIds = await resolveLegacyHotelIds(db, items);
 
-    return sendSuccess(items.map((item) => toAccommodationResponse(item, {
-      hotelId: item.hotelId ?? legacyHotelIds.get(String(item._id)) ?? null,
-    })));
+    const bookings = await db.hotelBookings.find({ tripId: id, userId }) as any[];
+    const bookingByKeys = new Map<string, string>();
+    for (const b of bookings) {
+      const key = `${b.hotelId}_${new Date(b.checkIn).getTime()}_${new Date(b.checkOut).getTime()}`;
+      bookingByKeys.set(key, String(b._id));
+    }
+
+    return sendSuccess(items.map((item) => {
+      const resolvedHotelId = item.hotelId ?? legacyHotelIds.get(String(item._id)) ?? null;
+      let bookingRef = item.bookingRef;
+      if (!bookingRef && resolvedHotelId) {
+        const key = `${resolvedHotelId}_${new Date(item.checkIn).getTime()}_${new Date(item.checkOut).getTime()}`;
+        bookingRef = bookingByKeys.get(key) ?? null;
+      }
+      return toAccommodationResponse(item, {
+        hotelId: resolvedHotelId,
+        bookingRef,
+      });
+    }));
   } catch (error) {
     return handleApiError(error);
   }

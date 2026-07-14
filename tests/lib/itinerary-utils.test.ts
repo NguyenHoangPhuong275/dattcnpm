@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { Trip } from '@/types/trip';
-import { assertTripDayIsSchedulable, getDateForTripDay } from '@/lib/itinerary-utils';
+import { getVietnamDateTimeParts, parseDateOnly } from '@/lib/date';
+import {
+  assertTripDayIsSchedulable,
+  getDateForTripDay,
+  getDateOnlyForTripDay,
+} from '@/lib/itinerary-utils';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -9,9 +14,8 @@ function makeTrip(startDate: Date, endDate: Date): Trip {
 }
 
 function atMidnight(offsetDays: number): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + offsetDays);
+  const d = parseDateOnly(getVietnamDateTimeParts().date)!;
+  d.setUTCDate(d.getUTCDate() + offsetDays);
   return d;
 }
 
@@ -47,5 +51,16 @@ describe('assertTripDayIsSchedulable', () => {
   it('rejects a day beyond the trip end date', () => {
     const trip = makeTrip(atMidnight(0), atMidnight(2));
     expect(() => assertTripDayIsSchedulable(trip, 10)).toThrowError(/vượt quá/);
+  });
+
+  it('uses the Vietnam business date near the UTC day boundary', () => {
+    const trip = makeTrip(
+      new Date('2026-07-13T00:00:00.000Z'),
+      new Date('2026-07-20T00:00:00.000Z'),
+    );
+    const now = new Date('2026-07-13T18:30:00.000Z');
+
+    expect(getDateOnlyForTripDay(trip, 1)).toBe('2026-07-13');
+    expect(() => assertTripDayIsSchedulable(trip, 1, now)).toThrowError(/ngày đã qua/);
   });
 });

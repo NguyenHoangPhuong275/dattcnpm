@@ -1,6 +1,6 @@
 # Kế hoạch dự án - Smart Travel Guide
 
-Ngày cập nhật: 2026-06-12
+Ngày cập nhật: 2026-07-14
 
 **Security & maintainability pass (12/06):**
 - Completed P0 items: debug route blocking (SEC-01/02/03), webhook secret (SEC-04), N+1 broadcast + logAudit (BUG-03/04).
@@ -24,7 +24,7 @@ Ngày cập nhật: 2026-06-12
 
 ## 2. Trạng thái hiện tại
 
-Project đã hoàn thành toàn bộ kế hoạch theo phạm vi repo hiện tại: auth OTP/login/logout, JWT cookie, middleware bảo vệ route, places search, POI, weather, khách sạn, trips (lịch trình, ngân sách, checklist, chỗ ở, cộng tác viên, chia sẻ công khai), favorites, search history, đánh giá kèm report, cảnh báo thời tiết tự động, trang quản trị, rate limit và bộ test tự động đầy đủ. Báo cáo chốt tại `DATTCNPM_Smart_Travel_Guide.docx`.
+Project đã triển khai các module chính trong phạm vi repo hiện tại: auth OTP/login/logout, JWT cookie, middleware bảo vệ route, places search, POI, weather, khách sạn, đặt phòng, tra cứu hãng/lịch bay, đặt vé máy bay, ghi nhận thanh toán nội bộ, trips (lịch trình, ngân sách, checklist, chỗ ở, cộng tác viên, chia sẻ công khai), favorites, search history, đánh giá kèm report, cảnh báo thời tiết tự động, trang quản trị và rate limit. Trạng thái kiểm chứng của đợt refactor được ghi tại `docs/05_REFACTORING.md`; không suy diễn toàn bộ test/build đã pass khi chưa có kết quả hoàn tất.
 
 **Điều chỉnh phạm vi (cập nhật 2026-06-11):** Theo yêu cầu, **phần bản đồ trực quan, marker, popup và plan trải nghiệm khám phá của Tuần 3 đã được loại bỏ hoàn toàn**. Tuần 3 chỉ ghi nhận search + POI + Weather + Search History UI đã có. Các kế hoạch Tuần 4-6 được điều chỉnh ưu tiên sang luồng "Add place từ search vào trip", hoàn thiện Trip/Itinerary UI, test integration và polish.
 
@@ -62,7 +62,7 @@ Project đã hoàn thành toàn bộ kế hoạch theo phạm vi repo hiện t�
 
 ## 5. Hướng phát triển tiếp theo
 
-- Tích hợp thanh toán thật cho đặt phòng/đặt vé.
+- Tích hợp cổng thanh toán thật, webhook xác minh giao dịch, đối soát và hoàn tiền; luồng hiện tại chỉ hiển thị QR và ghi nhận xác nhận chuyển khoản nội bộ.
 - Gợi ý bằng AI nâng cao (thay cho gợi ý theo tag/sở thích hiện có).
 - Mở rộng bộ kiểm thử E2E (Playwright) cho các luồng ngân sách, checklist, chia sẻ, report đánh giá.
 - Cấu hình triển khai production chính thức (CI/CD, hosting, giám sát).

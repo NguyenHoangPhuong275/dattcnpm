@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apiRequest, ensureApiSuccess } from '@/lib/api-client';
 import { getHotelPhoto, estimateHotelPricePerNight, formatHotelPrice } from '@/lib/hotel-utils';
@@ -41,6 +41,7 @@ interface HotelSuggestionsProps {
   radiusKm?: number;
   limit?: number;
   featuredWhenEmpty?: boolean;
+  showFilters?: boolean;
   onSelect?: (hotel: HotelResult) => Promise<void> | void;
 }
 
@@ -59,17 +60,40 @@ type HotelFilters = {
 };
 
 const AMENITY_OPTIONS: { value: string; label: string }[] = [
-  { value: 'wifi', label: 'Wifi' },
+  { value: 'wifi', label: 'Wi-Fi' },
   { value: 'pool', label: 'Hồ bơi' },
   { value: 'parking', label: 'Bãi đỗ xe' },
   { value: 'ac', label: 'Điều hoà' },
   { value: 'restaurant', label: 'Nhà hàng' },
-  { value: 'bar', label: 'Bar' },
+  { value: 'bar', label: 'Quầy bar' },
 ];
 
 const AMENITY_LABELS: Record<string, string> = Object.fromEntries(AMENITY_OPTIONS.map((item) => [item.value, item.label]));
 
 const DEFAULT_GEO_RADIUS_KM = 20;
+
+const EMPTY_FILTERS: HotelFilters = { priceLevel: null, minRating: null, amenities: [] };
+
+const PRICE_FILTER_OPTIONS: { value: HotelFilters['priceLevel']; label: string }[] = [
+  { value: null, label: 'Tất cả mức giá' },
+  { value: 'budget', label: PRICE_LABELS.budget },
+  { value: 'mid', label: PRICE_LABELS.mid },
+  { value: 'luxury', label: PRICE_LABELS.luxury },
+];
+
+const RATING_FILTER_OPTIONS = [3, 4] as const;
+
+function filterChipClass(active: boolean): string {
+  return `rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+    active
+      ? 'border-[var(--color-primary-dark)] bg-[var(--color-primary-lightest)] text-[var(--color-primary-darker)]'
+      : 'border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:border-[var(--color-primary-dark)] hover:text-[var(--color-primary-darker)]'
+  }`;
+}
+
+function hasActiveFilters(filters: HotelFilters): boolean {
+  return filters.priceLevel !== null || filters.minRating !== null || filters.amenities.length > 0;
+}
 
 function buildQuery(props: HotelSuggestionsProps, page: number, filters: HotelFilters, featured: boolean): string {
   const params = new URLSearchParams();
@@ -106,18 +130,24 @@ function HotelCardSkeleton(): React.JSX.Element {
 }
 
 export default function HotelSuggestions(props: HotelSuggestionsProps): React.JSX.Element {
-  const { destination, province, lat, lng, radiusKm, limit, featuredWhenEmpty, onSelect } = props;
+  const idPrefix = `hotel-suggestions-${useId().replace(/:/g, '')}`;
+  const { destination, province, lat, lng, radiusKm, limit, featuredWhenEmpty, showFilters, onSelect } = props;
   const [status, setStatus] = useState<Status>('idle');
   const [hotels, setHotels] = useState<HotelResult[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [filters, setFilters] = useState<HotelFilters>(EMPTY_FILTERS);
   const lastQueryRef = useRef('');
 
   useEffect(() => {
     setPage(1);
-  }, [destination, province, lat, lng]);
+  }, [destination, province, lat, lng, filters]);
+
+  const updateFilters = (updater: (current: HotelFilters) => HotelFilters): void => {
+    setFilters((current) => updater(current));
+  };
 
   const handleSelect = async (hotel: HotelResult): Promise<void> => {
     if (!onSelect || savingId) return;
@@ -135,7 +165,6 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
   const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
     const hasQueryCriteria = Boolean(destination) || Boolean(province) || (typeof lat === 'number' && typeof lng === 'number');
     const featured = !hasQueryCriteria && Boolean(featuredWhenEmpty);
-    const filters: HotelFilters = { priceLevel: null, minRating: null, amenities: [] };
     const query = hasQueryCriteria || featured ? buildQuery({ destination, province, lat, lng, radiusKm, limit }, page, filters, featured) : '';
     lastQueryRef.current = query;
     if (!query) {
@@ -165,7 +194,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
       if (signal?.aborted || lastQueryRef.current !== query) return;
       setStatus('error');
     }
-  }, [destination, province, lat, lng, radiusKm, limit, page, featuredWhenEmpty]);
+  }, [destination, province, lat, lng, radiusKm, limit, page, featuredWhenEmpty, filters]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -185,6 +214,73 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
 
   return (
     <div className="space-y-3">
+      {showFilters && (
+        <div className="flex flex-wrap items-center gap-2" aria-label="Bộ lọc khách sạn">
+          {PRICE_FILTER_OPTIONS.map((option) => (
+            <button
+              id={`${idPrefix}-price-${option.value ?? 'all'}`}
+              key={option.label}
+              type="button"
+              onClick={() => updateFilters((current) => ({ ...current, priceLevel: option.value }))}
+              className={filterChipClass(filters.priceLevel === option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+
+          <span className="mx-1 h-5 w-px bg-[var(--color-border)]" aria-hidden="true" />
+
+          {RATING_FILTER_OPTIONS.map((rating) => (
+            <button
+              id={`${idPrefix}-rating-${rating}`}
+              key={rating}
+              type="button"
+              onClick={() =>
+                updateFilters((current) => ({
+                  ...current,
+                  minRating: current.minRating === rating ? null : rating,
+                }))
+              }
+              className={filterChipClass(filters.minRating === rating)}
+            >
+              {rating}+ sao
+            </button>
+          ))}
+
+          <span className="mx-1 h-5 w-px bg-[var(--color-border)]" aria-hidden="true" />
+
+          {AMENITY_OPTIONS.map((amenity) => (
+            <button
+              id={`${idPrefix}-amenity-${amenity.value}`}
+              key={amenity.value}
+              type="button"
+              onClick={() =>
+                updateFilters((current) => ({
+                  ...current,
+                  amenities: current.amenities.includes(amenity.value)
+                    ? current.amenities.filter((value) => value !== amenity.value)
+                    : [...current.amenities, amenity.value],
+                }))
+              }
+              className={filterChipClass(filters.amenities.includes(amenity.value))}
+            >
+              {amenity.label}
+            </button>
+          ))}
+
+          {hasActiveFilters(filters) && (
+            <button
+              id={`${idPrefix}-clear-filters`}
+              type="button"
+              onClick={() => setFilters(EMPTY_FILTERS)}
+              className="ml-1 text-xs font-bold text-[var(--color-primary-darker)] underline-offset-2 hover:underline"
+            >
+              Xóa bộ lọc
+            </button>
+          )}
+        </div>
+      )}
+
       {status === 'loading' && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Đang tải khách sạn">
           {Array.from({ length: 6 }).map((_, index) => (
@@ -198,6 +294,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
           <p className="text-sm font-semibold text-[var(--color-text)]">Rất tiếc, chưa tải được danh sách lúc này</p>
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">Vui lòng kiểm tra kết nối mạng rồi thử lại.</p>
           <button
+            id={`${idPrefix}-retry`}
             type="button"
             onClick={() => load()}
             className="mt-3 rounded-lg bg-[var(--color-primary-darker)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)]"
@@ -230,7 +327,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
           {hotels.map((hotel) => {
             return (
             <div key={hotel.id} className="flex flex-col gap-1.5 rounded-xl border border-[var(--color-border)] bg-white p-3">
-              <Link href={`/hotels/${hotel.id}`} className="group flex flex-col gap-1.5">
+              <Link id={`${idPrefix}-hotel-${hotel.id}`} href={`/hotels/${hotel.id}`} className="group flex flex-col gap-1.5">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-[var(--color-bg)]">
                   <HotelImage
                     src={hotel.image || getHotelPhoto(hotel.id)}
@@ -265,22 +362,37 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
                       {PRICE_LABELS[hotel.priceLevel]}
                     </span>
                   )}
-                  {(hotel.amenities ?? []).slice(0, 3).map((amenity) => (
+                  {(hotel.amenities ?? []).filter((amenity) => Boolean(AMENITY_LABELS[amenity])).slice(0, 3).map((amenity) => (
                     <span key={amenity} className="rounded-full bg-[var(--color-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-text-secondary)]">
-                      {AMENITY_LABELS[amenity] ?? amenity}
+                      {AMENITY_LABELS[amenity]}
                     </span>
                   ))}
                 </div>
               </Link>
               {onSelect && (
-                <button
-                  type="button"
-                  onClick={() => handleSelect(hotel)}
-                  disabled={savingId === hotel.id}
-                  className="mt-1 w-fit rounded-lg bg-[var(--color-primary-darker)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
+                <span
+                  id={`${idPrefix}-save-hotel-${hotel.id}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (savingId !== hotel.id) {
+                      handleSelect(hotel);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && savingId !== hotel.id) {
+                      e.preventDefault();
+                      handleSelect(hotel);
+                    }
+                  }}
+                  className={`mt-1 w-fit rounded-lg bg-[var(--color-primary-darker)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-primary-hover)] cursor-pointer inline-block ${
+                    savingId === hotel.id ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
                   {savingId === hotel.id ? 'Đang lưu...' : 'Lưu vào chuyến đi'}
-                </button>
+                </span>
               )}
             </div>
             );
@@ -291,6 +403,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
       {status === 'success' && totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 pt-1">
           <button
+            id={`${idPrefix}-previous-page`}
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
@@ -300,6 +413,7 @@ export default function HotelSuggestions(props: HotelSuggestionsProps): React.JS
           </button>
           <span className="text-xs text-[var(--color-text-muted)]">Trang {page}/{totalPages}</span>
           <button
+            id={`${idPrefix}-next-page`}
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}

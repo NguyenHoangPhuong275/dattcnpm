@@ -3,5 +3,7 @@ export * from './trip.model';
 export * from './place.model';
 export * from './hotel.model';
 export * from './hotel-review.model';
+export * from './hotel-booking.model';
+export * from './flight-booking.model';
 export * from './review.model';
 export * from './supporting.model';

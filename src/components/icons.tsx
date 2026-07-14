@@ -23,6 +23,28 @@ export const UsersIcon = ({ className = 'w-5 h-5' }: { className?: string }) => 
   </svg>
 );
 
+export const MenuIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
+export const ChevronDownIcon = ({ className = '' }: { className?: string }) => (
+  <svg
+    aria-hidden="true"
+    focusable="false"
+    className={`app-dropdown-chevron ${className}`.trim()}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
 export const MapPinIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
@@ -113,14 +135,6 @@ export const ListIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
     <line x1="3" y1="6" x2="3.01" y2="6" />
     <line x1="3" y1="12" x2="3.01" y2="12" />
     <line x1="3" y1="18" x2="3.01" y2="18" />
-  </svg>
-);
-
-export const MapIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-    <line x1="8" y1="2" x2="8" y2="18" />
-    <line x1="16" y1="6" x2="16" y2="22" />
   </svg>
 );
 

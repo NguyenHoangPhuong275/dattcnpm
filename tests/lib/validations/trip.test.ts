@@ -8,6 +8,17 @@ const baseTrip = {
 };
 
 describe('trip validation', () => {
+  it('trả thông báo tiếng Việt khi thiếu điểm đến', () => {
+    const result = createTripSchema.safeParse({ title: 'Lịch trình Hạ Long' });
+
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const destinationIssue = result.error.issues.find((issue) => issue.path[0] === 'destination');
+    expect(destinationIssue?.message).toMatch(/[À-ỹ]/u);
+    expect(destinationIssue?.message).not.toContain('expected string');
+  });
+
   it('accepts only http/https coverImage URLs when creating or updating trips', () => {
     expect(createTripSchema.parse({
       ...baseTrip,

@@ -1,12 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
-import { getDefaultTripDates } from '@/lib/date';
+import { getDefaultTripDates, isValidDateOnly } from '@/lib/date';
 import type { TripSummary } from '@/types/profile';
-import { ROUTES } from '@/lib/constants';
-import { RequestStatus } from '@/types/common';
+import type { RequestStatus } from '@/types/common';
 import { useTripList } from './useTripList';
 
 interface SelectedTripPlace {
@@ -26,11 +25,6 @@ interface TripCreateResponse {
   data?: TripSummary;
 }
 
-interface TripActionResponse {
-  success?: boolean;
-  message?: string;
-}
-
 interface UseHomepageTripActionsReturn {
   myTrips: TripSummary[];
   tripsStatus: RequestStatus;
@@ -44,18 +38,27 @@ interface UseHomepageTripActionsReturn {
   setStartDate: (value: string) => void;
   setEndDate: (value: string) => void;
   setTravelerCount: (value: number) => void;
-  addSelectedPlaceToTrip: (tripId: string, focusHotel?: boolean, place?: SelectedTripPlace) => Promise<boolean>;
-  createTripFromSelectedPlace: (place?: SelectedTripPlace) => Promise<void>;
-  resetTripActionMessage: () => void;
-  loadMyTrips: () => Promise<void>;
+  createTripFromSelectedPlace: () => Promise<void>;
+  createTripFromPlace: (place: SelectedTripPlace) => Promise<void>;
 }
 
 const DEFAULT_TRAVELER_COUNT = 2;
-const FIRST_DAY = 1;
-const CURRENCY_CODE = 'VND';
 
 function getSelectedPlaceDestination(place: SelectedTripPlace): string {
   return place.address || place.name;
+}
+
+function getTripValidationMessage(startDate: string, endDate: string, travelerCount: number): string | null {
+  if (!isValidDateOnly(startDate) || !isValidDateOnly(endDate)) {
+    return 'Vui lòng chọn ngày đi và ngày về hợp lệ';
+  }
+  if (endDate < startDate) {
+    return 'Ngày kết thúc phải sau ngày bắt đầu';
+  }
+  if (!Number.isInteger(travelerCount) || travelerCount < 1 || travelerCount > 100) {
+    return 'Số người phải từ 1 đến 100';
+  }
+  return null;
 }
 
 export function useHomepageTripActions({
@@ -64,7 +67,8 @@ export function useHomepageTripActions({
   onMissingPlace,
 }: UseHomepageTripActionsProps): UseHomepageTripActionsReturn {
   const router = useRouter();
-  const { trips: myTrips, status: tripsStatus, loadTrips } = useTripList({ userId });
+  const { trips: myTrips, status: tripsStatus, loadTrips, setTrips } = useTripList({ userId });
+  const createInFlightRef = useRef(false);
 
   const [tripActionStatus, setTripActionStatus] = useState<RequestStatus>('idle');
   const [tripActionMessage, setTripActionMessage] = useState('');
@@ -89,56 +93,22 @@ export function useHomepageTripActions({
     }
   }, [loadMyTrips, selectedPlace, userId]);
 
-  const addSelectedPlaceToTrip = useCallback(async (tripId: string, focusHotel = false, place?: SelectedTripPlace): Promise<boolean> => {
-    const targetPlace = place || selectedPlace;
-    if (!userId || !targetPlace) return false;
-    if (tripActionStatus === 'loading') return false;
-
-    setTripActionStatus('loading');
-    resetTripActionMessage();
-
-    try {
-      const { response, data } = await apiRequest<TripActionResponse>(
-        `/api/trips/${tripId}/itinerary`,
-        {
-          method: 'POST',
-          userId,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            placeId: targetPlace._id,
-            day: FIRST_DAY,
-            note: targetPlace.name,
-            currency: CURRENCY_CODE,
-          }),
-        }
-      );
-
-      try {
-        ensureApiSuccess(response, data, 'Không thể thêm địa điểm vào chuyến đi');
-      } catch {
-        setTripActionMessage(getApiErrorMessage(data, 'Không thể thêm địa điểm vào chuyến đi'));
-        setTripActionStatus('error');
-        return false;
-      }
-
-      setTripActionStatus('success');
-      router.push(`${ROUTES.scheduleReference}/${tripId}${focusHotel ? '?focus=hotel' : ''}`);
-      return true;
-    } catch {
-      setTripActionMessage('Không thể thêm địa điểm vào chuyến đi lúc này');
-      setTripActionStatus('error');
-      return false;
-    }
-  }, [resetTripActionMessage, router, selectedPlace, tripActionStatus, userId]);
-
-  const createTripFromSelectedPlace = useCallback(async (place?: SelectedTripPlace): Promise<void> => {
-    if (tripActionStatus === 'loading') return;
-    const targetPlace = place || selectedPlace;
-    if (!targetPlace || !userId) {
+  const createTrip = useCallback(async (targetPlace: SelectedTripPlace | null): Promise<void> => {
+    if (createInFlightRef.current) return;
+    if (!targetPlace) {
       onMissingPlace?.();
       return;
     }
+    if (!userId) return;
 
+    const validationMessage = getTripValidationMessage(startDate, endDate, travelerCount);
+    if (validationMessage) {
+      setTripActionMessage(validationMessage);
+      setTripActionStatus('error');
+      return;
+    }
+
+    createInFlightRef.current = true;
     setTripActionStatus('loading');
     resetTripActionMessage();
 
@@ -155,39 +125,44 @@ export function useHomepageTripActions({
             startDate,
             endDate,
             description: `${travelerCount} người`,
+            initialPlaceId: targetPlace._id,
           }),
         }
       );
 
-      try {
-        ensureApiSuccess(response, data, 'Không thể tạo lịch trình');
-      } catch {
-        setTripActionMessage(getApiErrorMessage(data, 'Không thể tạo lịch trình'));
-        setTripActionStatus('error');
-        return;
-      }
+      ensureApiSuccess(response, data, 'Không thể tạo lịch trình');
       if (!data.data) {
-        setTripActionMessage('Không thể tạo lịch trình');
-        setTripActionStatus('error');
-        return;
+        throw new Error('Không thể tạo lịch trình');
       }
 
-      await addSelectedPlaceToTrip(data.data._id, true, targetPlace);
-    } catch {
-      setTripActionMessage('Không thể tạo lịch trình lúc này');
+      const createdTrip = data.data;
+      setTrips((current) => [createdTrip, ...current.filter((trip) => trip._id !== createdTrip._id)]);
+      setTripActionStatus('success');
+      router.push(`/trips/${createdTrip._id}/book-wizard`);
+    } catch (error: unknown) {
+      setTripActionMessage(getApiErrorMessage(error, 'Không thể tạo lịch trình lúc này'));
       setTripActionStatus('error');
+    } finally {
+      createInFlightRef.current = false;
     }
   }, [
-    addSelectedPlaceToTrip,
     endDate,
     resetTripActionMessage,
     onMissingPlace,
-    selectedPlace,
+    router,
+    setTrips,
     startDate,
     travelerCount,
-    tripActionStatus,
     userId,
   ]);
+
+  const createTripFromSelectedPlace = useCallback(async (): Promise<void> => {
+    await createTrip(selectedPlace);
+  }, [createTrip, selectedPlace]);
+
+  const createTripFromPlace = useCallback(async (place: SelectedTripPlace): Promise<void> => {
+    await createTrip(place);
+  }, [createTrip]);
 
   return {
     myTrips,
@@ -202,9 +177,7 @@ export function useHomepageTripActions({
     setStartDate,
     setEndDate,
     setTravelerCount,
-    addSelectedPlaceToTrip,
     createTripFromSelectedPlace,
-    resetTripActionMessage,
-    loadMyTrips,
+    createTripFromPlace,
   };
 }

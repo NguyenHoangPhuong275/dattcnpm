@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import { useToast } from '@/hooks/useToast';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -9,6 +9,8 @@ type Permission = 'READ' | 'EDIT';
 
 interface Collaborator {
   userId: string;
+  displayName: string;
+  email: string | null;
   permission: Permission;
   invitedAt?: string | null;
   acceptedAt?: string | null;
@@ -38,11 +40,8 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   EDIT: 'Chỉnh sửa',
 };
 
-function shortUserId(value: string): string {
-  return value.length > 6 ? `Người dùng …${value.slice(-6)}` : `Người dùng ${value}`;
-}
-
 export default function TripCollaboratorsSection({ tripId, userId }: TripCollaboratorsSectionProps): React.JSX.Element {
+  const idPrefix = `trip-collaborators-${tripId}-${useId()}`;
   const [status, setStatus] = useState<Status>('idle');
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
@@ -199,7 +198,7 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
       {status === 'error' && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 px-3 py-2">
           <span className="text-sm text-[var(--color-danger)]">{errorMessage || 'Không thể tải cộng tác viên'}</span>
-          <button type="button" onClick={load} className="shrink-0 text-xs font-semibold text-[var(--color-primary-darker)] hover:underline">
+          <button id={`${idPrefix}-retry`} type="button" onClick={load} className="shrink-0 text-xs font-semibold text-[var(--color-primary-darker)] hover:underline">
             Thử lại
           </button>
         </div>
@@ -213,7 +212,10 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
             ) : collaborators.map((collaborator) => (
               <div key={collaborator.userId} className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] px-3 py-2">
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-[var(--color-text)]">{shortUserId(collaborator.userId)}</div>
+                  <div className="truncate text-sm font-medium text-[var(--color-text)]">{collaborator.displayName}</div>
+                  {collaborator.email && (
+                    <div className="truncate text-xs text-[var(--color-text-muted)]">{collaborator.email}</div>
+                  )}
                   <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                     <span className="rounded-full bg-[var(--color-primary-lightest)] px-2 py-0.5 font-semibold text-[var(--color-primary-darker)]">
                       {PERMISSION_LABELS[collaborator.permission]}
@@ -222,6 +224,7 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
                   </div>
                 </div>
                 <button
+                  id={`${idPrefix}-remove-${collaborator.userId}`}
                   type="button"
                   onClick={() => handleRemove(collaborator.userId)}
                   disabled={removingId === collaborator.userId}
@@ -235,6 +238,7 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
+              id={`${idPrefix}-email`}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -242,15 +246,17 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
               className="flex-1 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm bg-white"
             />
             <select
+              id={`${idPrefix}-permission`}
               value={permission}
               onChange={(e) => setPermission(e.target.value as Permission)}
-              className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm bg-white"
+              className="app-select min-w-0 rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
               aria-label="Quyền cộng tác viên"
             >
               <option value="READ">Chỉ xem</option>
               <option value="EDIT">Chỉnh sửa</option>
             </select>
             <button
+              id={`${idPrefix}-add`}
               type="button"
               onClick={handleAddCollaborator}
               disabled={addingCollaborator || !email.trim()}
@@ -268,16 +274,17 @@ export default function TripCollaboratorsSection({ tripId, userId }: TripCollabo
                   {`${share.shareUrl}`}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={handleCopyShare} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-primary-darker)] hover:bg-[var(--color-primary-lightest)]">
+                  <button id={`${idPrefix}-copy-share`} type="button" onClick={handleCopyShare} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-primary-darker)] hover:bg-[var(--color-primary-lightest)]">
                     Sao chép
                   </button>
-                  <button type="button" onClick={handleRevokeShare} disabled={sharing} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 disabled:opacity-50">
+                  <button id={`${idPrefix}-revoke-share`} type="button" onClick={handleRevokeShare} disabled={sharing} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 disabled:opacity-50">
                     {sharing ? 'Đang thu hồi...' : 'Thu hồi'}
                   </button>
                 </div>
               </div>
             ) : (
               <button
+                id={`${idPrefix}-create-share`}
                 type="button"
                 onClick={handleCreateShare}
                 disabled={sharing}

@@ -30,7 +30,6 @@ export async function verifyAdminSession(token: string | undefined): Promise<boo
 }
 
 function readAdminCookie(request: NextRequest): string | undefined {
-  // Integration test gọi route với Request thường (không có .cookies) — fallback đọc header.
   if (request.cookies?.get) {
     return request.cookies.get(ADMIN_COOKIE)?.value;
   }

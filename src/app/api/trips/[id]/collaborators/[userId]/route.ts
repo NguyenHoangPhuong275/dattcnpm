@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createAuditLog, findOwnedTrip, getDb, type Trip, type TripCollaborator } from '@/lib/db';
+import { createAuditLog, findOwnedTrip, getDb } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { objectIdSchema } from '@/lib/validations/common';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
@@ -12,7 +12,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const ownerId = String(user._id);
 
@@ -20,19 +20,28 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
     objectIdSchema.parse(id);
     objectIdSchema.parse(collaboratorId);
 
-    const trip = (await findOwnedTrip(id, ownerId)) as Trip | null;
+    const trip = await findOwnedTrip(id, ownerId);
     if (!trip) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy hành trình', 404);
     }
 
-    const collaborators = (trip.collaborators ?? []) as TripCollaborator[];
-    const next = collaborators.filter((c) => String(c.userId) !== collaboratorId);
-    if (next.length === collaborators.length) {
+    if (!(trip.collaborators ?? []).some((collaborator) => String(collaborator.userId) === collaboratorId)) {
       throw new AppError('NOT_FOUND', 'Không tìm thấy cộng tác viên', 404);
     }
 
     const db = await getDb();
-    await db.trips.updateOne(id, { $set: { collaborators: next } });
+    const updated = await db.trips.findOneAndUpdate(
+      {
+        _id: id,
+        userId: ownerId,
+        deletedAt: null,
+        'collaborators.userId': collaboratorId,
+      },
+      { $pull: { collaborators: { userId: collaboratorId } } },
+    );
+    if (!updated) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy cộng tác viên', 404);
+    }
 
     await createAuditLog(ownerId, 'REMOVE_COLLABORATOR', 'TRIP', id, {
       tripId: id,

@@ -13,7 +13,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -40,7 +40,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx): Promise<Respo
       throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm yêu thích', 404);
     }
 
-    return sendSuccess({ message: 'Favorite removed' });
+    return sendSuccess({ message: 'Đã xóa địa điểm khỏi danh sách yêu thích' });
   } catch (error) {
     return handleApiError(error);
   }

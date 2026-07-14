@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import CreateTripModal from '@/components/profile/CreateTripModal';
 import BookHotelAfterCreateModal from '@/components/trips/BookHotelAfterCreateModal';
@@ -16,6 +17,7 @@ import { getDefaultTripDates } from '@/lib/date';
 import { ROUTES } from '@/lib/constants';
 
 export default function MyTripsPage(): React.JSX.Element {
+  const router = useRouter();
   const userHook = useCurrentUser({ redirectIfNone: true });
   const user = userHook.data;
   const userLoading = userHook.status === 'loading';
@@ -83,7 +85,9 @@ export default function MyTripsPage(): React.JSX.Element {
       closeCreateModal();
       showToast('Chuyến đi mới đã được tạo', 'success');
       loadTrips();
-      if (result.trip) setHotelTrip(result.trip);
+      if (result.trip) {
+        router.push(`/trips/${result.trip._id}/book-wizard`);
+      }
     } else {
       showToast(result.message || 'Tạo chuyến đi thất bại', 'error');
     }
@@ -92,7 +96,7 @@ export default function MyTripsPage(): React.JSX.Element {
   if (userLoading) {
     return (
       <div className="min-h-dvh bg-white font-sans text-slate-800">
-        <AppHeader active="profile" />
+        <AppHeader active="profile" showSearch={false} />
         <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -109,7 +113,7 @@ export default function MyTripsPage(): React.JSX.Element {
 
   return (
     <div className="min-h-dvh bg-white font-sans text-slate-800">
-      <AppHeader active="profile" />
+      <AppHeader active="profile" showSearch={false} />
 
       <main className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

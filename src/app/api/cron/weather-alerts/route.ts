@@ -39,7 +39,7 @@ function getCronSecret(): string {
     process.env.CRON_SECRET ||
     (process.env.NODE_ENV !== 'production' ? process.env.WEBHOOK_SECRET : undefined);
   if (!secret) {
-    throw new AppError('INTERNAL_ERROR', 'CRON_SECRET is not configured', 500);
+    throw new AppError('INTERNAL_ERROR', 'Hệ thống chưa được cấu hình đầy đủ', 500);
   }
   return secret;
 }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const provided = request.headers.get('x-cron-secret');
     const secret = getCronSecret();
     if (!provided || !timingSafeEqualString(provided, secret)) {
-      throw new AppError('UNAUTHORIZED', 'Unauthorized cron access', 401);
+      throw new AppError('UNAUTHORIZED', 'Thông tin xác thực tác vụ định kỳ không hợp lệ', 401);
     }
 
     const db = await getDb();

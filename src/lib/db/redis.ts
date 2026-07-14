@@ -1,22 +1,24 @@
 import Redis from 'ioredis';
+
 import { env } from '@/lib/env';
 import { normalizeEmail } from '@/lib/string';
 
-let redisClient: Redis | null = null;
+const globalRedis = globalThis as unknown as { __redisClient?: Redis | null };
 
 function getRedisClient(): Redis {
-  if (!redisClient) {
+  if (!globalRedis.__redisClient) {
     const redisUrl = env.REDIS_URL;
     const isTest = process.env.NODE_ENV === 'test';
-    redisClient = new Redis(redisUrl, {
+    const client = new Redis(redisUrl, {
       maxRetriesPerRequest: isTest ? 3 : 2,
       lazyConnect: true,
       ...(isTest ? {} : { connectTimeout: 3000, commandTimeout: 3000 }),
     });
 
-    redisClient.on('error', () => {});
+    client.on('error', () => { });
+    globalRedis.__redisClient = client;
   }
-  return redisClient;
+  return globalRedis.__redisClient;
 }
 
 export function getRedis(): Redis {
@@ -46,9 +48,9 @@ export async function connectRedis(): Promise<'connected'> {
 }
 
 export async function disconnectRedis(): Promise<void> {
-  if (redisClient) {
-    await redisClient.quit();
-    redisClient = null;
+  if (globalRedis.__redisClient) {
+    await globalRedis.__redisClient.quit();
+    globalRedis.__redisClient = null;
   }
 }
 
@@ -197,24 +199,7 @@ export async function verifyResetOtpAtomic(email: string, code: string, maxAttem
   return { status: 'wrong', attempts };
 }
 
-export async function deleteResetOtp(email: string): Promise<void> {
-  const client = getRedisClient();
-  await client.del(resetOtpKey(email));
-}
-
-export async function storeAvatar(userId: string, dataUrl: string): Promise<string> {
-  const client = getRedisClient();
-  const key = `avatar:${userId}`;
-  await client.set(key, dataUrl);
-  return key;
-}
-
 export async function getAvatar(userId: string): Promise<string | null> {
   const client = getRedisClient();
   return client.get(`avatar:${userId}`);
-}
-
-export async function deleteAvatar(userId: string): Promise<void> {
-  const client = getRedisClient();
-  await client.del(`avatar:${userId}`);
 }

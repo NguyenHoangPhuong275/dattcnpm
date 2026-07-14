@@ -8,6 +8,8 @@ export const COLLECTIONS = {
   places: 'places',
   hotels: 'hotels',
   hotelReviews: 'hotel_reviews',
+  hotelBookings: 'hotel_bookings',
+  flightBookings: 'flight_bookings',
   itineraryItems: 'itinerary_items',
   favorites: 'favorite_places',
   reviews: 'reviews',
@@ -130,6 +132,10 @@ export function createCollection<T extends { _id: MongoId }>(mongooseModel: Mode
     async updateOne(id: MongoId, update: Record<string, unknown>): Promise<T | null> {
       if (!id || !mongoose.Types.ObjectId.isValid(String(id))) return null;
       const updated = await mongooseModel.findByIdAndUpdate(id, update, { returnDocument: 'after' }).lean();
+      return updated ? toPlain<T>(updated) ?? null : null;
+    },
+    async findOneAndUpdate(filter: CollectionFilter, update: Record<string, unknown>): Promise<T | null> {
+      const updated = await mongooseModel.findOneAndUpdate(filter, update, { returnDocument: 'after' }).lean();
       return updated ? toPlain<T>(updated) ?? null : null;
     },
     async deleteOne(id: MongoId): Promise<boolean> {

@@ -1,103 +1,64 @@
 'use client';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import Link from 'next/link';
-import type { z } from 'zod';
-import { createItineraryItemSchema } from '@/lib/validations/trip';
-import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
-import { formatDateInputValue } from '@/lib/date';
-import { getTripScheduleBadge } from '@/lib/trip-utils';
-import { ROUTES } from '@/lib/constants';
-import type { TripSummary } from '@/types/profile';
-import EmptyState from '@/components/ui/EmptyState';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX, type MouseEvent } from 'react';
+
+import { ItinerarySection } from '@/components/profile/trip-detail/ItinerarySection';
+import { TripDetailHeader } from '@/components/profile/trip-detail/TripDetailHeader';
+import { TripOverviewSection } from '@/components/profile/trip-detail/TripOverviewSection';
+import { TripPrivateSections } from '@/components/profile/trip-detail/TripPrivateSections';
+import {
+  createItineraryDraft,
+  createTripEditDraft,
+  EMPTY_ITINERARY_DRAFT,
+  EMPTY_TRIP_EDIT_DRAFT,
+  getHotelAnchor,
+  getTripDetailPermissions,
+  groupItineraryItems,
+} from '@/components/profile/trip-detail/helpers';
+import type {
+  ApiListResponse,
+  ItineraryDraft,
+  ItineraryItem,
+  TripDetailModalProps,
+  TripEditDraft,
+} from '@/components/profile/trip-detail/types';
 import { useFeedback } from '@/hooks/useFeedback';
-import { useToast } from '@/hooks/useToast';
 import { usePlaceSearch, type SearchResult } from '@/hooks/usePlaceSearch';
-import TripChecklistSection from '@/components/trips/TripChecklistSection';
-import TripBudgetSummary from '@/components/trips/TripBudgetSummary';
-import TripCollaboratorsSection from '@/components/trips/TripCollaboratorsSection';
-import TripAccommodationSection from '@/components/trips/TripAccommodationSection';
+import { useToast } from '@/hooks/useToast';
+import { apiRequest, ensureApiSuccess, getApiErrorMessage, isAbortError } from '@/lib/api-client';
+import type { TripSummary } from '@/types/profile';
 
-interface TripDetailModalProps {
-  trip: TripSummary | null;
-  onClose: () => void;
-  onTripUpdated?: () => void;
-  userId: string | null;
-}
+const EMPTY_ITINERARY_ITEMS: ItineraryItem[] = [];
 
-interface ItineraryPlace {
-  _id: string;
-  name: string;
-  address?: string | null;
-  lat?: number | null;
-  lng?: number | null;
-}
-
-interface ItineraryItem {
-  _id: string;
-  day: number;
-  orderIndex: number;
-  note: string;
-  placeId: string;
-  place?: ItineraryPlace | null;
-  cost?: number | null;
-  currency?: string | null;
-}
-
-type ItineraryItemInput = z.infer<typeof createItineraryItemSchema>;
-
-type ItineraryDraft = Omit<ItineraryItemInput, 'day' | 'orderIndex' | 'cost'> & {
-  day: number | '';
-  cost: string;
-  currency: string;
-};
-
-type TripEditDraft = {
-  title: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  isPublic: boolean;
-  description: string;
-  coverImage: string;
-};
-
-type ApiListResponse<T> = {
-  success?: boolean;
-  data?: T;
-  message?: string;
-};
-
-const emptyDraft: ItineraryDraft = {
-  day: 1,
-  placeId: '',
-  note: '',
-  cost: '',
-  currency: 'VND',
-};
-
-export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated, userId }: TripDetailModalProps): React.JSX.Element | null {
+export default function TripDetailModal({
+  trip: tripProp,
+  onClose,
+  onTripUpdated,
+  userId,
+}: TripDetailModalProps): JSX.Element | null {
   const [tripOverride, setTripOverride] = useState<TripSummary | null>(null);
   const trip = tripProp && tripOverride && tripOverride._id === tripProp._id ? tripOverride : tripProp;
-  const access = trip?.access ?? 'NONE';
-  const isOwner = access === 'OWNER';
-  const canEdit = isOwner || access === 'EDIT';
-  const canViewPrivate = canEdit || access === 'READ';
-  const [items, setItems] = useState<ItineraryItem[]>([]);
+  const tripId = trip?._id ?? null;
+  const { access, isOwner, canEdit, canViewPrivate } = getTripDetailPermissions(trip?.access);
+  const [itineraryState, setItineraryState] = useState<{ tripId: string | null; items: ItineraryItem[] }>({
+    tripId: null,
+    items: [],
+  });
+  const items = itineraryState.tripId === tripId ? itineraryState.items : EMPTY_ITINERARY_ITEMS;
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [draft, setDraft] = useState<ItineraryDraft>(emptyDraft);
+  const [draft, setDraft] = useState<ItineraryDraft>(EMPTY_ITINERARY_DRAFT);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [reordering, setReordering] = useState(false);
-
   const [isEditingTrip, setIsEditingTrip] = useState(false);
-  const [tripDraft, setTripDraft] = useState<TripEditDraft>({ title: '', destination: '', startDate: '', endDate: '', isPublic: false, description: '', coverImage: '' });
+  const [tripDraft, setTripDraft] = useState<TripEditDraft>(EMPTY_TRIP_EDIT_DRAFT);
   const [savingTrip, setSavingTrip] = useState(false);
+  const itineraryRequestSequenceRef = useRef(0);
+  const itineraryRequestRef = useRef<{ id: number; controller: AbortController } | null>(null);
   const { actions: feedback } = useFeedback();
   const { actions: { showToast } } = useToast();
-  const placeSearch = usePlaceSearch();
   const {
     searchQuery: placeQuery,
     setSearchQuery: setPlaceQuery,
@@ -107,109 +68,115 @@ export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated
     searchContainerRef: placeSearchRef,
     handleSelectPlace,
     clearSelectedPlace,
-  } = placeSearch;
+  } = usePlaceSearch();
 
-  const hotelAnchor = useMemo(() => {
-    const place = items.map((item) => item.place).find(
-      (candidate) => typeof candidate?.lat === 'number' && typeof candidate?.lng === 'number',
-    );
-    return place ? { lat: place.lat as number, lng: place.lng as number, name: place.name } : null;
-  }, [items]);
-
-  const groupedItems = useMemo(() => {
-    const groups = new Map<number, ItineraryItem[]>();
-    items.forEach((item) => {
-      const dayItems = groups.get(item.day) || [];
-      dayItems.push(item);
-      groups.set(item.day, dayItems);
-    });
-
-    return Array.from(groups.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([day, dayItems]) => ({
-        day,
-        items: dayItems.sort((a, b) => a.orderIndex - b.orderIndex),
-      }));
-  }, [items]);
+  const hotelAnchor = useMemo(() => getHotelAnchor(items), [items]);
+  const groupedItems = useMemo(() => groupItineraryItems(items), [items]);
 
   const loadItinerary = useCallback(async () => {
-    if (!trip || !userId || access === 'NONE') return;
+    if (!tripId || !userId || access === 'NONE') return;
+    itineraryRequestRef.current?.controller.abort();
+    const requestId = itineraryRequestSequenceRef.current + 1;
+    itineraryRequestSequenceRef.current = requestId;
+    const controller = new AbortController();
+    itineraryRequestRef.current = { id: requestId, controller };
     setLoading(true);
     setError('');
     try {
-      const { response, data } = await apiRequest<ApiListResponse<ItineraryItem[]>>(`/api/trips/${trip._id}/itinerary`, { userId });
+      const { response, data } = await apiRequest<ApiListResponse<ItineraryItem[]>>(
+        `/api/trips/${tripId}/itinerary`,
+        { userId, signal: controller.signal },
+      );
+      if (itineraryRequestRef.current?.id !== requestId) return;
       try {
         ensureApiSuccess(response, data, 'Không thể tải lịch trình');
       } catch {
         setError(getApiErrorMessage(data, 'Không thể tải lịch trình'));
         return;
       }
-      setItems(Array.isArray(data.data) ? data.data : []);
-    } catch {
+      setItineraryState({
+        tripId,
+        items: Array.isArray(data.data) ? data.data : [],
+      });
+    } catch (requestError) {
+      if (itineraryRequestRef.current?.id !== requestId || isAbortError(requestError)) return;
       setError('Không thể tải lịch trình');
     } finally {
-      setLoading(false);
+      if (itineraryRequestRef.current?.id === requestId) {
+        itineraryRequestRef.current = null;
+        setLoading(false);
+      }
     }
-  }, [access, trip, userId]);
+  }, [access, tripId, userId]);
 
   useEffect(() => {
     setTripOverride(null);
   }, [tripProp]);
 
   useEffect(() => {
-    if (trip) {
+    setItineraryState({ tripId, items: [] });
+    setDraft(EMPTY_ITINERARY_DRAFT);
+    setEditingId(null);
+    setError('');
+    clearSelectedPlace();
+    if (tripId) {
       loadItinerary();
-      setDraft(emptyDraft);
-      setEditingId(null);
-      setError('');
-      clearSelectedPlace();
     } else {
-      setItems([]);
+      setLoading(false);
     }
-  }, [trip, loadItinerary, clearSelectedPlace]);
+    return () => {
+      itineraryRequestRef.current?.controller.abort();
+      itineraryRequestRef.current = null;
+    };
+  }, [tripId, loadItinerary, clearSelectedPlace]);
 
   useEffect(() => {
     setIsEditingTrip(false);
   }, [tripProp]);
 
-  const resetForm = () => {
-    setDraft(emptyDraft);
+  const resetForm = (): void => {
+    setDraft(EMPTY_ITINERARY_DRAFT);
     setEditingId(null);
     clearSelectedPlace();
   };
 
   const handlePickPlace = useCallback((place: SearchResult): void => {
     handleSelectPlace(place);
-    setDraft((prev) => ({
-      ...prev,
+    setDraft((current) => ({
+      ...current,
       placeId: place._id,
-      note: prev.note?.trim() ? prev.note : place.name,
+      note: current.note?.trim() ? current.note : place.name,
     }));
   }, [handleSelectPlace]);
 
   const handleMove = async (item: ItineraryItem, direction: 'up' | 'down'): Promise<void> => {
     if (!trip || !userId || !canEdit || reordering) return;
-    const group = groupedItems.find((g) => g.day === item.day);
+    const group = groupedItems.find((candidate) => candidate.day === item.day);
     if (!group) return;
-    const index = group.items.findIndex((i) => i._id === item._id);
+    const index = group.items.findIndex((candidate) => candidate._id === item._id);
     const target = direction === 'up' ? index - 1 : index + 1;
     if (target < 0 || target >= group.items.length) return;
 
     const reordered = [...group.items];
     [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
-    const orderedIds = groupedItems.flatMap((g) =>
-      g.day === item.day ? reordered.map((i) => i._id) : g.items.map((i) => i._id)
-    );
+    const orderedIds = groupedItems.flatMap((candidate) => (
+      candidate.day === item.day
+        ? reordered.map((candidateItem) => candidateItem._id)
+        : candidate.items.map((candidateItem) => candidateItem._id)
+    ));
 
     setReordering(true);
     setError('');
     try {
-      const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/itinerary/reorder`, {
-        method: 'PATCH',
-        userId,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderedIds }),
-      });
+      const { response, data } = await apiRequest<ApiListResponse<unknown>>(
+        `/api/trips/${trip._id}/itinerary/reorder`,
+        {
+          method: 'PATCH',
+          userId,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderedIds }),
+        },
+      );
       try {
         ensureApiSuccess(response, data, 'Không thể sắp xếp lịch trình');
       } catch {
@@ -240,6 +207,7 @@ export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated
       setSaving(false);
       return;
     }
+
     const payload = {
       placeId: draft.placeId.trim(),
       day: Number(draft.day),
@@ -279,17 +247,10 @@ export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated
     }
   };
 
-  const handleEdit = (item: ItineraryItem) => {
+  const handleEdit = (item: ItineraryItem): void => {
     if (!canEdit) return;
     setEditingId(item._id);
-    setDraft({
-      day: item.day,
-      placeId: item.placeId,
-      note: item.note || '',
-      cost: item.cost == null ? '' : String(item.cost),
-      currency: item.currency || 'VND',
-    });
-
+    setDraft(createItineraryDraft(item));
     handleSelectPlace({
       _id: item.placeId,
       name: item.place?.name || item.note || '',
@@ -312,10 +273,10 @@ export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated
         setError('');
         setDeletingItemId(itemId);
         try {
-          const { response, data } = await apiRequest<ApiListResponse<unknown>>(`/api/trips/${trip._id}/itinerary/${itemId}`, {
-            method: 'DELETE',
-            userId,
-          });
+          const { response, data } = await apiRequest<ApiListResponse<unknown>>(
+            `/api/trips/${trip._id}/itinerary/${itemId}`,
+            { method: 'DELETE', userId },
+          );
 
           try {
             ensureApiSuccess(response, data, 'Không thể xóa điểm dừng');
@@ -335,21 +296,13 @@ export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated
     });
   };
 
-  const startEditTrip = () => {
+  const startEditTrip = (): void => {
     if (!trip || !canEdit) return;
-    setTripDraft({
-      title: trip.title,
-      destination: trip.destination,
-      startDate: formatDateInputValue(trip.startDate, { timeZone: 'utc' }),
-      endDate: formatDateInputValue(trip.endDate, { timeZone: 'utc' }),
-      isPublic: trip.isPublic,
-      description: trip.description ?? '',
-      coverImage: trip.coverImage ?? '',
-    });
+    setTripDraft(createTripEditDraft(trip));
     setIsEditingTrip(true);
   };
 
-  const cancelEditTrip = () => {
+  const cancelEditTrip = (): void => {
     setIsEditingTrip(false);
   };
 
@@ -428,406 +381,64 @@ export default function TripDetailModal({ trip: tripProp, onClose, onTripUpdated
 
   if (!trip) return null;
 
-  const scheduleBadge = getTripScheduleBadge(trip.startDate, trip.endDate);
-
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
         className="bg-[var(--color-surface)] rounded-2xl p-6 w-full max-w-3xl border border-[var(--color-border)] max-h-[88vh] overflow-auto"
-        onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()}
+        onClick={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}
       >
-        <div className="flex justify-between items-center gap-4 mb-4">
-          <div>
-            <h3 className="font-semibold text-lg text-[var(--color-text)]">Chi tiết chuyến đi</h3>
-            <p className="text-xs text-[var(--color-text-muted)]">{trip.destination}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href={`${ROUTES.scheduleReference}/${trip._id}`}
-              className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-primary-darker)] hover:bg-[var(--color-primary-lightest)]"
-            >
-              Xem lịch trình
-            </Link>
-            {!isEditingTrip && canEdit && (
-              <button type="button" onClick={startEditTrip} className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]">
-                Sửa thông tin
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Đóng"
-              className="rounded-lg p-2 text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg)] hover:text-[var(--color-text-secondary)]"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        <TripDetailHeader
+          trip={trip}
+          canEdit={canEdit}
+          isEditing={isEditingTrip}
+          onStartEdit={startEditTrip}
+          onClose={onClose}
+        />
 
-        {isEditingTrip && canEdit ? (
-          <div className="rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-primary-lightest)]/30 p-4 mb-6">
-            <div className="text-sm font-semibold text-[var(--color-text)] mb-3">Chỉnh sửa thông tin chuyến đi</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div>
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Tiêu đề</label>
-                <input
-                  type="text"
-                  value={tripDraft.title}
-                  onChange={e => setTripDraft(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Điểm đến</label>
-                <input
-                  type="text"
-                  value={tripDraft.destination}
-                  onChange={e => setTripDraft(prev => ({ ...prev, destination: e.target.value }))}
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Ngày đi</label>
-                <input
-                  type="date"
-                  value={tripDraft.startDate}
-                  onChange={e => setTripDraft(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Ngày về</label>
-                <input
-                  type="date"
-                  value={tripDraft.endDate}
-                  min={tripDraft.startDate || undefined}
-                  onChange={e => setTripDraft(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Mô tả</label>
-                <textarea
-                  value={tripDraft.description}
-                  onChange={e => setTripDraft(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                  maxLength={2000}
-                  placeholder="Ghi chú, mục tiêu chuyến đi..."
-                  className="w-full resize-y border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Ảnh bìa (URL)</label>
-                <input
-                  type="url"
-                  value={tripDraft.coverImage}
-                  onChange={e => setTripDraft(prev => ({ ...prev, coverImage: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={tripDraft.isPublic}
-                  onChange={e => setTripDraft(prev => ({ ...prev, isPublic: e.target.checked }))}
-                  className="rounded"
-                />
-                Công khai
-              </label>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={saveTrip}
-                disabled={savingTrip || !tripDraft.title.trim() || !tripDraft.destination.trim()}
-                className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
-              >
-                {savingTrip ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </button>
-              <button
-                type="button"
-                onClick={cancelEditTrip}
-                className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
-              >
-                Hủy
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-6">
-            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
-              <div className="text-xs text-[var(--color-text-muted)]">Tiêu đề</div>
-              <div className="font-medium text-[var(--color-text)]">{trip.title}</div>
-            </div>
-            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-xs text-[var(--color-text-muted)]">Thời gian</div>
-                {scheduleBadge && (
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${scheduleBadge.className}`}>
-                    {scheduleBadge.label}
-                  </span>
-                )}
-              </div>
-              <div className="font-medium text-[var(--color-text)]">{trip.startDate} đến {trip.endDate}</div>
-            </div>
-            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
-              <div className="text-xs text-[var(--color-text-muted)]">Trạng thái</div>
-              <div className="font-medium text-[var(--color-text)]">{trip.isPublic ? 'Công khai' : 'Riêng tư'}</div>
-            </div>
-            <div className="rounded-xl border border-[var(--color-border)] px-3 py-2">
-              <div className="text-xs text-[var(--color-text-muted)]">Số điểm dừng</div>
-              <div className="font-medium text-[var(--color-text)]">{items.length}</div>
-            </div>
-            {trip.description && (
-              <div className="sm:col-span-2 rounded-xl border border-[var(--color-border)] px-3 py-2">
-                <div className="text-xs text-[var(--color-text-muted)]">Mô tả</div>
-                <div className="whitespace-pre-wrap font-medium text-[var(--color-text)]">{trip.description}</div>
-              </div>
-            )}
-          </div>
-        )}
+        <TripOverviewSection
+          trip={trip}
+          itemCount={items.length}
+          isEditing={isEditingTrip && canEdit}
+          draft={tripDraft}
+          saving={savingTrip}
+          setDraft={setTripDraft}
+          onSave={saveTrip}
+          onCancel={cancelEditTrip}
+        />
 
-        <div className="border-t border-[var(--color-border)] pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="font-semibold text-sm text-[var(--color-text)]">Lịch trình</div>
-            {loading && (
-              <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
-                <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />
-                Đang tải...
-              </div>
-            )}
-          </div>
-
-          {error && (
-            <div className="mb-3 rounded-xl border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 px-3 py-2 text-sm text-[var(--color-danger)]">
-              {error}
-            </div>
-          )}
-
-          {groupedItems.length === 0 && !loading && (
-            <EmptyState
-              title="Chưa có điểm dừng"
-              description={canEdit ? 'Thêm địa điểm đầu tiên vào lịch trình của bạn.' : 'Chuyến đi này chưa có điểm dừng.'}
-            />
-          )}
-
-          <div className="space-y-4 mb-5">
-            {groupedItems.map((group) => (
-              <div key={group.day} className="rounded-xl border border-[var(--color-border)] overflow-hidden">
-                <div className="bg-[var(--color-bg)] px-4 py-2 text-sm font-semibold text-[var(--color-text)]">
-                  Ngày {group.day}
-                </div>
-                <div className="divide-y divide-[var(--color-border)]">
-                  {group.items.map((item, index) => (
-                    <div key={item._id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm">
-                      <div className="flex min-w-0 items-start gap-2">
-                        {canEdit && (
-                          <div className="flex shrink-0 flex-col gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleMove(item, 'up')}
-                              disabled={index === 0 || reordering}
-                              aria-label="Di chuyển lên"
-                              className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              ↑
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleMove(item, 'down')}
-                              disabled={index === group.items.length - 1 || reordering}
-                              aria-label="Di chuyển xuống"
-                              className="flex h-6 w-6 items-center justify-center rounded-md border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)] disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              ↓
-                            </button>
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <div className="font-medium text-[var(--color-text)] break-words">
-                            {item.place?.name || item.note || 'Địa điểm chưa xác định'}
-                          </div>
-                          {item.note && item.note !== item.place?.name && (
-                            <div className="text-xs text-[var(--color-text-muted)] break-words">{item.note}</div>
-                          )}
-                          {item.cost != null && (
-                            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-                              Chi phí: {item.cost.toLocaleString('vi-VN')} {item.currency || 'VND'}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {canEdit && (
-                        <div className="flex shrink-0 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(item)}
-                            className="text-xs px-2 py-1 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
-                          >
-                            Sửa
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(item._id)}
-                            disabled={deletingItemId === item._id}
-                            className="text-xs px-2 py-1 rounded-lg border border-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10"
-                          >
-                            {deletingItemId === item._id ? 'Đang xóa...' : 'Xóa'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {canEdit && (
-            <div className="rounded-xl border border-[var(--color-border)] p-4">
-              <div className="text-sm font-semibold text-[var(--color-text)] mb-3">
-                {editingId ? 'Sửa điểm dừng' : 'Thêm điểm dừng'}
-              </div>
-
-              <div ref={placeSearchRef} className="relative mb-3">
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">Địa điểm</label>
-                <input
-                  type="text"
-                  value={placeQuery}
-                  onChange={(e) => setPlaceQuery(e.target.value)}
-                  placeholder="Tìm địa điểm, ví dụ: Hồ Gươm, Bà Nà Hills..."
-                  autoComplete="off"
-                  className="w-full border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-                />
-                {placeSearching && (
-                  <div className="absolute right-3 top-8 text-xs text-[var(--color-text-muted)]">Đang tìm...</div>
-                )}
-                {placeDropdownOpen && placeResults.length > 0 && (
-                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[var(--color-border)] bg-white shadow-lg">
-                    {placeResults.map((place) => (
-                      <li key={place._id}>
-                        <button
-                          type="button"
-                          onClick={() => handlePickPlace(place)}
-                          className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-[var(--color-primary-lightest)]"
-                        >
-                          <span className="text-sm font-medium text-[var(--color-text)]">{place.name}</span>
-                          {place.address && (
-                            <span className="text-xs text-[var(--color-text-muted)]">{place.address}</span>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {!draft.placeId && (
-                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">Chọn địa điểm từ kết quả tìm kiếm để thêm vào lịch trình.</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  value={draft.day}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    if (raw === '') {
-                      setDraft(prev => ({ ...prev, day: '' }));
-                      return;
-                    }
-                    const parsed = parseInt(raw, 10);
-                    if (!isNaN(parsed) && parsed >= 1) {
-                      setDraft(prev => ({ ...prev, day: parsed }));
-                    }
-                  }}
-                  placeholder="Ngày"
-                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-                />
-                <input
-                  type="number"
-                  min={0}
-                  value={draft.cost}
-                  onChange={(e) => setDraft(prev => ({ ...prev, cost: e.target.value }))}
-                  placeholder="Chi phí"
-                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-                />
-                <input
-                  type="text"
-                  value={draft.currency || ''}
-                  onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
-                  placeholder="VND"
-                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
-                />
-                <input
-                  type="text"
-                  value={draft.note || ''}
-                  onChange={(e) => setDraft(prev => ({ ...prev, note: e.target.value }))}
-                  placeholder="Ghi chú"
-                  className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm col-span-2 sm:col-span-3 bg-white"
-                />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving || !draft.placeId.trim()}
-                  className="text-sm px-4 py-2 rounded-lg bg-[var(--color-primary-darker)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-50"
-                >
-                  {saving ? 'Đang lưu...' : editingId ? 'Lưu thay đổi' : 'Thêm vào lịch trình'}
-                </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="text-sm px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-lightest)]"
-                  >
-                    Hủy sửa
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <ItinerarySection
+          groups={groupedItems}
+          loading={loading}
+          error={error}
+          canEdit={canEdit}
+          reordering={reordering}
+          deletingItemId={deletingItemId}
+          draft={draft}
+          setDraft={setDraft}
+          editingId={editingId}
+          saving={saving}
+          placeQuery={placeQuery}
+          setPlaceQuery={setPlaceQuery}
+          placeResults={placeResults}
+          placeSearching={placeSearching}
+          placeDropdownOpen={placeDropdownOpen}
+          placeSearchRef={placeSearchRef}
+          onMove={handleMove}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onPickPlace={handlePickPlace}
+          onSave={handleSave}
+          onReset={resetForm}
+        />
 
         {canViewPrivate && (
-          <>
-            <TripBudgetSummary tripId={trip._id} userId={userId} canEdit={canEdit} />
-
-            <TripChecklistSection tripId={trip._id} userId={userId} canEdit={canEdit} />
-
-            {isOwner && <TripCollaboratorsSection tripId={trip._id} userId={userId} />}
-
-            <div className="border-t border-[var(--color-border)] pt-4 mt-6">
-              <div className="font-semibold text-sm text-[var(--color-text)] mb-3">Khách sạn</div>
-              <TripAccommodationSection
-                tripId={trip._id}
-                userId={userId}
-                canEdit={canEdit}
-                destination={trip.destination}
-                lat={hotelAnchor?.lat}
-                lng={hotelAnchor?.lng}
-                placeName={hotelAnchor?.name}
-                startDate={trip.startDate}
-                endDate={trip.endDate}
-              />
-            </div>
-          </>
+          <TripPrivateSections
+            trip={trip}
+            userId={userId}
+            canEdit={canEdit}
+            isOwner={isOwner}
+            hotelAnchor={hotelAnchor}
+          />
         )}
       </div>
     </div>

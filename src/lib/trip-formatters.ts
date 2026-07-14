@@ -1,5 +1,5 @@
 import type { TripSummary } from '@/types/profile';
-import type { ItineraryItem, TripBudget, TripAccommodation } from '@/types/trip';
+import type { ItineraryItem, TripBudget, TripAccommodation, TripChecklist } from '@/types/trip';
 
 export function toBudgetResponse(item: TripBudget) {
   return {
@@ -17,9 +17,10 @@ export function toBudgetResponse(item: TripBudget) {
 
 export function toAccommodationResponse(
   item: TripAccommodation,
-  options: { hotelId?: unknown | null } = {},
+  options: { hotelId?: unknown | null; bookingRef?: string | null } = {},
 ) {
   const hotelId = options.hotelId !== undefined ? options.hotelId : item.hotelId;
+  const bookingRef = options.bookingRef !== undefined ? options.bookingRef : item.bookingRef;
   return {
     id: String(item._id),
     tripId: String(item.tripId),
@@ -28,7 +29,7 @@ export function toAccommodationResponse(
     address: item.address ?? null,
     checkIn: new Date(item.checkIn).toISOString(),
     checkOut: new Date(item.checkOut).toISOString(),
-    bookingCode: item.bookingRef ?? null,
+    bookingCode: bookingRef ?? null,
     note: item.note ?? null,
     currency: item.currency ?? 'VND',
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null,
@@ -152,4 +153,15 @@ export function toItineraryItemResponse(
   }
 
   return response;
+}
+
+export function toChecklistResponse(item: TripChecklist) {
+  return {
+    id: String(item._id),
+    tripId: String(item.tripId),
+    title: item.label,
+    completed: item.isDone,
+    dueDate: item.dueDate ? new Date(item.dueDate).toISOString() : null,
+    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null,
+  };
 }

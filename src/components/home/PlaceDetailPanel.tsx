@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { SearchResult } from '@/hooks/usePlaceSearch';
-import { UsePlaceDetailsReturn } from '@/hooks/usePlaceDetails';
-import { TripSummary } from '@/types/profile';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import type { SearchResult } from '@/hooks/usePlaceSearch';
+import type { UsePlaceDetailsReturn } from '@/hooks/usePlaceDetails';
+import type { TripSummary } from '@/types/profile';
 import { getPlaceTypeLabel } from '@/lib/place-labels';
 import { apiRequest } from '@/lib/api-client';
 
@@ -14,15 +15,9 @@ interface PlaceDetailPanelProps {
   isLoggedIn: boolean;
   isTripsLoading?: boolean;
   isTripActionLoading: boolean;
-  tripActionMessage: string;
-  onAddToTrip: (tripId: string, focusHotel?: boolean, place?: SearchResult) => void;
-  onCreateTripFromPlace?: (place?: SearchResult) => void;
+  onCreateTripFromPlace: (place: SearchResult) => Promise<void>;
   onLogin: () => void;
-  onOpenAddToTripModal?: (place?: SearchResult) => void;
-  onSaveFavorite?: (place: SearchResult) => Promise<void>;
-  favoriteSaving?: boolean;
-  onCreateReview?: (payload: { placeId: string; rating: number; comment?: string }) => Promise<void>;
-  reviewSaving?: boolean;
+  onOpenAddToTripModal: (place: SearchResult) => void;
 }
 
 export default function PlaceDetailPanel({
@@ -32,34 +27,124 @@ export default function PlaceDetailPanel({
   isLoggedIn,
   isTripsLoading = false,
   isTripActionLoading,
-  tripActionMessage,
-  onAddToTrip,
   onCreateTripFromPlace,
   onLogin,
   onOpenAddToTripModal,
 }: PlaceDetailPanelProps) {
   const { pois, isPoisLoading, weather } = details;
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [poiWeather, setPoiWeather] = useState<Record<string, number>>({});
+  const [lookupFailure, setLookupFailure] = useState<{ placeId: string; message: string } | null>(null);
+  const lookupError = lookupFailure?.placeId === selectedPlace._id ? lookupFailure.message : null;
 
-  const handleAction = async (poi: { name: string; type: string; address?: string }, type: 'add' | 'create') => {
+  useEffect(() => {
+    if (pois.length === 0) return;
+    const controller = new AbortController();
+
+    const fetchPoiWeathers = async () => {
+      const weatherMap: Record<string, number> = {};
+      await Promise.all(
+        pois.map(async (poi) => {
+          if (poi.lat === undefined || poi.lng === undefined) return;
+          try {
+            const { response, data } = await apiRequest<{ success: boolean; data: { weather?: { temperature: number } } }>(
+              `/api/weather?lat=${poi.lat}&lng=${poi.lng}`,
+              { signal: controller.signal }
+            );
+            if (response.ok && data.data?.weather) {
+              weatherMap[poi.id] = data.data.weather.temperature;
+            }
+          } catch { }
+        })
+      );
+      if (!controller.signal.aborted) {
+        setPoiWeather(weatherMap);
+      }
+    };
+
+    fetchPoiWeathers();
+
+    return () => controller.abort();
+  }, [pois]);
+
+  const handleAction = async (
+    poi: { name: string; type: string; address?: string },
+    type: 'add' | 'create',
+  ): Promise<void> => {
     if (!isLoggedIn) {
       onLogin();
       return;
     }
+    setLookupFailure(null);
     setProcessingId(poi.name);
     try {
       const { response, data } = await apiRequest<{ success: boolean; data: { results: SearchResult[] } }>(
         `/api/places/search?q=${encodeURIComponent(poi.name)}`
       );
-      if (response.ok && data.data?.results?.[0]) {
-        const place = data.data.results[0];
-        if (type === 'add') {
-          onOpenAddToTripModal?.(place);
-        } else if (type === 'create' && onCreateTripFromPlace) {
-          await onCreateTripFromPlace(place);
-        }
+      if (!response.ok) {
+        setLookupFailure({
+          placeId: selectedPlace._id,
+          message: 'Không thể tải thông tin địa điểm này. Vui lòng thử lại sau.',
+        });
+        return;
+      }
+
+      const place = data.data?.results?.[0];
+      if (!place) {
+        setLookupFailure({
+          placeId: selectedPlace._id,
+          message: 'Chưa tìm thấy thông tin chi tiết cho địa điểm này. Vui lòng chọn địa điểm khác.',
+        });
+        return;
+      }
+
+      if (type === 'add') {
+        onOpenAddToTripModal(place);
+      } else if (type === 'create') {
+        await onCreateTripFromPlace(place);
       }
     } catch {
+      setLookupFailure({
+        placeId: selectedPlace._id,
+        message: 'Không thể tải thông tin địa điểm này. Vui lòng thử lại sau.',
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleViewDetails = async (
+    poi: { name: string; type: string; address?: string },
+  ): Promise<void> => {
+    setLookupFailure(null);
+    setProcessingId(poi.name);
+    try {
+      const { response, data } = await apiRequest<{ success: boolean; data: { results: SearchResult[] } }>(
+        `/api/places/search?q=${encodeURIComponent(poi.name)}`
+      );
+      if (!response.ok) {
+        setLookupFailure({
+          placeId: selectedPlace._id,
+          message: 'Không thể tải thông tin địa điểm này. Vui lòng thử lại sau.',
+        });
+        return;
+      }
+
+      const place = data.data?.results?.[0];
+      if (!place) {
+        setLookupFailure({
+          placeId: selectedPlace._id,
+          message: 'Chưa tìm thấy thông tin chi tiết cho địa điểm này. Vui lòng chọn địa điểm khác.',
+        });
+        return;
+      }
+
+      window.location.href = `/places/${place._id}`;
+    } catch {
+      setLookupFailure({
+        placeId: selectedPlace._id,
+        message: 'Không thể tải thông tin địa điểm này. Vui lòng thử lại sau.',
+      });
     } finally {
       setProcessingId(null);
     }
@@ -81,9 +166,13 @@ export default function PlaceDetailPanel({
           </p>
         </div>
 
-        {tripActionMessage && (
-          <div className="rounded-2xl border border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 px-4 py-3 text-sm font-semibold text-[var(--color-text-secondary)]">
-            {tripActionMessage}
+        {lookupError && (
+          <div
+            id="place-detail-lookup-error"
+            role="alert"
+            className="rounded-2xl border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/5 px-4 py-3 text-sm font-semibold text-[var(--color-danger)]"
+          >
+            {lookupError}
           </div>
         )}
 
@@ -102,19 +191,42 @@ export default function PlaceDetailPanel({
           </div>
         ) : filteredPois.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredPois.map((poi) => {
+            {filteredPois.map((poi, index) => {
               const isProcessing = processingId === poi.name;
               const hasNoTrips = myTrips.length === 0;
+              const detailUrl = poi.id && !/^\d+$/.test(poi.id) && !poi.id.startsWith('node:') && !poi.id.startsWith('way:')
+                ? `/destinations/${poi.id}`
+                : null;
 
               return (
                 <div key={poi.id} className="flex flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-white p-5 transition hover:border-[var(--color-border-strong)] hover:shadow-md">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="text-base font-bold text-[var(--color-text)] line-clamp-1">{poi.name}</div>
+                      <div className="min-w-0 flex-1">
+                        {detailUrl ? (
+                          <Link
+                            id={`place-detail-${index}-link`}
+                            href={detailUrl}
+                            className="text-base font-bold text-[var(--color-text)] hover:text-[var(--color-primary-darker)] hover:underline line-clamp-1 block"
+                          >
+                            {poi.name}
+                          </Link>
+                        ) : (
+                          <button
+                            id={`place-detail-${index}-view`}
+                            type="button"
+                            onClick={() => handleViewDetails(poi)}
+                            disabled={isProcessing}
+                            className="text-left text-base font-bold text-[var(--color-text)] hover:text-[var(--color-primary-darker)] hover:underline line-clamp-1 block w-full outline-none disabled:opacity-85"
+                          >
+                            {poi.name}
+                          </button>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {weather && (
+                        {(poiWeather[poi.id] !== undefined || weather?.temperature !== undefined) && (
                           <div className="text-xs font-bold text-[var(--color-text-secondary)] bg-[var(--color-bg)] px-2 py-0.5 rounded-full flex items-center">
-                            <span>{weather.temperature}°C</span>
+                            <span>{poiWeather[poi.id] !== undefined ? poiWeather[poi.id] : weather?.temperature}°C</span>
                           </div>
                         )}
                         {poi.rating && (
@@ -145,6 +257,7 @@ export default function PlaceDetailPanel({
                   <div className="mt-5 border-t border-[var(--color-border)] pt-4 flex gap-2">
                     {hasNoTrips ? (
                       <button
+                        id={`place-detail-${index}-create`}
                         type="button"
                         onClick={() => handleAction(poi, 'create')}
                         disabled={isProcessing || isTripsLoading || isTripActionLoading}
@@ -159,6 +272,7 @@ export default function PlaceDetailPanel({
                     ) : (
                       <>
                         <button
+                          id={`place-detail-${index}-add`}
                           type="button"
                           onClick={() => handleAction(poi, 'add')}
                           disabled={isProcessing || isTripsLoading || isTripActionLoading}
@@ -171,6 +285,7 @@ export default function PlaceDetailPanel({
                           )}
                         </button>
                         <button
+                          id={`place-detail-${index}-create`}
                           type="button"
                           onClick={() => handleAction(poi, 'create')}
                           disabled={isProcessing || isTripsLoading || isTripActionLoading}

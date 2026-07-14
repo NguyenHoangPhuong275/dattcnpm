@@ -11,7 +11,6 @@ type AdminLayoutProps = {
   children: ReactNode;
 };
 
-// Layout này chỉ bọc nhóm (panel) — trang /admin/login nằm ngoài nhóm nên không bị chặn.
 export default async function AdminLayout({ children }: AdminLayoutProps) {
   const cookieStore = await cookies();
   const token = cookieStore.get(authCookieName)?.value;
@@ -19,7 +18,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   const isEnvironmentAdmin = await verifyAdminSession(cookieStore.get(adminCookieName)?.value);
 
   if (!user && !isEnvironmentAdmin) {
-    redirect(`${ROUTES.admin}/login`);
+    redirect(ROUTES.adminLogin);
   }
 
   if (user && user.role !== 'ADMIN' && !isEnvironmentAdmin) {
@@ -27,10 +26,12 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
+    <div className="admin-brand min-h-screen bg-[var(--admin-brand-canvas)]">
       <div className="flex flex-col lg:flex-row">
         <AdminSidebar />
-        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-10">{children}</main>
+        <main className="min-w-0 flex-1 p-5 sm:p-8 lg:min-h-screen lg:p-10 xl:p-12">
+          <div className="mx-auto w-full max-w-[1480px]">{children}</div>
+        </main>
       </div>
     </div>
   );

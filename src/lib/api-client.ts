@@ -10,11 +10,6 @@ export type ApiEnvelope<T = unknown> = {
   error?: string | { message?: string } | null;
 };
 
-const FRIENDLY_MESSAGES: Record<string, string> = {
-  'Missing authorization credentials or user is locked':
-    'Phiên đăng nhập đã hết hạn hoặc tài khoản bị khóa. Vui lòng đăng nhập lại.',
-};
-
 function resolveRawMessage(payload: unknown, fallback: string): string {
   if (!payload) return fallback;
   if (payload instanceof Error) return payload.message || fallback;
@@ -30,8 +25,7 @@ function resolveRawMessage(payload: unknown, fallback: string): string {
 }
 
 export function getApiErrorMessage(payload: unknown, fallback: string): string {
-  const raw = resolveRawMessage(payload, fallback);
-  return FRIENDLY_MESSAGES[raw] ?? raw;
+  return resolveRawMessage(payload, fallback);
 }
 
 export function isAbortError(error: unknown): boolean {
@@ -48,7 +42,7 @@ export function ensureApiSuccess<T extends ApiEnvelope>(
   }
 }
 
-export async function readJson<T = unknown>(response: Response): Promise<T> {
+async function readJson<T = unknown>(response: Response): Promise<T> {
   return response.json().catch(() => ({} as T));
 }
 

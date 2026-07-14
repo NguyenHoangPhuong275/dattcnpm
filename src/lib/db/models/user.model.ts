@@ -87,8 +87,6 @@ UserSchema.index(
 
 UserSchema.index({ email: 1, deletedAt: 1 });
 
-export type PlainUserWithId = PlainUser & { id: string };
-
 export const User: Model<IUser> = models.User || model<IUser>('User', UserSchema);
 
 export async function getUserById(userId: string): Promise<PlainUser | null> {

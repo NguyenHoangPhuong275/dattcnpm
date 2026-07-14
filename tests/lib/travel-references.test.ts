@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { HOME_NEWS } from '@/data/home';
 import { LOCALITY_DISCOVERY, LOCALITY_NEWS } from '@/data/localities';
-import { TRAVEL_REFERENCES } from '@/data/travel-references';
+import { TRAVEL_REFERENCES, TRAVEL_REFERENCE_SLUGS } from '@/data/travel-references';
 import {
+  getDestinationDetailHref,
+  getLatestTravelReferences,
   getPlannerDestinationHref,
   getTravelReferenceHref,
   getTravelReferencePageData,
@@ -23,9 +24,24 @@ describe('travel references navigation', () => {
   });
 
   it('mọi tin tức trang chủ đều mở cẩm nang riêng', () => {
-    for (const item of HOME_NEWS) {
-      expect(TRAVEL_REFERENCES[item.referenceSlug]).toBeDefined();
-      expect(getTravelReferenceHref(item.referenceSlug)).not.toContain('?q=');
+    const articles = getLatestTravelReferences(6);
+    expect(articles.length).toBeGreaterThan(0);
+    for (const item of articles) {
+      expect(TRAVEL_REFERENCES[item.slug]).toBeDefined();
+      expect(getTravelReferenceHref(item.slug)).not.toContain('?q=');
+    }
+  });
+
+  it('tin mới nhất được xếp trước và mọi bài có phân loại + ngày đăng hợp lệ', () => {
+    const articles = getLatestTravelReferences(TRAVEL_REFERENCE_SLUGS.length);
+    expect(articles).toHaveLength(TRAVEL_REFERENCE_SLUGS.length);
+    for (let i = 1; i < articles.length; i++) {
+      expect(articles[i - 1].publishedAt >= articles[i].publishedAt).toBe(true);
+    }
+    for (const slug of TRAVEL_REFERENCE_SLUGS) {
+      const reference = TRAVEL_REFERENCES[slug];
+      expect(reference.category.length).toBeGreaterThan(0);
+      expect(Number.isNaN(new Date(`${reference.publishedAt}T00:00:00`).getTime())).toBe(false);
     }
   });
 
@@ -38,7 +54,11 @@ describe('travel references navigation', () => {
   });
 
   it('planner href chỉ dùng cho nút hành động trong danh sách tham khảo', () => {
-    expect(getPlannerDestinationHref('Hồ Gươm')).toBe(`/?q=${encodeURIComponent('Hồ Gươm')}#planner`);
+    expect(getPlannerDestinationHref('Hồ Gươm')).toBe(`/?q=${encodeURIComponent('Hồ Gươm')}&select=1#planner`);
+  });
+
+  it('href xem chi tiết mở route tĩnh của địa điểm', () => {
+    expect(getDestinationDetailHref('ha-noi-ho-guom')).toBe('/destinations/ha-noi-ho-guom');
   });
 
   it('trả null an toàn khi slug tham khảo không tồn tại', () => {

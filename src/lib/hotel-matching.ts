@@ -1,3 +1,4 @@
+import { haversineKm } from '@/lib/geo';
 import { normalizeVietnameseText } from '@/lib/string';
 import { knownProvinceKeys, resolveProvinceKey } from '@/lib/vietnam-tourism';
 
@@ -67,16 +68,6 @@ function hotelProvinceKey(hotel: HotelLike): string {
   return '';
 }
 
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const toRad = (deg: number): number => (deg * Math.PI) / 180;
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 export function resolveHotelProvinceFilterKey(criteria: HotelMatchCriteria): string | null {
   const target = resolveTargetProvinceKey(criteria);

@@ -1,33 +1,5 @@
 import type { BudgetLevel, TravelInterestCode, TravelStyleCode } from '@/types/profile';
 
-export const BUDGET_LEVEL_OPTIONS: ReadonlyArray<{ value: BudgetLevel; label: string }> = [
-  { value: 'budget', label: 'Tiết kiệm' },
-  { value: 'mid', label: 'Trung bình' },
-  { value: 'comfortable', label: 'Thoải mái' },
-  { value: 'luxury', label: 'Sang trọng' },
-];
-
-export const TRAVEL_STYLE_OPTIONS: ReadonlyArray<{ value: TravelStyleCode; label: string }> = [
-  { value: 'solo', label: 'Một mình' },
-  { value: 'couple', label: 'Cặp đôi' },
-  { value: 'family', label: 'Gia đình' },
-  { value: 'group', label: 'Nhóm bạn' },
-  { value: 'adventure', label: 'Phiêu lưu' },
-  { value: 'relax', label: 'Nghỉ dưỡng' },
-];
-
-export const TRAVEL_INTEREST_OPTIONS: ReadonlyArray<{ value: TravelInterestCode; label: string }> = [
-  { value: 'beach', label: 'Biển' },
-  { value: 'mountain', label: 'Núi' },
-  { value: 'nature', label: 'Thiên nhiên' },
-  { value: 'culture', label: 'Văn hóa' },
-  { value: 'history', label: 'Lịch sử' },
-  { value: 'food', label: 'Ẩm thực' },
-  { value: 'adventure', label: 'Phiêu lưu' },
-  { value: 'photography', label: 'Chụp ảnh' },
-  { value: 'wellness', label: 'Spa và nghỉ dưỡng' },
-];
-
 export const BUDGET_LEVEL_ALIASES: Readonly<Record<string, BudgetLevel>> = {
   budget: 'budget',
   low: 'budget',

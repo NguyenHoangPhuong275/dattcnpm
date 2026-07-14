@@ -20,20 +20,21 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     const user = await getAuthUserFull(request);
     const isEnvironmentAdmin = await hasAdminSession(request);
     if (!user && !isEnvironmentAdmin) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     if (user && user.role !== 'ADMIN' && !isEnvironmentAdmin) {
       throw new AppError('FORBIDDEN', 'Chỉ quản trị viên mới có quyền truy cập', 403);
     }
-    const userId = user?.role === 'ADMIN' ? String(user._id) : 'environment-admin';
+    const auditActorId = user?.role === 'ADMIN' ? String(user._id) : null;
+    const rateLimitActor = auditActorId ?? 'environment-admin';
 
     const rate = await checkRateLimit({
-      key: `rl:resolve-review-report:${userId}`,
+      key: `rl:resolve-review-report:${rateLimitActor}`,
       limit: 60,
       windowSeconds: 60,
     });
     if (rate.limited) {
-      throw new AppError('RATE_LIMITED', 'Bạn đang xử lý report quá nhanh. Vui lòng thử lại sau.', 429);
+      throw new AppError('RATE_LIMITED', 'Bạn đang xử lý báo cáo quá nhanh. Vui lòng thử lại sau.', 429);
     }
 
     const { id } = await ctx.params;
@@ -45,22 +46,29 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx): Promise<Respon
     const db = await getDb();
     const report = (await db.reviewReports.findById(id)) as ReviewReport | null;
     if (!report) {
-      throw new AppError('NOT_FOUND', 'Không tìm thấy report đánh giá', 404);
+      throw new AppError('NOT_FOUND', 'Không tìm thấy báo cáo đánh giá', 404);
     }
     if (report.status !== 'pending') {
-      throw new AppError('CONFLICT', 'Report này đã được xử lý trước đó', 409);
+      throw new AppError('CONFLICT', 'Báo cáo này đã được xử lý trước đó', 409);
     }
 
-    await db.reviewReports.updateOne(id, { $set: { status: parsed.status } });
+    const updated = await db.reviewReports.findOneAndUpdate(
+      { _id: id, status: 'pending' },
+      { $set: { status: parsed.status } },
+    );
+    if (!updated) {
+      throw new AppError('CONFLICT', 'Báo cáo này vừa được xử lý. Vui lòng tải lại thông tin', 409);
+    }
 
-    await createAuditLog(userId, 'RESOLVE_REVIEW_REPORT', 'REVIEW_REPORT', id, {
+    await createAuditLog(auditActorId, 'RESOLVE_REVIEW_REPORT', 'REVIEW_REPORT', id, {
       reviewId: String(report.reviewId),
       status: parsed.status,
+      actorType: auditActorId ? 'user-admin' : 'environment-admin',
     }).catch(() => {});
 
     return sendSuccess(
       { id, status: parsed.status },
-      parsed.status === 'resolved' ? 'Đã đánh dấu report là đã xử lý' : 'Đã bỏ qua report',
+      parsed.status === 'resolved' ? 'Đã ghi nhận báo cáo là đã xử lý' : 'Đã xác nhận nội dung không vi phạm',
     );
   } catch (error) {
     return handleApiError(error);

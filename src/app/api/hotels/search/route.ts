@@ -6,6 +6,7 @@ import { hotelSearchSchema } from '@/lib/validations/hotel';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { matchHotels, resolveHotelProvinceFilterKey } from '@/lib/hotel-matching';
 import { escapeRegex, normalizeVietnameseText } from '@/lib/string';
+import { haversineKm } from '@/lib/geo';
 
 const CACHE_TTL = 60 * 60;
 const DEFAULT_LIMIT = 20;
@@ -19,16 +20,6 @@ function shuffle<T>(items: T[]): T[] {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
-}
-
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const toRad = (deg: number): number => (deg * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 function toHotelResponse(hotel: Hotel, distanceKm: number | null = null) {
@@ -150,7 +141,15 @@ export async function GET(request: NextRequest): Promise<Response> {
       let items = ranked.map((hotel) => {
         const distance =
           hasOrigin && typeof hotel.lat === 'number' && typeof hotel.lng === 'number'
-            ? Math.round(haversineKm(parsed.lat as number, parsed.lng as number, hotel.lat, hotel.lng) * 10) / 10
+            ? Math.round(
+                haversineKm(
+                  parsed.lat as number,
+                  parsed.lng as number,
+                  hotel.lat,
+                  hotel.lng,
+                  EARTH_RADIUS_KM,
+                ) * 10,
+              ) / 10
             : null;
         return toHotelResponse(hotel, distance);
       });

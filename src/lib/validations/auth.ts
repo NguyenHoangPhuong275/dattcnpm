@@ -35,7 +35,6 @@ export const passwordChangeSchema = z
     path: ['confirmPassword'],
   });
 
-export const changePasswordSchema = passwordChangeSchema;
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Email không đúng định dạng').toLowerCase().trim(),

@@ -6,12 +6,13 @@ import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { toTripResponse } from '@/lib/trip-utils';
 import { getTripAccess } from '@/lib/trip-permission';
+import { seedTripItinerary } from '@/lib/trip-suggestions';
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const db = await getDb();
     const paginated = await db.trips.findPaginated(
       {
+        deletedAt: null,
         $or: [
           { userId },
           { collaborators: { $elemMatch: { userId, acceptedAt: { $type: 'date' } } } },
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -80,6 +82,13 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     const db = await getDb();
+    const initialPlace = parsed.initialPlaceId
+      ? await db.places.findById(parsed.initialPlaceId)
+      : null;
+    if (parsed.initialPlaceId && !initialPlace) {
+      throw new AppError('NOT_FOUND', 'Không tìm thấy địa điểm đã chọn', 404);
+    }
+
     const created = await db.trips.insertOne({
       userId,
       title: parsed.title,
@@ -91,6 +100,21 @@ export async function POST(request: NextRequest): Promise<Response> {
       isPublic: parsed.isPublic === true,
       metadata: null,
     });
+
+    try {
+      await seedTripItinerary({
+        db,
+        tripId: String(created._id),
+        destination: parsed.destination,
+        startDate,
+        endDate,
+        initialPlace,
+      });
+    } catch (error) {
+      await db.itineraryItems.deleteMany({ tripId: String(created._id) }).catch(() => 0);
+      await db.trips.deleteOne(String(created._id)).catch(() => false);
+      throw error;
+    }
 
     try {
       await createAuditLog(userId, 'CREATE_TRIP', 'TRIP', created._id, {

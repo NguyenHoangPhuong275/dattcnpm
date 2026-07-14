@@ -90,7 +90,7 @@ export default function HeroSlider({ paused = false }: HeroSliderProps) {
           LOTUS TRAVEL
         </h1>
         <p className="mt-4 max-w-2xl text-sm font-semibold text-white/90 drop-shadow-sm sm:text-base md:text-lg">
-          Tìm điểm đến, xem thời tiết và lưu lịch trình du lịch Việt Nam trong một luồng gọn gàng.
+          Khám phá điểm đến, theo dõi thời tiết và lên kế hoạch cho hành trình khắp Việt Nam.
         </p>
       </div>
     </section>

@@ -23,8 +23,8 @@ test.describe('Happy path smoke', () => {
     const login = await page.request.post('/api/auth/login', { data: { email, password } });
     expect(login.ok(), await login.text()).toBeTruthy();
 
-    const start = new Date().toISOString().slice(0, 10);
-    const end = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const start = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const end = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const tripRes = await page.request.post('/api/trips', {
       data: {
         title: 'E2E Trip',

@@ -6,6 +6,8 @@ import type {
   Place as PlainPlace,
   Hotel as PlainHotel,
   HotelReview as PlainHotelReview,
+  HotelBooking as PlainHotelBooking,
+  FlightBooking as PlainFlightBooking,
   ItineraryItem as PlainItineraryItem,
   FavoritePlace as PlainFavoritePlace,
   Review as PlainReview,
@@ -29,6 +31,8 @@ import {
   Place,
   Hotel,
   HotelReview,
+  HotelBooking,
+  FlightBooking,
   Review,
   ItineraryItem,
   FavoritePlace,
@@ -43,8 +47,8 @@ import {
   UserFollow,
   ReviewReport,
 } from './models';
-import { AuditLog } from './audit';
-import { createAllCollections } from './maintenance';
+import { AuditLog } from './models/audit-log.model';
+import { createMissingManagedCollections } from './managed-collections';
 
 export let isConnected = false;
 let collectionsEnsured = false;
@@ -92,7 +96,9 @@ async function connectWithRetry(uri: string): Promise<typeof mongoose> {
 
 async function ensureCollections(): Promise<void> {
   if (!collectionsEnsured) {
-    await createAllCollections();
+    const db = mongoose.connection.db;
+    if (!db) throw new Error('MongoDB connection is not ready');
+    await createMissingManagedCollections(db);
     collectionsEnsured = true;
   }
 }
@@ -141,6 +147,8 @@ export type AppDatabase = {
   places: ReturnType<typeof createCollection<PlainPlace>>;
   hotels: ReturnType<typeof createCollection<PlainHotel>>;
   hotelReviews: ReturnType<typeof createCollection<PlainHotelReview>>;
+  hotelBookings: ReturnType<typeof createCollection<PlainHotelBooking>>;
+  flightBookings: ReturnType<typeof createCollection<PlainFlightBooking>>;
   itineraryItems: ReturnType<typeof createCollection<PlainItineraryItem>>;
   favorites: ReturnType<typeof createCollection<PlainFavoritePlace>>;
   reviews: ReturnType<typeof createCollection<PlainReview>>;
@@ -169,6 +177,8 @@ export async function getDb(): Promise<AppDatabase> {
       places: createCollection<PlainPlace>(Place),
       hotels: createCollection<PlainHotel>(Hotel),
       hotelReviews: createCollection<PlainHotelReview>(HotelReview),
+      hotelBookings: createCollection<PlainHotelBooking>(HotelBooking),
+      flightBookings: createCollection<PlainFlightBooking>(FlightBooking),
       itineraryItems: createCollection<PlainItineraryItem>(ItineraryItem),
       favorites: createCollection<PlainFavoritePlace>(FavoritePlace),
       reviews: createCollection<PlainReview>(Review),

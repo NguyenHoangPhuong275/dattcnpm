@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getDb, type CollectionFilter, type Trip } from '@/lib/db';
+import { getDb, normalizePagination, type CollectionFilter, type Trip } from '@/lib/db';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { toTripResponse } from '@/lib/trip-utils';
@@ -22,11 +22,13 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const url = new URL(request.url);
     const searchParams = url.searchParams;
-    const page = Math.max(1, Number(searchParams.get('page') || 1));
-    const limit = Math.max(1, Math.min(100, Number(searchParams.get('limit') || 20)));
+    const { page, limit } = normalizePagination({
+      page: Number(searchParams.get('page')),
+      limit: Number(searchParams.get('limit')),
+    });
     const destination = searchParams.get('destination')?.trim() || '';
 
-    const filter: CollectionFilter = { isPublic: true };
+    const filter: CollectionFilter = { isPublic: true, deletedAt: null };
     if (destination) {
       filter.destination = { $regex: escapeRegex(destination), $options: 'i' };
     }

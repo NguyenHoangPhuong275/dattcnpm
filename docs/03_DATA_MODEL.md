@@ -2,11 +2,11 @@
 
 Đề tài: **Smart Travel Guide - Web hướng dẫn hỗ trợ du lịch**
 
-Ngày cập nhật: 2026-07-11 (đồng bộ với báo cáo `DATTCNPM_Smart_Travel_Guide.docx`)
+Ngày cập nhật: 2026-07-14
 
 ## 1. Định hướng thiết kế dữ liệu
 
-Hệ thống sử dụng MongoDB theo mô hình Document Store, truy cập qua Mongoose thông qua một entrypoint duy nhất `getDb()` (không import model Mongoose trực tiếp trong route). Dữ liệu có khả năng tăng nhanh hoặc mang tính quan hệ nhiều-nhiều được tách collection riêng, liên kết bằng ObjectId để tránh document `trips` quá lớn và để truy vấn linh hoạt hơn. Hệ thống hiện có **19 collection**.
+Hệ thống sử dụng MongoDB theo mô hình Document Store, truy cập qua Mongoose thông qua một entrypoint duy nhất `getDb()` (không import model Mongoose trực tiếp trong route). Dữ liệu có khả năng tăng nhanh hoặc mang tính quan hệ nhiều-nhiều được tách collection riêng, liên kết bằng ObjectId để tránh document `trips` quá lớn và để truy vấn linh hoạt hơn. Hệ thống hiện có **21 collection**.
 
 ## 2. Bảng tổng quát cơ sở dữ liệu
 
@@ -33,6 +33,8 @@ Mỗi collection tương đương một bảng dữ liệu, liên kết với nh
 | 17 | trip_accommodations | _id | tripId → trips; hotelId → hotels | Nơi lưu trú của chuyến đi |
 | 18 | trip_checklists | _id | tripId → trips | Việc cần chuẩn bị cho chuyến đi |
 | 19 | user_follows | _id | followerId, followingId → users | Quan hệ theo dõi giữa người dùng |
+| 20 | hotel_bookings | _id | hotelId → hotels; userId → users | Đặt phòng khách sạn và trạng thái thanh toán nội bộ |
+| 21 | flight_bookings | _id | userId → users | Đặt vé máy bay; chiều đi/chiều về được lưu dạng subdocument |
 
 ## 3. Trường dữ liệu chính của từng collection
 
@@ -57,6 +59,8 @@ Mỗi collection tương đương một bảng dữ liệu, liên kết với nh
 | trip_accommodations | _id, tripId, hotelId, placeId, name, address, checkIn, checkOut, bookingRef, cost, currency | Có thể liên kết khách sạn qua hotelId |
 | trip_checklists | _id, tripId, label, isDone, dueDate | unique {tripId, label} (collation vi) |
 | user_follows | _id, followerId, followingId, createdAt | Dự phòng mở rộng xã hội |
+| hotel_bookings | _id, hotelId, userId, roomCode, roomName, checkIn, checkOut, nights, guests, guestTitle, guestName, phone, contactEmail, note, pricePerNight, totalPrice, currency, status, paymentStatus, paidAt, confirmedAt, createdAt, updatedAt | Giá và tổng tiền được lưu tại thời điểm đặt; trạng thái booking tách khỏi trạng thái thanh toán |
+| flight_bookings | _id, userId, outbound, returnFlight, passengers, passengerNames, contactName, phone, contactEmail, note, totalPrice, currency, status, paymentStatus, paidAt, confirmedAt, createdAt, updatedAt | `outbound`/`returnFlight` lưu snapshot lịch bay gồm scheduleId, số hiệu, hãng, chặng, ngày/giờ, thời lượng và giá mỗi hành khách |
 
 ## 4. Chỉ mục MongoDB
 
@@ -77,6 +81,8 @@ Mỗi collection tương đương một bảng dữ liệu, liên kết với nh
 | trip_accommodations | { tripId: 1, checkIn: 1 } | Sắp xếp chỗ ở theo thời gian nhận phòng |
 | trip_checklists | { tripId: 1, label: 1 } unique, collation vi | Chống trùng nhãn khác hoa/thường hoặc NFC/NFD |
 | audit_logs | { createdAt: -1 } | Xem log mới nhất |
+| hotel_bookings | { userId: 1, createdAt: -1 }, { hotelId: 1, createdAt: -1 } | Lấy lịch sử đặt phòng của người dùng hoặc theo khách sạn |
+| flight_bookings | { userId: 1, createdAt: -1 }, { outbound.flightDate: 1, status: 1 } | Lấy lịch sử đặt vé và lọc chuyến đi theo ngày/trạng thái |
 
 ## 5. Kiến trúc Redis
 

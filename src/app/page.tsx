@@ -17,7 +17,6 @@ import { useAuthModal } from '@/hooks/useAuthModal';
 import { useToast } from '@/hooks/useToast';
 import { useHomepageTripActions } from '@/hooks/useHomepageTripActions';
 import AddToTripModal from '@/components/trips/AddToTripModal';
-import { apiRequest, ensureApiSuccess, type ApiEnvelope } from '@/lib/api-client';
 import type { SearchResult } from '@/hooks/usePlaceSearch';
 import type { BasicUser } from '@/types/profile';
 
@@ -58,6 +57,7 @@ function HomePageContent(): React.JSX.Element {
     selectedPlace: search.selectedPlace,
     onMissingPlace: handleMissingPlace,
   });
+  const { createTripFromPlace, createTripFromSelectedPlace } = tripActions;
 
   useEffect(() => {
     if (tripActions.tripActionStatus === 'error' && tripActions.tripActionMessage) {
@@ -70,8 +70,6 @@ function HomePageContent(): React.JSX.Element {
 
   const [addToTripOpen, setAddToTripOpen] = useState(false);
   const [addToTripPlace, setAddToTripPlace] = useState<SearchResult | null>(null);
-  const [favoriteSaving, setFavoriteSaving] = useState(false);
-  const [reviewSaving, setReviewSaving] = useState(false);
 
   const handleOpenAddToTripModal = (place?: SearchResult): void => {
     const p = place || search.selectedPlace;
@@ -89,66 +87,13 @@ function HomePageContent(): React.JSX.Element {
     handleOpenAddToTripModal(place);
   };
 
-  const handleSaveFavorite = useCallback(async (place: SearchResult): Promise<void> => {
+  const handleCreateTripFromPlanner = useCallback((): void => {
     if (!user) {
       openAuth('login');
       return;
     }
-    if (favoriteSaving) return;
-
-    setFavoriteSaving(true);
-    try {
-      const { response, data } = await apiRequest<ApiEnvelope>('/api/favorites', {
-        method: 'POST',
-        userId: user.id,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          placeId: place._id,
-          name: place.name,
-          lat: place.lat,
-          lng: place.lng,
-          address: place.address || undefined,
-        }),
-      });
-
-      ensureApiSuccess(response, data, 'Không thể lưu địa điểm yêu thích');
-
-      showToast('Đã lưu địa điểm yêu thích', 'success');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Không thể lưu địa điểm yêu thích';
-      showToast(message, 'error');
-    } finally {
-      setFavoriteSaving(false);
-    }
-  }, [favoriteSaving, openAuth, showToast, user]);
-
-  const handleCreateReview = useCallback(async (payload: { placeId: string; rating: number; comment?: string }): Promise<void> => {
-    if (!user) {
-      openAuth('login');
-      return;
-    }
-    if (reviewSaving) return;
-
-    setReviewSaving(true);
-    try {
-      const { response, data } = await apiRequest<ApiEnvelope>('/api/reviews', {
-        method: 'POST',
-        userId: user.id,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      ensureApiSuccess(response, data, 'Không thể gửi đánh giá');
-
-      showToast('Đã gửi đánh giá', 'success');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Không thể gửi đánh giá';
-      showToast(message, 'error');
-      throw error;
-    } finally {
-      setReviewSaving(false);
-    }
-  }, [openAuth, reviewSaving, showToast, user]);
+    void createTripFromSelectedPlace();
+  }, [createTripFromSelectedPlace, openAuth, user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -169,16 +114,15 @@ function HomePageContent(): React.JSX.Element {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const lastProcessedQueryRef = useRef<string | null>(null);
+  const plannerQuery = searchParams.get('q');
+  const shouldAutoSelectPlannerQuery = searchParams.get('select') === '1';
 
   useEffect(() => {
-    const q = searchParams.get('q');
-    if (q && q !== lastProcessedQueryRef.current) {
-      lastProcessedQueryRef.current = q;
-      searchFor(q);
-      document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [searchParams, searchFor]);
+    if (!plannerQuery) return;
+
+    searchFor(plannerQuery, { autoSelect: shouldAutoSelectPlannerQuery });
+    document.getElementById('planner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [plannerQuery, searchFor, shouldAutoSelectPlannerQuery]);
 
   const submitHeaderSearch = (query: string): void => {
     searchFor(query);
@@ -208,7 +152,7 @@ function HomePageContent(): React.JSX.Element {
         onStartDateChange={tripActions.setStartDate}
         onEndDateChange={tripActions.setEndDate}
         onTravelerCountChange={tripActions.setTravelerCount}
-        onCreateTrip={tripActions.createTripFromSelectedPlace}
+        onCreateTrip={handleCreateTripFromPlanner}
         isCreating={tripActions.isTripActionLoading}
         isUserLoading={userLoading}
         destinationInputRef={destinationInputRef}
@@ -224,15 +168,9 @@ function HomePageContent(): React.JSX.Element {
             isLoggedIn={!!user}
             isTripsLoading={tripActions.isLoadingTrips}
             isTripActionLoading={tripActions.isTripActionLoading}
-            tripActionMessage={tripActions.tripActionMessage}
-            onAddToTrip={tripActions.addSelectedPlaceToTrip}
-            onCreateTripFromPlace={tripActions.createTripFromSelectedPlace}
+            onCreateTripFromPlace={createTripFromPlace}
             onLogin={() => openAuth('login')}
             onOpenAddToTripModal={handleOpenAddToTripModal}
-            onSaveFavorite={handleSaveFavorite}
-            favoriteSaving={favoriteSaving}
-            onCreateReview={handleCreateReview}
-            reviewSaving={reviewSaving}
           />
         </section>
       )}

@@ -1,23 +1,16 @@
 import { NextRequest } from 'next/server';
-import { getAvatar } from '@/lib/db';
 import { getAuthUserFull } from '@/lib/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
+import { resolveAvatarUrl } from '@/lib/avatar';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
 
-    let avatarUrl = user.avatarUrl || null;
-    if (avatarUrl?.startsWith('redis:avatar:')) {
-      try {
-        avatarUrl = await getAvatar(String(user._id));
-      } catch {
-        avatarUrl = null;
-      }
-    }
+    const avatarUrl = await resolveAvatarUrl(String(user._id), user.avatarUrl);
 
     const basicUser = {
       id: String(user._id),

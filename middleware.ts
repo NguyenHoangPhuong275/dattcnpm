@@ -37,8 +37,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  // Trang đăng nhập quản trị phải truy cập được khi chưa có phiên (nằm ngoài nhóm (panel)).
-  if (pathname === `${ROUTES.admin}/login`) {
+  if (pathname === ROUTES.adminLogin) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
@@ -63,7 +62,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   const url = request.nextUrl.clone();
   if (pathname.startsWith(ROUTES.admin)) {
-    url.pathname = `${ROUTES.admin}/login`;
+    url.pathname = ROUTES.adminLogin;
     url.search = '';
   } else {
     url.pathname = ROUTES.home;

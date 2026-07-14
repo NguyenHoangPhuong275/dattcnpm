@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import { formatMoney } from '@/lib/trip-utils';
 import { useToast } from '@/hooks/useToast';
@@ -32,6 +32,9 @@ const TYPE_OPTIONS: { value: 'planned' | 'actual'; label: string }[] = [
   { value: 'planned', label: 'Dự kiến' },
   { value: 'actual', label: 'Thực chi' },
 ];
+
+const BUDGET_FIELD_CLASS =
+  'w-full min-w-0 rounded-lg border border-[var(--color-border)] bg-white px-2 py-2 text-sm';
 
 interface BudgetDraft {
   category: string;
@@ -135,6 +138,7 @@ function resolveCurrency(items: BudgetItem[]): string {
 }
 
 export default function TripBudgetSummary({ tripId, userId, canEdit = true }: TripBudgetSummaryProps): React.JSX.Element {
+  const idPrefix = `trip-budget-${tripId}-${useId()}`;
   const [status, setStatus] = useState<Status>('idle');
   const [summary, setSummary] = useState<BudgetSummary>({ items: [], totalPlanned: 0, totalActual: 0 });
   const [errorMessage, setErrorMessage] = useState('');
@@ -272,6 +276,7 @@ export default function TripBudgetSummary({ tripId, userId, canEdit = true }: Tr
         <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-danger)]/20 bg-[var(--color-danger)]/5 px-3 py-2">
           <span className="text-sm text-[var(--color-danger)]">{errorMessage || 'Không thể tải ngân sách'}</span>
           <button
+            id={`${idPrefix}-retry`}
             type="button"
             onClick={load}
             className="shrink-0 text-xs font-semibold text-[var(--color-primary-darker)] hover:underline"
@@ -368,6 +373,7 @@ export default function TripBudgetSummary({ tripId, userId, canEdit = true }: Tr
                 </span>
                 {canEdit && (
                   <button
+                    id={`${idPrefix}-delete-${item.id}`}
                     type="button"
                     onClick={() => handleDelete(item.id)}
                     disabled={deletingId === item.id}
@@ -387,26 +393,29 @@ export default function TripBudgetSummary({ tripId, userId, canEdit = true }: Tr
           <div className="mb-2 text-xs font-semibold text-[var(--color-text-secondary)]">Thêm khoản chi</div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <select
+              id={`${idPrefix}-category`}
               aria-label="Danh mục"
               value={draft.category}
               onChange={(e) => setDraft((prev) => ({ ...prev, category: e.target.value }))}
-              className="rounded-lg border border-[var(--color-border)] bg-white px-2 py-2 text-sm"
+              className={`${BUDGET_FIELD_CLASS} app-select`}
             >
               {CATEGORY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
             <select
+              id={`${idPrefix}-type`}
               aria-label="Loại"
               value={draft.type}
               onChange={(e) => setDraft((prev) => ({ ...prev, type: e.target.value as 'planned' | 'actual' }))}
-              className="rounded-lg border border-[var(--color-border)] bg-white px-2 py-2 text-sm"
+              className={`${BUDGET_FIELD_CLASS} app-select`}
             >
               {TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
             <input
+              id={`${idPrefix}-amount`}
               type="number"
               min={0}
               inputMode="numeric"
@@ -414,26 +423,29 @@ export default function TripBudgetSummary({ tripId, userId, canEdit = true }: Tr
               onChange={(e) => setDraft((prev) => ({ ...prev, amount: e.target.value }))}
               placeholder="Số tiền"
               aria-label="Số tiền"
-              className="rounded-lg border border-[var(--color-border)] bg-white px-2 py-2 text-sm"
+              className={BUDGET_FIELD_CLASS}
             />
             <input
+              id={`${idPrefix}-currency`}
               type="text"
               value={draft.currency}
               onChange={(e) => setDraft((prev) => ({ ...prev, currency: e.target.value }))}
               placeholder="VND"
               aria-label="Tiền tệ"
-              className="rounded-lg border border-[var(--color-border)] bg-white px-2 py-2 text-sm"
+              className={BUDGET_FIELD_CLASS}
             />
             <input
+              id={`${idPrefix}-note`}
               type="text"
               value={draft.note}
               onChange={(e) => setDraft((prev) => ({ ...prev, note: e.target.value }))}
               placeholder="Ghi chú (tùy chọn)"
               aria-label="Ghi chú"
-              className="col-span-2 rounded-lg border border-[var(--color-border)] bg-white px-2 py-2 text-sm sm:col-span-4"
+              className={`${BUDGET_FIELD_CLASS} col-span-2 sm:col-span-4`}
             />
           </div>
           <button
+            id={`${idPrefix}-add`}
             type="button"
             onClick={handleAdd}
             disabled={saving}

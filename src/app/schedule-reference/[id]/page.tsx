@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
@@ -10,7 +10,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import ChangePlaceModal from '@/components/trips/ChangePlaceModal';
 import TripBudgetSummary from '@/components/trips/TripBudgetSummary';
 import TripAccommodationSection from '@/components/trips/TripAccommodationSection';
-import { CalendarIcon, ClockIcon, ListIcon, MapIcon, MapPinIcon, ShareIcon, TrashIcon, UsersIcon } from '@/components/icons';
+import { CalendarIcon, ClockIcon, ListIcon, MapPinIcon, ShareIcon, TrashIcon, UsersIcon } from '@/components/icons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFeedback } from '@/hooks/useFeedback';
 import { useToast } from '@/hooks/useToast';
@@ -65,19 +65,21 @@ interface DisplayPlace {
   name: string;
   address: string;
   image: string;
-  rating: string;
-  hours: string;
-  distance: string;
-  status: string;
-  tags: string[];
   mapQuery: string;
 }
 
-function formatTime(value?: string | null, fallback = '07:00'): string {
-  if (!value) return fallback;
+function formatTime(value?: string | null): string | null {
+  if (!value) return null;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return fallback;
+  if (Number.isNaN(date.getTime())) return null;
   return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatTimeRange(startTime?: string | null, endTime?: string | null): string | null {
+  const start = formatTime(startTime);
+  const end = formatTime(endTime);
+  if (start && end) return `${start} - ${end}`;
+  return start ?? end;
 }
 
 function displayName(item: ItineraryItem, trip: Trip, index: number): string {
@@ -97,18 +99,12 @@ function parseTravelerCount(description?: string): string | null {
 function buildPlace(item: ItineraryItem, trip: Trip, index: number): DisplayPlace {
   const name = displayName(item, trip, index);
   const image = getTripImage(trip);
-  const open = new Date().getHours() >= 7 && new Date().getHours() < 22;
 
   return {
     id: item._id,
     name,
     address: item.place?.address?.trim() || trip.destination || 'Việt Nam',
     image,
-    rating: '10 Tuyệt vời',
-    hours: '07:00 - 22:00',
-    distance: `${(2 + index * 0.4).toFixed(1)} km tới trung tâm`,
-    status: open ? 'Đang mở cửa' : 'Đang đóng cửa',
-    tags: ['tham quan', 'địa phương'],
     mapQuery: `${name}, ${trip.destination}`,
   };
 }
@@ -201,7 +197,10 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   const selectedPlace = selectedItem && trip ? buildPlace(selectedItem, trip, Math.max(0, selectedIndex)) : null;
   const duration = getDuration(trip?.startDate, trip?.endDate);
   const travelerLabel = parseTravelerCount(trip?.description);
-  const totalCost = items.reduce((total, item) => total + (Number(item.cost) || 0), 0);
+  const costItems = items.flatMap((item, index) => (
+    typeof item.cost === 'number' && Number.isFinite(item.cost) ? [{ item, index }] : []
+  ));
+  const totalCost = costItems.reduce((total, entry) => total + Number(entry.item.cost), 0);
 
   const handleDeleteTrip = async (): Promise<void> => {
     if (!tripId || !user?.id || !isOwner) return;
@@ -264,7 +263,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
       <div className="flex min-h-dvh items-center justify-center p-6">
         <div className="text-center">
           <p className="mb-4 text-sm font-semibold text-red-600">{error || 'Không tìm thấy chuyến đi'}</p>
-          <Link href={ROUTES.profile} className="text-sm font-semibold text-[var(--color-primary-darker)] underline">Quay lại tài khoản</Link>
+          <Link id="schedule-reference-back-profile" href={ROUTES.profile} className="text-sm font-semibold text-[var(--color-primary-darker)] underline">Quay lại tài khoản</Link>
         </div>
       </div>
     );
@@ -273,7 +272,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
   return (
     <div className="min-h-dvh bg-slate-50 font-sans text-slate-900 print:min-h-0 print:bg-white">
       <div className="print:hidden">
-        <AppHeader active="profile" />
+        <AppHeader active="profile" showSearch={false} />
       </div>
 
       <main className="grid min-h-[calc(100dvh-72px)] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px] print:block print:min-h-0">
@@ -281,7 +280,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
           <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur lg:px-8 print:static print:border-0 print:px-0 print:py-2 print:backdrop-blur-none">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0">
-                <h1 className="font-display text-2xl font-extrabold text-slate-950">{trip.title || 'Chuyến đi Hà Nội'}</h1>
+                <h1 className="font-display text-2xl font-extrabold text-slate-950">{trip.title || 'Chuyến đi'}</h1>
                 <div className="mt-2 flex flex-wrap gap-3 text-sm text-slate-600">
                   <span className="inline-flex items-center gap-1.5"><CalendarIcon className="h-4 w-4" />{duration.label}</span>
                   {travelerLabel && (
@@ -299,7 +298,7 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   type="button"
                   onClick={() => window.print()}
                   className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  title="Xuất PDF / In lịch trình (chọn 'Lưu thành PDF' trong hộp thoại in để lưu offline)"
+                  title="In hoặc lưu lịch trình dưới dạng PDF"
                   aria-label="Xuất PDF hoặc in lịch trình"
                 >
                   <ListIcon className="h-4 w-4" />
@@ -396,10 +395,12 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                           const globalIndex = items.findIndex((candidate) => candidate._id === item._id);
                           const place = buildPlace(item, trip, globalIndex >= 0 ? globalIndex : itemIndex);
                           const isSelected = selectedId === item._id;
+                          const timeLabel = formatTimeRange(item.startTime, item.endTime);
 
                           return (
                             <div
                               key={item._id}
+                              id={`schedule-itinerary-item-${item._id}`}
                               role="button"
                               tabIndex={0}
                               onClick={() => setSelectedId(item._id)}
@@ -419,22 +420,22 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                                     <span className="truncate">{place.address}</span>
                                   </div>
                                 </div>
-                                <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
-                                  <ClockIcon className="h-3.5 w-3.5" />
-                                  {formatTime(item.startTime, '07:00')} - {formatTime(item.endTime, '08:00')}
-                                </div>
+                                {timeLabel && (
+                                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
+                                    <ClockIcon className="h-3.5 w-3.5" />
+                                    {timeLabel}
+                                  </div>
+                                )}
                               </div>
 
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {place.tags.map((tag) => (
-                                  <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">#{tag}</span>
-                                ))}
-                              </div>
+                              {item.note?.trim() && item.place?.name && (
+                                <p className="mt-3 text-sm leading-6 text-slate-600">{item.note.trim()}</p>
+                              )}
 
-                              <div className="mt-4 flex flex-wrap gap-2 print:hidden">
-                                <span className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">Ghi chú</span>
-                                {canEdit && (
+                              {canEdit && (
+                                <div className="mt-4 flex flex-wrap gap-2 print:hidden">
                                   <button
+                                    id={`schedule-reference-change-place-${item._id}`}
                                     type="button"
                                     onClick={(event) => {
                                       event.stopPropagation();
@@ -444,8 +445,8 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                                   >
                                     Đổi địa điểm
                                   </button>
-                                )}
-                              </div>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -477,22 +478,22 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                   <div className="mb-1 flex items-center justify-between">
                     <div>
                       <h2 className="text-lg font-extrabold text-slate-955">Chi phí dự tính</h2>
-                      <p className="text-sm text-slate-500">{items.length} hạng mục trong lịch trình</p>
+                      <p className="text-sm text-slate-500">{costItems.length} khoản đã ghi nhận</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs font-bold uppercase text-slate-400">Tổng theo điểm dừng</div>
+                      <div className="text-xs font-bold uppercase text-slate-400">Tổng chi phí</div>
                       <div className="text-xl font-extrabold text-[var(--color-primary-dark)]">{formatMoney(totalCost)}</div>
                     </div>
                   </div>
 
                   <div className="divide-y divide-slate-100">
-                    {items.length > 0 ? items.map((item, index) => (
+                    {costItems.length > 0 ? costItems.map(({ item, index }) => (
                       <div key={item._id} className="flex items-center justify-between gap-4 py-3 text-sm">
                         <div>
                           <div className="font-bold text-slate-800">{displayName(item, trip, index)}</div>
                           <div className="text-xs text-slate-555">Ngày {item.day}</div>
                         </div>
-                        <div className="font-bold text-slate-900">{formatMoney(Number(item.cost) || 0)}</div>
+                        <div className="font-bold text-slate-900">{formatMoney(Number(item.cost))}</div>
                       </div>
                     )) : (
                       <div className="py-8 text-center text-sm font-semibold text-slate-500">Chưa có chi phí nào được ghi nhận.</div>
@@ -514,11 +515,12 @@ export default function ItineraryDetailPage(): React.JSX.Element {
                     <ul className="mt-2 space-y-2">
                       {dayItems.map((item, itemIndex) => {
                         const place = buildPlace(item, trip, itemIndex);
+                        const timeLabel = formatTimeRange(item.startTime, item.endTime);
                         return (
                           <li key={item._id} className="break-inside-avoid border-b border-slate-200 pb-2">
                             <div className="flex items-baseline justify-between gap-3">
                               <span className="font-bold text-slate-900">{place.name}</span>
-                              <span className="text-sm text-slate-700">{formatTime(item.startTime, '07:00')} - {formatTime(item.endTime, '08:00')}</span>
+                              {timeLabel && <span className="text-sm text-slate-700">{timeLabel}</span>}
                             </div>
                             <div className="text-sm text-slate-600">{place.address}</div>
                             {item.note ? <div className="text-sm text-slate-700">{item.note}</div> : null}
@@ -545,46 +547,35 @@ export default function ItineraryDetailPage(): React.JSX.Element {
           {selectedPlace ? (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
               <div className="relative aspect-[4/3] bg-slate-200">
-                <Image src={selectedPlace.image} alt={selectedPlace.name} fill sizes="430px" className="object-cover" />
-                <span className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-bold shadow-sm ${selectedPlace.status === 'Đang mở cửa' ? 'bg-emerald-50 text-emerald-707' : 'bg-slate-900/80 text-white'}`}>
-                  {selectedPlace.status}
-                </span>
+                <Image src={selectedPlace.image} alt={`Ảnh minh họa cho ${trip.title}`} fill sizes="430px" className="object-cover" />
               </div>
 
               <div className="space-y-5 p-5">
                 <div>
-                  <h2 className="text-xl font-extrabold text-slate-955">{selectedPlace.name}</h2>
-                  <div className="mt-1 text-sm font-bold text-emerald-707">{selectedPlace.rating}</div>
+                  <h2 className="text-xl font-extrabold text-slate-950">{selectedPlace.name}</h2>
                 </div>
 
                 <div className="space-y-3 text-sm text-slate-700">
                   <div className="flex gap-3">
-                    <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                    <span>Giờ mở cửa: {selectedPlace.hours}</span>
-                  </div>
-                  <div className="flex gap-3">
                     <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                     <span>{selectedPlace.address}</span>
-                  </div>
-                  <div className="flex gap-3">
-                    <MapIcon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                    <span>{selectedPlace.distance}</span>
                   </div>
                 </div>
 
                 <a
+                  id={`schedule-reference-map-${tripId}`}
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.mapQuery)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-dark)] px-4 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-darker)]"
                 >
-                  Mở Google Map
+                  Mở trong Google Maps
                 </a>
               </div>
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm font-semibold text-slate-500">
-              Chọn một địa điểm trên timeline để xem chi tiết.
+              Chọn một điểm dừng trong lịch trình để xem chi tiết.
             </div>
           )}
         </aside>

@@ -94,6 +94,71 @@ describe('Chức năng quản lý cộng tác viên chuyến đi', () => {
     expect(res.status).toBe(201);
   });
 
+  it('thêm đồng thời nhiều cộng tác viên không làm mất bản cập nhật', async () => {
+    const tripId = await createTrip(ownerId);
+    const responses = await Promise.all([
+      addPOST(
+        req(ownerId, 'POST', { email: editorEmail, permission: 'EDIT' }) as never,
+        ctx(tripId) as never,
+      ),
+      addPOST(
+        req(ownerId, 'POST', { email: readerEmail, permission: 'READ' }) as never,
+        ctx(tripId) as never,
+      ),
+    ]);
+    expect(responses.map((response) => response.status).sort()).toEqual([201, 201]);
+
+    const db = await getDb();
+    const trip = await db.trips.findById(tripId);
+    const collaboratorIds = (trip?.collaborators ?? []).map((collaborator) => String(collaborator.userId));
+    expect(collaboratorIds.sort()).toEqual([editorId, readerId].sort());
+  });
+
+  it('thêm đồng thời cùng một cộng tác viên không tạo dữ liệu trùng', async () => {
+    const tripId = await createTrip(ownerId);
+    const responses = await Promise.all([
+      addPOST(
+        req(ownerId, 'POST', { email: editorEmail, permission: 'EDIT' }) as never,
+        ctx(tripId) as never,
+      ),
+      addPOST(
+        req(ownerId, 'POST', { email: editorEmail, permission: 'EDIT' }) as never,
+        ctx(tripId) as never,
+      ),
+    ]);
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 201]);
+
+    const db = await getDb();
+    const trip = await db.trips.findById(tripId);
+    expect(trip?.collaborators ?? []).toHaveLength(1);
+    expect(String(trip?.collaborators?.[0].userId)).toBe(editorId);
+    expect(trip?.collaborators?.[0].permission).toBe('EDIT');
+  });
+
+  it('xóa đồng thời nhiều cộng tác viên không khôi phục dữ liệu cũ', async () => {
+    const tripId = await createTrip(ownerId);
+    await Promise.all([
+      addPOST(
+        req(ownerId, 'POST', { email: editorEmail, permission: 'EDIT' }) as never,
+        ctx(tripId) as never,
+      ),
+      addPOST(
+        req(ownerId, 'POST', { email: readerEmail, permission: 'READ' }) as never,
+        ctx(tripId) as never,
+      ),
+    ]);
+
+    const responses = await Promise.all([
+      removeDELETE(req(ownerId, 'DELETE') as never, ctx(tripId, editorId) as never),
+      removeDELETE(req(ownerId, 'DELETE') as never, ctx(tripId, readerId) as never),
+    ]);
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 200]);
+
+    const db = await getDb();
+    const trip = await db.trips.findById(tripId);
+    expect(trip?.collaborators ?? []).toHaveLength(0);
+  });
+
   it('collaborator EDIT thao tac ghi checklist thanh cong', async () => {
     const tripId = await createTrip(ownerId);
     await addPOST(req(ownerId, 'POST', { email: editorEmail, permission: 'EDIT' }) as never, ctx(tripId) as never);

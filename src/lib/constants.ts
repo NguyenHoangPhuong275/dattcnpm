@@ -2,11 +2,15 @@ export const ROUTES = {
   home: '/',
   trips: '/trips',
   hotels: '/hotels',
+  flights: '/flights',
+  places: '/places',
   travelReferences: '/travel-references',
   admin: '/admin',
+  adminLogin: '/admin/login',
   profile: '/profile',
   local: '/local',
   scheduleReference: '/schedule-reference',
+  destinations: '/destinations',
 } as const;
 
 export const ERROR_CODES = {

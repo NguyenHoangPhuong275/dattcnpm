@@ -6,27 +6,17 @@ import { objectIdSchema } from '@/lib/validations/common';
 import { createChecklistItemSchema, normalizeChecklistLabel } from '@/lib/validations/checklist';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { toChecklistResponse } from '@/lib/trip-formatters';
 
 type RouteCtx = {
   params: Promise<{ id: string }>;
 };
 
-function toChecklistResponse(item: TripChecklist) {
-  return {
-    id: String(item._id),
-    tripId: String(item.tripId),
-    title: item.label,
-    completed: item.isDone,
-    dueDate: item.dueDate ? new Date(item.dueDate).toISOString() : null,
-    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : null,
-  };
-}
-
 export async function GET(request: NextRequest, ctx: RouteCtx): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -49,7 +39,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx): Promise<Respons
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 

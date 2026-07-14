@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import AdminAlert from '@/components/admin/AdminAlert';
+import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import UserManagement, { type AdminUserItem } from '@/components/admin/UserManagement';
 import { useAdminWebhook } from '@/hooks/useAdminWebhook';
 import { getApiErrorMessage } from '@/lib/api-client';
@@ -46,7 +47,7 @@ export default function AdminUsersPage(): React.JSX.Element {
       setUsers(data.users || []);
       if (data.pagination) setPagination(data.pagination);
     } catch (error: unknown) {
-      triggerAlert(error instanceof Error ? error.message : 'Lỗi tải người dùng', 'error');
+      triggerAlert(error instanceof Error ? error.message : 'Không thể tải danh sách người dùng', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -61,24 +62,22 @@ export default function AdminUsersPage(): React.JSX.Element {
     setActionLoading(actionId);
     try {
       const { response, data } = await request<{ message?: string }>(event, payload);
-      if (!response.ok) throw new Error(getApiErrorMessage(data, 'Thao tác thất bại'));
-      triggerAlert(data.message || 'Thao tác thành công', 'success');
+      if (!response.ok) throw new Error(getApiErrorMessage(data, 'Không thể cập nhật tài khoản'));
+      triggerAlert(data.message || 'Đã cập nhật tài khoản', 'success');
       fetchUsers();
     } catch (err: unknown) {
-      triggerAlert(err instanceof Error ? err.message : 'Đã xảy ra lỗi', 'error');
+      triggerAlert(err instanceof Error ? err.message : 'Không thể hoàn tất yêu cầu', 'error');
     } finally {
       setActionLoading(null);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-extrabold text-[var(--color-text)]">Người dùng</h1>
-        <p className="mt-1 text-sm font-medium text-[var(--color-text-secondary)]">
-          Tìm kiếm, khóa/mở khóa, xóa tài khoản và xem hoạt động của từng người dùng
-        </p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Người dùng"
+        description="Tra cứu tài khoản, kiểm soát trạng thái truy cập và xem lại lịch sử hoạt động khi cần hỗ trợ."
+      />
 
       <AdminAlert alert={alert} />
 

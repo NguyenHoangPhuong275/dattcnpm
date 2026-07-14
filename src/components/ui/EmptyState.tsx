@@ -11,6 +11,7 @@ interface EmptyStateProps {
   actionHref?: string;
   onAction?: () => void;
   icon?: ReactNode;
+  idPrefix?: string;
 }
 
 export default function EmptyState({
@@ -20,7 +21,10 @@ export default function EmptyState({
   actionHref,
   onAction,
   icon,
+  idPrefix,
 }: EmptyStateProps): React.JSX.Element {
+  const generatedId = React.useId().replace(/:/g, '');
+  const actionId = `${idPrefix ?? `empty-state-${generatedId}`}-action`;
   const actionClassName = 'inline-flex items-center justify-center rounded-lg bg-[var(--color-primary-dark)] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--color-primary-darker)]';
 
   return (
@@ -29,12 +33,12 @@ export default function EmptyState({
       <p className="text-sm font-semibold text-[var(--color-text)]">{title}</p>
       {description && <p className="mx-auto mt-1 max-w-md text-sm text-[var(--color-text-muted)]">{description}</p>}
       {actionLabel && actionHref && (
-        <Link href={actionHref} className={`mt-4 ${actionClassName}`}>
+        <Link id={actionId} href={actionHref} className={`mt-4 ${actionClassName}`}>
           {actionLabel}
         </Link>
       )}
       {actionLabel && onAction && !actionHref && (
-        <button type="button" onClick={onAction} className={`mt-4 ${actionClassName}`}>
+        <button id={actionId} type="button" onClick={onAction} className={`mt-4 ${actionClassName}`}>
           {actionLabel}
         </button>
       )}

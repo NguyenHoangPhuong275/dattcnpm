@@ -12,9 +12,9 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
-  title: 'LOTUS TRAVEL — Khám phá & Lập lịch trình du lịch thông minh',
+  title: 'LOTUS TRAVEL — Khám phá và lên kế hoạch du lịch',
   description:
-    'Hệ thống tổng hợp địa điểm, thời tiết, và lên lịch trình du lịch thông minh tối ưu hóa hành trình của bạn.',
+    'Khám phá điểm đến, theo dõi thời tiết và lên kế hoạch cho hành trình Việt Nam.',
   icons: { icon: '/images/logo.svg' },
 };
 

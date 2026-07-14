@@ -53,6 +53,15 @@ describe('Integration Tests - Public Trips Discovery API', () => {
         isPublic: true,
         description: 'Ẩm thực đường phố',
       },
+      {
+        userId: userAId as any,
+        title: 'Hành trình công khai đã xóa',
+        destination: 'Huế',
+        startDate: new Date('2026-12-10'),
+        endDate: new Date('2026-12-12'),
+        isPublic: true,
+        deletedAt: new Date(),
+      },
     ]);
 
 
@@ -79,5 +88,15 @@ describe('Integration Tests - Public Trips Discovery API', () => {
     expect(bodyFilter.data.data).toHaveLength(1);
     expect(bodyFilter.data.data[0].destination).toBe('Ha Noi');
     expect(bodyFilter.data.data[0].title).toBe('Chuyến đi Hà Nội Mùa Thu');
+
+    const normalizedResponse = await publicTripsGET(
+      new Request('http://localhost/api/trips/public?page=invalid&limit=10000') as never,
+    );
+    expect(normalizedResponse.status).toBe(200);
+    const normalizedBody = await normalizedResponse.json();
+    expect(normalizedBody.data.pagination).toMatchObject({ page: 1, limit: 100 });
+    expect(normalizedBody.data.data.map((trip: { title: string }) => trip.title)).not.toContain(
+      'Hành trình công khai đã xóa',
+    );
   });
 });

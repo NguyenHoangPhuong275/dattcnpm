@@ -23,7 +23,7 @@ export default function FeaturedDestinations({ onSelect }: FeaturedDestinationsP
               type="button"
               key={item.title}
               onClick={() => onSelect(item.title)}
-              className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm text-left transition hover:-translate-y-1 hover:border-[var(--color-primary-dark)] hover:shadow-md cursor-pointer w-full focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm text-left transition hover:border-[var(--color-primary-dark)] hover:shadow-md cursor-pointer w-full focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               <div className="relative aspect-[4/3] w-full bg-slate-100">
                 <Image

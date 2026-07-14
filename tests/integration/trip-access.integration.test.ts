@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 
 import { GET as tripGET } from '@/app/api/trips/[id]/route';
 import { GET as tripsGET } from '@/app/api/trips/route';
+import { GET as publicTripsGET } from '@/app/api/trips/public/route';
 import {
   GET as accommodationGET,
   POST as accommodationPOST,
@@ -9,7 +10,7 @@ import {
 import { GET as budgetGET, POST as budgetPOST } from '@/app/api/trips/[id]/budget/route';
 import { GET as checklistGET, POST as checklistPOST } from '@/app/api/trips/[id]/checklist/route';
 import { GET as itineraryGET } from '@/app/api/trips/[id]/itinerary/route';
-import { disconnectMongo, getDb } from '@/lib/db';
+import { disconnectMongo, findOwnedTrip, getDb } from '@/lib/db';
 
 const OWNER = '507f1f77bcf86cd799439701';
 const STRANGER = '507f1f77bcf86cd799439702';
@@ -205,6 +206,36 @@ describe('Trip access isolation', () => {
     expect(editorTrips.find((trip) => trip._id === tripId)?.access).toBe('EDIT');
     expect(pendingTrips.map((trip) => trip._id)).not.toContain(tripId);
     expect(strangerTrips.map((trip) => trip._id)).not.toContain(tripId);
+  });
+
+  it('loại hành trình đã xóa mềm khỏi danh sách, chi tiết và helper chủ sở hữu', async () => {
+    const db = await getDb();
+    await db.trips.updateOne(tripId, { $set: { deletedAt: new Date() } });
+
+    expect(await findOwnedTrip(tripId, OWNER)).toBeNull();
+    expect((await listedTrips(OWNER)).map((trip) => trip._id)).not.toContain(tripId);
+    expect((await listedTrips(READER)).map((trip) => trip._id)).not.toContain(tripId);
+
+    const detailResponse = await tripGET(request(OWNER, '') as never, ctx(tripId) as never);
+    expect(detailResponse.status).toBe(404);
+
+    const publicResponse = await publicTripsGET(
+      new Request('http://localhost/api/trips/public?page=1&limit=100') as never,
+    );
+    expect(publicResponse.status).toBe(200);
+    const publicBody = await publicResponse.json();
+    expect(publicBody.data.data.map((trip: { _id: string }) => trip._id)).not.toContain(tripId);
+  });
+
+  it('trả page và limit đã chuẩn hóa trong danh sách hành trình riêng', async () => {
+    const response = await tripsGET(
+      new Request('http://localhost/api/trips?page=invalid&limit=10000', {
+        headers: { 'x-user-id': OWNER },
+      }) as never,
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data.pagination).toMatchObject({ page: 1, limit: 100 });
   });
 
   it('does not grant private access to a pending collaborator', async () => {

@@ -40,19 +40,21 @@ export default function CreateTripModal({
   onIsPublicChange,
   onCreate,
 }: CreateTripModalProps): React.JSX.Element | null {
+  const idPrefix = `create-trip-${React.useId()}`;
+
   if (!open) return null;
 
   const hasDateError = Boolean(startDate && endDate && endDate < startDate);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="create-trip-title">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby={`${idPrefix}-title`}>
       <div className="w-full max-w-md rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-        <h3 id="create-trip-title" className="mb-4 text-lg font-semibold">Tạo chuyến đi mới</h3>
+        <h3 id={`${idPrefix}-title`} className="mb-4 text-lg font-semibold">Tạo chuyến đi mới</h3>
         <div className="space-y-4">
           <div>
-            <label htmlFor="trip-title" className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Tiêu đề</label>
+            <label htmlFor={`${idPrefix}-trip-title`} className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Tiêu đề</label>
             <input
-              id="trip-title"
+              id={`${idPrefix}-trip-title`}
               type="text"
               value={title}
               onChange={(event) => onTitleChange(event.target.value)}
@@ -61,9 +63,9 @@ export default function CreateTripModal({
             />
           </div>
           <div>
-            <label htmlFor="trip-destination" className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Điểm đến</label>
+            <label htmlFor={`${idPrefix}-trip-destination`} className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Điểm đến</label>
             <input
-              id="trip-destination"
+              id={`${idPrefix}-trip-destination`}
               type="text"
               value={destination}
               onChange={(event) => onDestChange(event.target.value)}
@@ -73,9 +75,9 @@ export default function CreateTripModal({
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="trip-start-date" className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Ngày đi</label>
+              <label htmlFor={`${idPrefix}-trip-start-date`} className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Ngày đi</label>
               <input
-                id="trip-start-date"
+                id={`${idPrefix}-trip-start-date`}
                 type="date"
                 value={startDate}
                 max={endDate || undefined}
@@ -84,28 +86,28 @@ export default function CreateTripModal({
               />
             </div>
             <div>
-              <label htmlFor="trip-end-date" className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Ngày về</label>
+              <label htmlFor={`${idPrefix}-trip-end-date`} className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Ngày về</label>
               <input
-                id="trip-end-date"
+                id={`${idPrefix}-trip-end-date`}
                 type="date"
                 value={endDate}
                 min={startDate || undefined}
                 onChange={(event) => onEndDateChange(event.target.value)}
                 className="w-full rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
                 aria-invalid={hasDateError}
-                aria-describedby={hasDateError ? 'trip-date-error' : undefined}
+                aria-describedby={hasDateError ? `${idPrefix}-trip-date-error` : undefined}
               />
             </div>
           </div>
           {hasDateError && (
-            <p id="trip-date-error" className="text-sm font-medium text-[var(--color-danger)]" role="alert">
+            <p id={`${idPrefix}-trip-date-error`} className="text-sm font-medium text-[var(--color-danger)]" role="alert">
               Ngày kết thúc phải sau ngày bắt đầu.
             </p>
           )}
           <div>
-            <label htmlFor="trip-description" className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Mô tả (tùy chọn)</label>
+            <label htmlFor={`${idPrefix}-trip-description`} className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Mô tả (tùy chọn)</label>
             <textarea
-              id="trip-description"
+              id={`${idPrefix}-trip-description`}
               value={description}
               onChange={(event) => onDescriptionChange(event.target.value)}
               className="w-full resize-none rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-dark)]/20"
@@ -115,6 +117,7 @@ export default function CreateTripModal({
           </div>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--color-text)]">
             <input
+              id={`${idPrefix}-trip-public`}
               type="checkbox"
               checked={isPublic}
               onChange={(event) => onIsPublicChange(event.target.checked)}
@@ -125,6 +128,7 @@ export default function CreateTripModal({
         </div>
         <div className="mt-6 flex gap-3">
           <button
+            id={`${idPrefix}-cancel`}
             type="button"
             onClick={onClose}
             className="flex-1 rounded-lg border border-[var(--color-border)] py-2 text-sm hover:bg-[var(--color-bg)]"
@@ -133,6 +137,7 @@ export default function CreateTripModal({
             Hủy
           </button>
           <button
+            id={`${idPrefix}-submit`}
             type="button"
             onClick={onCreate}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--color-primary-dark)] py-2 text-sm font-semibold text-white disabled:opacity-60"

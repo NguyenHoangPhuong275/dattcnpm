@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { updateUserProfile, type IUser, storeAvatar, getAvatar } from '@/lib/db';
+import { updateUserProfile, type IUser } from '@/lib/db';
 import { getAuthUserFull, invalidateUserCache } from '@/lib/auth';
+import { resolveAvatarUrl } from '@/lib/avatar';
 import { updateProfileSchema } from '@/lib/validations/profile';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -12,7 +13,25 @@ import {
 } from '@/lib/travel-preferences';
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
-const AVATAR_DATA_URL_RE = /^data:image\/(jpeg|png|webp|jpg);base64,([a-zA-Z0-9+/=]+)$/;
+const AVATAR_DATA_URL_RE = /^data:image\/(jpeg|png|webp|jpg);base64,([a-zA-Z0-9+/]+={0,2})$/;
+
+interface ProfileResponseSource {
+  _id: unknown;
+  email: string;
+  fullName: string;
+  phone?: string | null;
+  dateOfBirth?: unknown;
+  gender?: string | null;
+  nationality?: string | null;
+  preferredLanguage?: string | null;
+  homeCity?: string | null;
+  emergencyContact?: { name?: string | null; phone?: string | null } | null;
+  travelStyles?: string[];
+  budgetLevel?: string | null;
+  preferredDestinations?: string[];
+  interests?: string[];
+  createdAt?: unknown;
+}
 
 function toSafeDateString(value: unknown): string {
   return formatUtcDateOnly(value, '', () => {});
@@ -33,44 +52,37 @@ function validateAvatarDataUrl(value: string): void {
   }
 }
 
+function toProfileResponse(user: ProfileResponseSource, avatarUrl: string | null) {
+  return {
+    id: user._id,
+    email: user.email,
+    fullName: user.fullName,
+    avatarUrl,
+    phone: user.phone || '',
+    dateOfBirth: toSafeDateString(user.dateOfBirth),
+    gender: user.gender || '',
+    nationality: user.nationality || '',
+    preferredLanguage: user.preferredLanguage || '',
+    homeCity: user.homeCity || '',
+    emergencyContact: user.emergencyContact || { name: '', phone: '' },
+    travelStyles: normalizeTravelStyles(user.travelStyles),
+    budgetLevel: normalizeBudgetLevel(user.budgetLevel) || 'mid',
+    preferredDestinations: user.preferredDestinations || [],
+    interests: normalizeTravelInterests(user.interests),
+    createdAt: toSafeDateString(user.createdAt),
+  };
+}
+
 export async function GET(request: NextRequest): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
-    const userId = String(user._id);
 
-    let avatarUrl: string | null = null;
-    try {
-      avatarUrl = await getAvatar(userId);
-      if (!avatarUrl && user.avatarUrl && user.avatarUrl.startsWith('data:')) {
-        await storeAvatar(userId, user.avatarUrl);
-        avatarUrl = user.avatarUrl;
-      }
-    } catch {
-      avatarUrl = user.avatarUrl || null;
-    }
-    const profile = {
-      id: user._id,
-      email: user.email,
-      fullName: user.fullName,
-      avatarUrl: avatarUrl || user.avatarUrl || null,
-      phone: user.phone || '',
-      dateOfBirth: toSafeDateString(user.dateOfBirth),
-      gender: user.gender || '',
-      nationality: user.nationality || '',
-      preferredLanguage: user.preferredLanguage || '',
-      homeCity: user.homeCity || '',
-      emergencyContact: user.emergencyContact || { name: '', phone: '' },
-      travelStyles: normalizeTravelStyles(user.travelStyles),
-      budgetLevel: normalizeBudgetLevel(user.budgetLevel) || 'mid',
-      preferredDestinations: user.preferredDestinations || [],
-      interests: normalizeTravelInterests(user.interests),
-      createdAt: toSafeDateString(user.createdAt),
-    };
+    const avatarUrl = await resolveAvatarUrl(String(user._id), user.avatarUrl);
 
-    return sendSuccess({ profile });
+    return sendSuccess({ profile: toProfileResponse(user, avatarUrl) });
   } catch (error) {
     return handleApiError(error);
   }
@@ -80,7 +92,7 @@ export async function PATCH(request: NextRequest): Promise<Response> {
   try {
     const user = await getAuthUserFull(request);
     if (!user) {
-      throw new AppError('UNAUTHORIZED', 'Missing authorization credentials or user is locked', 401);
+      throw new AppError('UNAUTHORIZED', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa', 401);
     }
     const userId = String(user._id);
 
@@ -115,12 +127,11 @@ export async function PATCH(request: NextRequest): Promise<Response> {
     if (parsed.emergencyContact !== undefined) updates.emergencyContact = parsed.emergencyContact;
 
     if (parsed.avatarUrl !== undefined) {
-      if (parsed.avatarUrl && typeof parsed.avatarUrl === 'string' && parsed.avatarUrl.startsWith('data:')) {
-        validateAvatarDataUrl(parsed.avatarUrl);
-        try {
-          await storeAvatar(userId, parsed.avatarUrl);
-          updates.avatarUrl = `redis:avatar:${userId}`;
-        } catch {
+      if (parsed.avatarUrl) {
+        if (parsed.avatarUrl.startsWith('data:')) {
+          validateAvatarDataUrl(parsed.avatarUrl);
+          updates.avatarUrl = parsed.avatarUrl;
+        } else {
           updates.avatarUrl = parsed.avatarUrl;
         }
       } else {
@@ -144,32 +155,10 @@ export async function PATCH(request: NextRequest): Promise<Response> {
 
     await invalidateUserCache(userId);
 
-    let resolvedAvatar = updated.avatarUrl;
-    if (updated.avatarUrl && updated.avatarUrl.startsWith('redis:avatar:')) {
-      try {
-        const fromRedis = await getAvatar(userId);
-        if (fromRedis) resolvedAvatar = fromRedis;
-      } catch {}
-    }
+    const resolvedAvatar = await resolveAvatarUrl(userId, updated.avatarUrl);
 
     return sendSuccess({
-      profile: {
-        id: updated._id,
-        email: updated.email,
-        fullName: updated.fullName,
-        avatarUrl: resolvedAvatar || null,
-        phone: updated.phone || '',
-        dateOfBirth: toSafeDateString(updated.dateOfBirth),
-        gender: updated.gender || '',
-        nationality: updated.nationality || '',
-        preferredLanguage: updated.preferredLanguage || '',
-        homeCity: updated.homeCity || '',
-        emergencyContact: updated.emergencyContact || { name: '', phone: '' },
-        travelStyles: normalizeTravelStyles(updated.travelStyles),
-        budgetLevel: normalizeBudgetLevel(updated.budgetLevel) || 'mid',
-        preferredDestinations: updated.preferredDestinations || [],
-        interests: normalizeTravelInterests(updated.interests),
-      }
+      profile: toProfileResponse(updated, resolvedAvatar),
     });
   } catch (error) {
     return handleApiError(error);

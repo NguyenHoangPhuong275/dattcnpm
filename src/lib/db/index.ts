@@ -4,6 +4,8 @@ import type {
   Place as PlaceType,
   Hotel as HotelType,
   HotelReview as HotelReviewType,
+  HotelBooking as HotelBookingType,
+  FlightBooking as FlightBookingType,
   Review as ReviewType,
   ItineraryItem as ItineraryItemType,
   FavoritePlace as FavoritePlaceType,
@@ -26,6 +28,8 @@ import {
   Place as PlaceModel,
   Hotel as HotelModel,
   HotelReview as HotelReviewModel,
+  HotelBooking as HotelBookingModel,
+  FlightBooking as FlightBookingModel,
   Review as ReviewModel,
   ItineraryItem as ItineraryItemModel,
   FavoritePlace as FavoritePlaceModel,
@@ -57,6 +61,12 @@ const Hotel = HotelModel;
 
 type HotelReview = HotelReviewType;
 const HotelReview = HotelReviewModel;
+
+type HotelBooking = HotelBookingType;
+const HotelBooking = HotelBookingModel;
+
+type FlightBooking = FlightBookingType;
+const FlightBooking = FlightBookingModel;
 
 type Review = ReviewType;
 const Review = ReviewModel;
@@ -106,6 +116,8 @@ export {
   Place,
   Hotel,
   HotelReview,
+  HotelBooking,
+  FlightBooking,
   Review,
   ItineraryItem,
   FavoritePlace,
@@ -126,18 +138,8 @@ export type {
   MongoId,
   TripCollaborator,
   WeatherAlertThresholds,
-  PlaceTag,
-  ItineraryTransport,
-  CachedGeoResult,
-  CachedPOI,
-  CachedWeather,
-  RateLimitEntry,
-  SessionData,
-  BlacklistEntry,
-  MongoDocument,
+  FlightBookingSegment,
 } from './schema';
-
-export { RedisKey } from './schema';
 
 export * from './connection';
 export * from './collections';

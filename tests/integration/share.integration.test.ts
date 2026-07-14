@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { getDb, disconnectMongo } from '@/lib/db';
 import { POST as sharePOST, DELETE as shareDELETE } from '@/app/api/trips/[id]/share/route';
 import { GET as sharedTripGET } from '@/app/api/share/[code]/route';
+import { loadSharedTrip } from '@/lib/shared-trip';
 
 const TEST_USER = '507f1f77bcf86cd799439021';
 
@@ -154,6 +155,9 @@ describe('Integration: Trip share code + revoke all', () => {
 
     expect(response.status).toBe(200);
     expect(body.data.items[0].place).toEqual({ name: 'Cầu Rồng', address: 'Đà Nẵng' });
+
+    const direct = await loadSharedTrip(code);
+    expect(direct.items[0].place).toEqual({ name: 'Cầu Rồng', address: 'Đà Nẵng' });
   });
 
   it('trả khách sạn và chi phí cho trang chia sẻ nhưng ẩn mã đặt phòng', async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { apiRequest, ensureApiSuccess, getApiErrorMessage } from '@/lib/api-client';
 import { useToast } from '@/hooks/useToast';
 import ChecklistProgressBar from '@/components/trips/ChecklistProgressBar';
@@ -27,6 +27,7 @@ interface TripChecklistSectionProps {
 }
 
 export default function TripChecklistSection({ tripId, userId, canEdit = true }: TripChecklistSectionProps): React.JSX.Element {
+  const idPrefix = `trip-checklist-${tripId}-${useId()}`;
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -42,14 +43,14 @@ export default function TripChecklistSection({ tripId, userId, canEdit = true }:
     try {
       const { response, data } = await apiRequest<ApiResponse<ChecklistItem[]>>(`/api/trips/${tripId}/checklist`, { userId });
       try {
-        ensureApiSuccess(response, data, 'Không thể tải checklist');
+        ensureApiSuccess(response, data, 'Không thể tải danh sách chuẩn bị');
       } catch {
-        showToast(getApiErrorMessage(data, 'Không thể tải checklist'), 'error');
+        showToast(getApiErrorMessage(data, 'Không thể tải danh sách chuẩn bị'), 'error');
         return;
       }
       setItems(Array.isArray(data.data) ? data.data : []);
     } catch {
-      showToast('Không thể tải checklist', 'error');
+      showToast('Không thể tải danh sách chuẩn bị', 'error');
     } finally {
       setLoading(false);
     }
@@ -174,6 +175,7 @@ export default function TripChecklistSection({ tripId, userId, canEdit = true }:
           {loading && <LoadingSpinner size="sm" className="text-[var(--color-primary-dark)]" />}
           {userId && canEdit && (
             <button
+              id={`${idPrefix}-template-toggle`}
               type="button"
               onClick={() => setShowTemplates((prev) => !prev)}
               aria-expanded={showTemplates}
@@ -193,6 +195,7 @@ export default function TripChecklistSection({ tripId, userId, canEdit = true }:
           <div className="flex flex-wrap gap-2">
             {CHECKLIST_TEMPLATES.map((template) => (
               <button
+                id={`${idPrefix}-template-${template.id}`}
                 key={template.id}
                 type="button"
                 onClick={() => handleApplyTemplate(template.id)}
@@ -216,6 +219,7 @@ export default function TripChecklistSection({ tripId, userId, canEdit = true }:
         {items.map((item) => (
           <div key={item.id} className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] px-3 py-2">
             <input
+              id={`${idPrefix}-item-${item.id}`}
               type="checkbox"
               checked={item.completed}
               disabled={!canEdit || busyId === item.id}
@@ -228,6 +232,7 @@ export default function TripChecklistSection({ tripId, userId, canEdit = true }:
             </span>
             {canEdit && (
               <button
+                id={`${idPrefix}-delete-${item.id}`}
                 type="button"
                 onClick={() => handleDelete(item)}
                 disabled={busyId === item.id}
@@ -246,6 +251,7 @@ export default function TripChecklistSection({ tripId, userId, canEdit = true }:
       {canEdit && (
         <div className="flex gap-2">
           <input
+            id={`${idPrefix}-new-item`}
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
@@ -256,6 +262,7 @@ export default function TripChecklistSection({ tripId, userId, canEdit = true }:
             className="flex-1 border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm bg-white"
           />
           <button
+            id={`${idPrefix}-add`}
             type="button"
             onClick={handleAdd}
             disabled={adding || !newTitle.trim()}

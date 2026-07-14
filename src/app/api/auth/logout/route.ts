@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { clearAuthCookies, getAuthUserId, invalidateUserCache, revokeAuthToken } from '@/lib/auth';
 import { sendSuccess, handleApiError } from '@/lib/api-response';
 
-export async function POST(request?: NextRequest) {
+export async function POST(request?: NextRequest): Promise<Response> {
   try {
     const userId = request ? await getAuthUserId(request) : null;
     if (request) {
@@ -12,7 +12,7 @@ export async function POST(request?: NextRequest) {
       await invalidateUserCache(userId);
     }
 
-    const response = sendSuccess({ message: 'Logged out' }, 'Logged out');
+    const response = sendSuccess({ message: 'Đăng xuất thành công' }, 'Đăng xuất thành công');
     clearAuthCookies(response);
     return response;
   } catch (error) {

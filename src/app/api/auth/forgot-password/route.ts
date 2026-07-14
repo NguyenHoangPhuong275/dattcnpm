@@ -1,27 +1,15 @@
 import { NextRequest } from 'next/server';
-import { randomInt } from 'node:crypto';
 import { getResend } from '@/lib/resend';
 import { getRedis, getDb, findUserByEmail, storeResetOtp } from '@/lib/db';
 import { forgotPasswordSchema } from '@/lib/validations/auth';
 import { sendSuccess, handleApiError, AppError } from '@/lib/api-response';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { escapeHtml } from '@/lib/html';
+import { generateOTP, maskEmail } from '@/lib/otp';
 
 const OTP_TTL_SECONDS = 600;
 const OTP_SEND_WINDOW_SECONDS = 900;
 const OTP_SEND_LIMIT = 3;
-const OTP_RANGE_EXCLUSIVE = 1_000_000;
-const OTP_LENGTH = 6;
-
-function generateOTP(): string {
-  return randomInt(0, OTP_RANGE_EXCLUSIVE).toString().padStart(OTP_LENGTH, '0');
-}
-
-function maskEmail(email: string): string {
-  const [name, domain] = email.split('@');
-  if (name.length <= 2) return `${name[0]}***@${domain}`;
-  return `${name[0]}${name[1]}${'*'.repeat(Math.min(name.length - 2, 6))}@${domain}`;
-}
 
 function buildResetEmailHTML(otp: string, fullName: string): string {
   const safeFullName = escapeHtml(fullName);
@@ -64,7 +52,7 @@ function buildResetEmailHTML(otp: string, fullName: string): string {
           </tr>
           <tr>
             <td style="padding:20px 40px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;">
-              <p style="margin:0;color:#94a3b8;font-size:12px;">© 2026 LOTUS TRAVEL - Đồ án Thực tế CNPM</p>
+              <p style="margin:0;color:#94a3b8;font-size:12px;">© ${new Date().getFullYear()} LOTUS TRAVEL. Mọi quyền được bảo lưu.</p>
             </td>
           </tr>
         </table>
@@ -75,7 +63,7 @@ function buildResetEmailHTML(otp: string, fullName: string): string {
 </html>`;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const body = await request.json().catch(() => ({}));
     const parsed = forgotPasswordSchema.parse(body);

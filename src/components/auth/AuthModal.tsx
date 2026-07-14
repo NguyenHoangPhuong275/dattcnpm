@@ -37,6 +37,9 @@ export default function AuthModal({
       />
 
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
         className={`auth-slide relative z-10 flex h-[580px] w-full max-w-[850px] flex-col overflow-hidden rounded-[24px] border border-slate-100 bg-white shadow-2xl md:h-[620px] md:flex-row ${isClosing ? 'closing' : ''}`}
       >
         <div className="relative h-48 w-full flex-shrink-0 overflow-hidden bg-slate-100 md:h-full md:w-[48%]">
@@ -61,7 +64,7 @@ export default function AuthModal({
           </button>
 
           <div className="flex h-full flex-1 flex-col justify-between">
-            <h2 className="mb-6 flex-shrink-0 text-center text-2xl font-extrabold text-slate-900">
+            <h2 id="auth-modal-title" className="mb-6 flex-shrink-0 text-center text-2xl font-extrabold text-slate-900">
               {authMode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
             </h2>
 

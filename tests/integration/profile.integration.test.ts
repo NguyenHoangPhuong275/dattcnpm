@@ -78,6 +78,7 @@ describe('Integration: Profile with mocked DB helpers', () => {
     const json = await res.json();
     expect(res.status).toBe(200);
     expect(json.data.profile.phone).toBe('+84901234567');
+    expect(json.data.profile.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('PATCH số điện thoại sai định dạng → 400', async () => {
