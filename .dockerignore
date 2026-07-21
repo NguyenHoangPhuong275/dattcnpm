@@ -1,0 +1,13 @@
+.git
+.github
+.next
+node_modules
+coverage
+playwright-report
+test-results
+.env*
+!.env.example
+docs
+e2e
+*.log
+*.docx

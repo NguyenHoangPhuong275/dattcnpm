@@ -132,7 +132,24 @@ function HotelAreaDirectory({ onSelect }: { onSelect: (name: string) => void }):
         </div>
       )}
 
-      {status === 'success' && (
+      {status === 'success' && areas.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-12 text-center">
+          <h1 className="text-xl font-extrabold text-[var(--color-text)]">Chưa có dữ liệu khách sạn</h1>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+            Dữ liệu khu vực chưa được nhập. Vui lòng thử lại sau.
+          </p>
+          <button
+            id={`${idPrefix}-empty-retry`}
+            type="button"
+            onClick={load}
+            className="mt-5 rounded-full bg-[var(--color-primary-darker)] px-5 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]"
+          >
+            Tải lại
+          </button>
+        </div>
+      )}
+
+      {status === 'success' && areas.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {areas.map((area) => (
             <HotelAreaCard key={area.province} area={area} onSelect={onSelect} />
